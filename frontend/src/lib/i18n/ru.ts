@@ -1,0 +1,243 @@
+export const ru = {
+  // Nav & Header
+  nav: {
+    catalog: "Каталог",
+    openMenu: "Открыть меню",
+    closeMenu: "Закрыть меню",
+    notifications: "Уведомления",
+    account: "Личный кабинет",
+    favorites: "Избранное",
+    cart: "Корзина",
+    myOrders: "Мои заказы",
+    search: "Каталог",
+  },
+
+  // Hero section
+  hero: {
+    title: "Velmora Kids",
+    subtitle: "Для кого подбираем стиль сегодня?",
+    forGirls: "Для девочек",
+    forBoys: "Для мальчиков",
+    changeChoice: "← Изменить выбор",
+  },
+
+  // Auth
+  auth: {
+    loginTitle: "Войдите в свой аккаунт",
+    email: "Email",
+    password: "Пароль",
+    enterPassword: "Введите пароль",
+    forgotPassword: "Забыли пароль?",
+    login: "Войти",
+    loggingIn: "Вход...",
+    or: "или",
+    noAccount: "Нет аккаунта?",
+    createAccount: "Создать аккаунт",
+    backToHome: "← Вернуться на главную",
+    invalidEmail: "Введите корректный email",
+    passwordMin: "Пароль должен содержать минимум 6 символов",
+    invalidCredentials: "Неверный email или пароль",
+    registerTitle: "Создать аккаунт",
+    registerSubtitle: "Зарегистрируйтесь для покупок",
+    firstName: "Имя",
+    lastName: "Фамилия",
+    phone: "Телефон",
+    confirmPassword: "Повторите пароль",
+    passwordMismatch: "Пароли не совпадают",
+    register: "Зарегистрироваться",
+    registering: "Регистрация...",
+    haveAccount: "Уже есть аккаунт?",
+    loginLink: "Войти",
+  },
+
+  // Cart
+  cart: {
+    title: "Корзина",
+    empty: "Ваша корзина пуста",
+    emptyDescription: "Добавьте товары в корзину, чтобы оформить заказ",
+    goToCatalog: "Перейти в каталог",
+    size: "Размер",
+    color: "Цвет",
+    removeItem: "Удалить товар",
+    decreaseQty: "Уменьшить количество",
+    increaseQty: "Увеличить количество",
+    subtotal: "Сумма товаров",
+    discount: "Скидка",
+    delivery: "Доставка",
+    free: "Бесплатно",
+    total: "Всего",
+    summary: "Итого",
+    checkout: "Оформить заказ",
+    promoCode: "Промокод",
+    promoPlaceholder: "Введите промокод",
+    apply: "Применить",
+    promoApplied: "Промокод применен",
+    promoRemove: "Убрать",
+    promoInvalid: "Промокод недействителен",
+    freeDeliveryHint: "Добавьте еще товаров на {amount} для бесплатной доставки",
+    item_one: "товар",
+    item_few: "товара",
+    item_many: "товаров",
+  },
+
+  // Catalog / Products
+  catalog: {
+    title: "Каталог",
+    allProducts: "Все товары",
+    filters: "Фильтры",
+    sortBy: "Сортировка",
+    newest: "Новинки",
+    priceAsc: "Цена: по возрастанию",
+    priceDesc: "Цена: по убыванию",
+    popular: "Популярные",
+    noResults: "Товары не найдены",
+    noResultsDesc: "Попробуйте изменить параметры фильтра",
+    resetFilters: "Сбросить фильтры",
+    showMore: "Показать ещё",
+    categories: "Категории",
+    brands: "Бренды",
+    sizes: "Размеры",
+    colors: "Цвета",
+    priceRange: "Цена",
+    gender: "Пол",
+    girls: "Для девочек",
+    boys: "Для мальчиков",
+    newborn: "Для новорожденных",
+    onSale: "Со скидкой",
+    inStock: "В наличии",
+    clearAll: "Сбросить все",
+    addToCart: "В корзину",
+    addedToCart: "В корзине",
+    quickView: "Быстрый просмотр",
+  },
+
+  // Product detail
+  product: {
+    description: "Описание",
+    characteristics: "Характеристики",
+    reviews: "Отзывы",
+    questions: "Вопросы",
+    selectSize: "Выберите размер",
+    selectColor: "Выберите цвет",
+    quantity: "Количество",
+    addToCart: "Добавить в корзину",
+    buyNow: "Купить сейчас",
+    addToFavorites: "В избранное",
+    removeFromFavorites: "Убрать из избранного",
+    inCart: "В корзине",
+    outOfStock: "Нет в наличии",
+    sku: "Артикул",
+    brand: "Бренд",
+    material: "Материал",
+    season: "Сезон",
+    noReviews: "Пока нет отзывов",
+    writeReview: "Написать отзыв",
+    noQuestions: "Вопросов пока нет",
+    askQuestion: "Задать вопрос",
+  },
+
+  // Account
+  account: {
+    title: "Личный кабинет",
+    profile: "Профиль",
+    orders: "Заказы",
+    favorites: "Избранное",
+    settings: "Настройки",
+    logout: "Выйти",
+    welcome: "Добро пожаловать",
+    editProfile: "Редактировать профиль",
+    save: "Сохранить",
+    noOrders: "У вас пока нет заказов",
+    noFavorites: "У вас пока нет избранных товаров",
+    goShopping: "Перейти к покупкам",
+    orderNumber: "Заказ №{id}",
+    orderDate: "Дата заказа",
+    orderStatus: "Статус",
+    orderTotal: "Сумма",
+  },
+
+  // Settings page
+  settings: {
+    title: "Настройки",
+    theme: "Оформление",
+    themeDescription: "Выберите тему оформления сайта",
+    light: "Светлая",
+    lightDesc: "Классическая тема",
+    dark: "Тёмная",
+    darkDesc: "Тёмное оформление",
+    language: "Язык",
+    languageDescription: "Выберите язык интерфейса",
+    russian: "Русский",
+    russianLang: "Русский язык",
+    uzbek: "O'zbek",
+    uzbekLang: "O'zbek tili",
+  },
+
+  // Footer
+  footer: {
+    stayUpdated: "Будьте в курсе новинок",
+    subscribeOffer: "Подпишитесь на рассылку и получите скидку 10% на первый заказ",
+    yourEmail: "Ваш email",
+    subscribe: "Подписаться",
+    thanksSubscribe: "Спасибо за подписку!",
+    aboutCompany: "О компании",
+    forCustomers: "Покупателям",
+    contacts: "Контакты",
+    socialMedia: "Мы в соцсетях",
+    footerAbout:
+      "Velmora Kids — премиальный бренд детской одежды. Мы создаём комфортную и стильную одежду для самых маленьких модников.",
+    allRightsReserved: "Все права защищены.",
+    workingHours: "Пн-Сб: 9:00 - 20:00",
+  },
+
+  // Notifications
+  notifications: {
+    title: "Уведомления",
+    empty: "Нет уведомлений",
+    markAllRead: "Прочитать все",
+    markRead: "Прочитать",
+  },
+
+  // Common
+  common: {
+    loading: "Загрузка...",
+    error: "Произошла ошибка",
+    retry: "Повторить",
+    cancel: "Отмена",
+    confirm: "Подтвердить",
+    delete: "Удалить",
+    edit: "Редактировать",
+    close: "Закрыть",
+    back: "Назад",
+    next: "Далее",
+    previous: "Назад",
+    viewAll: "Смотреть все",
+    new: "Новинка",
+    sale: "Скидка",
+  },
+
+  // Order statuses
+  orderStatus: {
+    pending: "Ожидает",
+    confirmed: "Подтвержден",
+    processing: "В обработке",
+    shipped: "Отправлен",
+    delivered: "Доставлен",
+    cancelled: "Отменён",
+    payment_pending: "Ожидает оплаты",
+    paid: "Оплачен",
+  },
+
+  // Promo banner
+  promo: {
+    seasonSale: "Сезонная распродажа",
+    discounts: "Скидки до 50% на избранные коллекции",
+    shopNow: "Купить сейчас",
+  },
+};
+
+type DeepStringify<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepStringify<T[K]>;
+};
+
+export type TranslationKeys = DeepStringify<typeof ru>;

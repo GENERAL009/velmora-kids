@@ -1,0 +1,245 @@
+from uuid import UUID
+from sqlalchemy import select, func, or_
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from app.models.product import Product, Category, Brand, Collection, Size, Color, ProductVariant, ProductImage, ProductStatus, Gender
+from app.models.content import Favorite
+from app.models.inventory import Inventory
+from slugify import slugify
+import uuid as uuid_mod
+
+
+async def get_categories_tree(db: AsyncSession) -> list:
+    """Get all active categories as a tree (only root-level, children are loaded via relationships)."""
+    result = await db.execute(
+        select(Category).where(Category.parent_id == None, Category.is_active == True).order_by(Category.sort_order)
+    )
+    return list(result.scalars().all())
+
+
+async def get_category_by_slug(db: AsyncSession, slug: str):
+    result = await db.execute(select(Category).where(Category.slug == slug))
+    return result.scalar_one_or_none()
+
+
+async def create_category(db: AsyncSession, data) -> Category:
+    cat = Category(
+        name=data.name,
+        name_uz=data.name_uz,
+        name_ru=data.name_ru,
+        name_en=data.name_en,
+        slug=data.slug or slugify(data.name),
+        description=data.description,
+        image=data.image,
+        parent_id=data.parent_id,
+        sort_order=data.sort_order or 0,
+        is_active=data.is_active if data.is_active is not None else True,
+    )
+    db.add(cat)
+    await db.flush()
+    await db.refresh(cat)
+    return cat
+
+
+async def get_products(db: AsyncSession, filters, user_id: UUID | None = None) -> dict:
+    """Get paginated product list with filters. Returns dict with items, total, page, pages."""
+    query = select(Product).where(Product.status == ProductStatus.ACTIVE)
+
+    # Apply filters
+    if hasattr(filters, 'category_id') and filters.category_id:
+        query = query.where(Product.category_id == filters.category_id)
+    if hasattr(filters, 'brand_id') and filters.brand_id:
+        query = query.where(Product.brand_id == filters.brand_id)
+    if hasattr(filters, 'collection_id') and filters.collection_id:
+        query = query.where(Product.collection_id == filters.collection_id)
+    if hasattr(filters, 'gender') and filters.gender:
+        query = query.where(Product.gender == filters.gender)
+    if hasattr(filters, 'min_price') and filters.min_price is not None:
+        query = query.where(Product.selling_price >= filters.min_price)
+    if hasattr(filters, 'max_price') and filters.max_price is not None:
+        query = query.where(Product.selling_price <= filters.max_price)
+    if hasattr(filters, 'is_on_sale') and filters.is_on_sale:
+        query = query.where(Product.discount_percent > 0)
+    if hasattr(filters, 'is_featured') and filters.is_featured:
+        query = query.where(Product.is_featured == True)
+    if hasattr(filters, 'is_new') and filters.is_new:
+        query = query.where(Product.is_new == True)
+    if hasattr(filters, 'is_bestseller') and filters.is_bestseller:
+        query = query.where(Product.is_bestseller == True)
+    if hasattr(filters, 'search') and filters.search:
+        search_term = f"%{filters.search}%"
+        query = query.where(
+            or_(
+                Product.name.ilike(search_term),
+                Product.sku.ilike(search_term),
+                Product.barcode.ilike(search_term),
+            )
+        )
+
+    # Count total
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    # Sorting
+    sort_by = getattr(filters, 'sort_by', 'newest') or 'newest'
+    if sort_by == 'price_asc':
+        query = query.order_by(Product.selling_price.asc())
+    elif sort_by == 'price_desc':
+        query = query.order_by(Product.selling_price.desc())
+    elif sort_by == 'popular':
+        query = query.order_by(Product.is_bestseller.desc(), Product.created_at.desc())
+    else:  # newest
+        query = query.order_by(Product.created_at.desc())
+
+    # Pagination
+    page = getattr(filters, 'page', 1) or 1
+    page_size = getattr(filters, 'page_size', 20) or 20
+    query = query.offset((page - 1) * page_size).limit(page_size)
+
+    # Load with relationships
+    query = query.options(
+        selectinload(Product.brand),
+        selectinload(Product.category),
+        selectinload(Product.images),
+        selectinload(Product.variants).selectinload(ProductVariant.size),
+        selectinload(Product.variants).selectinload(ProductVariant.color),
+    )
+
+    result = await db.execute(query)
+    products = list(result.scalars().unique().all())
+
+    import math
+    pages = math.ceil(total / page_size) if total > 0 else 1
+
+    return {"items": products, "total": total, "page": page, "pages": pages}
+
+
+async def get_product_by_slug(db: AsyncSession, slug: str):
+    query = select(Product).where(Product.slug == slug).options(
+        selectinload(Product.brand),
+        selectinload(Product.category),
+        selectinload(Product.collection),
+        selectinload(Product.images),
+        selectinload(Product.variants).selectinload(ProductVariant.size),
+        selectinload(Product.variants).selectinload(ProductVariant.color),
+        selectinload(Product.variants).selectinload(ProductVariant.inventory_items),
+    )
+    result = await db.execute(query)
+    return result.scalar_one_or_none()
+
+
+async def create_product(db: AsyncSession, data) -> Product:
+    slug = data.slug or slugify(data.name)
+    # Ensure unique slug
+    existing = await db.execute(select(Product).where(Product.slug == slug))
+    if existing.scalar_one_or_none():
+        slug = f"{slug}-{uuid_mod.uuid4().hex[:6]}"
+
+    sku = data.sku or f"VK-{uuid_mod.uuid4().hex[:8].upper()}"
+
+    product = Product(
+        name=data.name, name_uz=data.name_uz, name_ru=data.name_ru, name_en=data.name_en,
+        slug=slug, sku=sku, barcode=data.barcode,
+        description=data.description, description_uz=data.description_uz,
+        description_ru=data.description_ru, description_en=data.description_en,
+        short_description=data.short_description,
+        brand_id=data.brand_id, category_id=data.category_id, collection_id=data.collection_id,
+        gender=data.gender, age_min=data.age_min, age_max=data.age_max,
+        material=data.material,
+        purchase_price=data.purchase_price, selling_price=data.selling_price,
+        discount_percent=data.discount_percent or 0,
+        discount_price=data.discount_price,
+        seo_title=data.seo_title, seo_description=data.seo_description,
+        status=data.status or ProductStatus.DRAFT,
+        is_featured=data.is_featured or False,
+        is_bestseller=data.is_bestseller or False,
+        is_new=data.is_new if data.is_new is not None else True,
+    )
+    db.add(product)
+    await db.flush()
+
+    # Create variants
+    if hasattr(data, 'variants') and data.variants:
+        for v in data.variants:
+            variant = ProductVariant(
+                product_id=product.id,
+                size_id=v.size_id,
+                color_id=v.color_id,
+                sku=v.sku or f"{sku}-{uuid_mod.uuid4().hex[:4].upper()}",
+                barcode=v.barcode,
+                additional_price=v.additional_price or 0,
+            )
+            db.add(variant)
+
+    # Create images
+    if hasattr(data, 'images') and data.images:
+        for idx, img in enumerate(data.images):
+            image = ProductImage(
+                product_id=product.id,
+                url=img.url,
+                alt_text=img.alt_text,
+                sort_order=img.sort_order or idx,
+                is_primary=img.is_primary or (idx == 0),
+            )
+            db.add(image)
+
+    await db.flush()
+    await db.refresh(product)
+    return product
+
+
+async def update_product(db: AsyncSession, product_id: UUID, data) -> Product:
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
+    if not product:
+        return None
+
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if field not in ('variants', 'images'):
+            setattr(product, field, value)
+
+    await db.flush()
+    await db.refresh(product)
+    return product
+
+
+async def get_brands(db: AsyncSession) -> list:
+    result = await db.execute(select(Brand).where(Brand.is_active == True).order_by(Brand.name))
+    return list(result.scalars().all())
+
+
+async def create_brand(db: AsyncSession, data) -> Brand:
+    brand = Brand(name=data.name, slug=data.slug or slugify(data.name), logo=data.logo, description=data.description)
+    db.add(brand)
+    await db.flush()
+    await db.refresh(brand)
+    return brand
+
+
+async def get_sizes(db: AsyncSession) -> list:
+    result = await db.execute(select(Size).order_by(Size.sort_order))
+    return list(result.scalars().all())
+
+
+async def get_colors(db: AsyncSession) -> list:
+    result = await db.execute(select(Color).where(Color.is_active == True).order_by(Color.name))
+    return list(result.scalars().all())
+
+
+async def search_products(db: AsyncSession, query_str: str, limit: int = 10) -> list:
+    search_term = f"%{query_str}%"
+    query = select(Product).where(
+        Product.status == ProductStatus.ACTIVE,
+        or_(
+            Product.name.ilike(search_term),
+            Product.sku.ilike(search_term),
+            Product.barcode.ilike(search_term),
+        )
+    ).options(
+        selectinload(Product.brand),
+        selectinload(Product.images),
+    ).limit(limit)
+    result = await db.execute(query)
+    return list(result.scalars().unique().all())

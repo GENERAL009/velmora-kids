@@ -1,0 +1,387 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Save, Loader2, Globe, Phone, MapPin, Video, FileText,
+  Search as SearchIcon, CreditCard, Upload, Image as ImageIcon, X, Trash2,
+} from "lucide-react";
+import { apiGet, apiPut, apiPost } from "@/lib/api";
+import { cn } from "@/lib/utils";
+
+interface SiteSettings {
+  phone_primary: string;
+  phone_secondary: string;
+  email: string;
+  instagram_url: string;
+  telegram_url: string;
+  facebook_url: string;
+  tiktok_url: string;
+  address: string;
+  working_hours: string;
+  hero_video_url: string;
+  hero_video_poster: string;
+  logo_header: string;
+  logo_footer: string;
+  logo_favicon: string;
+  promo_banner_title: string;
+  promo_banner_subtitle: string;
+  footer_about: string;
+  meta_title: string;
+  meta_description: string;
+  payment_card_number: string;
+  payment_card_holder: string;
+  payment_card_bank: string;
+  payment_bank_name: string;
+  payment_bank_account: string;
+  payment_bank_mfo: string;
+  payment_bank_inn: string;
+}
+
+const TEXT_SECTIONS = [
+  {
+    title: "Контакты",
+    icon: Phone,
+    fields: [
+      { key: "phone_primary", label: "Основной телефон", placeholder: "+998 71 200 00 00" },
+      { key: "phone_secondary", label: "Дополнительный телефон", placeholder: "+998 90 000 00 00" },
+      { key: "email", label: "Email", placeholder: "info@velmora.uz" },
+      { key: "address", label: "Адрес", placeholder: "Ташкент, Узбекистан" },
+      { key: "working_hours", label: "Время работы", placeholder: "Пн-Пт: 09:00 - 18:00" },
+    ],
+  },
+  {
+    title: "Социальные сети",
+    icon: Globe,
+    fields: [
+      { key: "instagram_url", label: "Instagram", placeholder: "https://instagram.com/velmora.kids" },
+      { key: "telegram_url", label: "Telegram", placeholder: "https://t.me/velmorakids" },
+      { key: "facebook_url", label: "Facebook", placeholder: "https://facebook.com/velmorakids" },
+      { key: "tiktok_url", label: "TikTok", placeholder: "https://tiktok.com/@velmorakids" },
+    ],
+  },
+  {
+    title: "Промо баннер",
+    icon: MapPin,
+    fields: [
+      { key: "promo_banner_title", label: "Заголовок", placeholder: "Сезонная распродажа" },
+      { key: "promo_banner_subtitle", label: "Подзаголовок", placeholder: "Скидки до 50%..." },
+    ],
+  },
+  {
+    title: "Текстовый контент",
+    icon: FileText,
+    fields: [
+      { key: "footer_about", label: "О компании (футер)", placeholder: "Velmora Kids — ...", multiline: true },
+    ],
+  },
+  {
+    title: "Оплата — Карта",
+    icon: CreditCard,
+    fields: [
+      { key: "payment_card_number", label: "Номер карты", placeholder: "8600 1234 5678 9012" },
+      { key: "payment_card_holder", label: "Получатель", placeholder: "ABDULLOH RAHIMOV" },
+      { key: "payment_card_bank", label: "Банк/Система", placeholder: "Uzcard" },
+    ],
+  },
+  {
+    title: "SEO",
+    icon: SearchIcon,
+    fields: [
+      { key: "meta_title", label: "Meta Title", placeholder: "Velmora Kids — ..." },
+      { key: "meta_description", label: "Meta Description", placeholder: "Интернет-магазин...", multiline: true },
+    ],
+  },
+] as const;
+
+const UPLOAD_FIELDS = [
+  {
+    title: "Видео (Hero секция)",
+    icon: Video,
+    items: [
+      { key: "hero_video_url", label: "Фоновое видео", accept: "video/mp4,video/webm", type: "video" as const },
+      { key: "hero_video_poster", label: "Постер видео", accept: "image/*", type: "image" as const },
+    ],
+  },
+  {
+    title: "Логотипы",
+    icon: ImageIcon,
+    items: [
+      { key: "logo_header", label: "Логотип (шапка)", accept: "image/*", type: "image" as const },
+      { key: "logo_footer", label: "Логотип (футер)", accept: "image/*", type: "image" as const },
+      { key: "logo_favicon", label: "Favicon", accept: "image/*", type: "image" as const },
+    ],
+  },
+];
+
+function FileUploadCard({
+  field,
+  label,
+  accept,
+  type,
+  currentUrl,
+  onUploaded,
+}: {
+  field: string;
+  label: string;
+  accept: string;
+  type: "image" | "video";
+  currentUrl: string;
+  onUploaded: (field: string, url: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("field", field);
+      formData.append("file", file);
+      const res = await apiPost<{ field: string; url: string }>("/settings/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      onUploaded(field, res.url);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Ошибка загрузки";
+      setError(msg);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleClear = () => {
+    onUploaded(field, "");
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</label>
+
+      {currentUrl ? (
+        <div className="relative rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-800">
+          <div className="flex items-center gap-3">
+            {type === "image" ? (
+              <div className="relative h-16 w-24 overflow-hidden rounded-md bg-white dark:bg-neutral-700">
+                <img src={currentUrl} alt={label} className="h-full w-full object-contain" />
+              </div>
+            ) : (
+              <div className="flex h-16 w-24 items-center justify-center rounded-md bg-neutral-200 dark:bg-neutral-700">
+                <Video className="h-6 w-6 text-neutral-500" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{currentUrl}</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => inputRef.current?.click()}
+                className="rounded-md bg-primary-50 p-2 text-primary-600 transition-colors hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400"
+              >
+                <Upload className="h-4 w-4" />
+              </button>
+              <button
+                onClick={handleClear}
+                className="rounded-md bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-sm text-neutral-500 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-600 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:border-primary-600 dark:hover:bg-primary-900/20"
+        >
+          {uploading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Upload className="h-5 w-5" />
+          )}
+          {uploading ? "Загрузка..." : "Загрузить файл"}
+        </button>
+      )}
+
+      {error && <p className="text-xs text-red-500">{error}</p>}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleUpload(file);
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+export default function AdminSettingsPage() {
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    apiGet<SiteSettings>("/settings/site")
+      .then((data) => setSettings(data))
+      .catch(() => setMessage({ type: "error", text: "Не удалось загрузить настройки" }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    if (!settings) return;
+    setSaving(true);
+    setMessage(null);
+    try {
+      const updated = await apiPut<SiteSettings>("/settings/site", settings);
+      setSettings(updated);
+      setMessage({ type: "success", text: "Настройки сохранены" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch {
+      setMessage({ type: "error", text: "Ошибка при сохранении" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateField = (key: string, value: string) => {
+    setSettings((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+      </div>
+    );
+  }
+
+  if (!settings) {
+    return (
+      <div className="rounded-xl bg-red-50 p-6 text-center text-red-600 dark:bg-red-900/20 dark:text-red-400">
+        Не удалось загрузить настройки сайта
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Настройки сайта</h1>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Управление контактами, медиа, логотипами и текстовым контентом
+          </p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Сохранить
+        </button>
+      </div>
+
+      {message && (
+        <div
+          className={cn(
+            "rounded-lg px-4 py-3 text-sm font-medium",
+            message.type === "success"
+              ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+              : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+          )}
+        >
+          {message.text}
+        </div>
+      )}
+
+      {/* Upload sections */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {UPLOAD_FIELDS.map((section) => {
+          const Icon = section.icon;
+          return (
+            <div
+              key={section.title}
+              className="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                  <Icon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                </div>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">{section.title}</h2>
+              </div>
+              <div className="space-y-4">
+                {section.items.map((item) => (
+                  <FileUploadCard
+                    key={item.key}
+                    field={item.key}
+                    label={item.label}
+                    accept={item.accept}
+                    type={item.type}
+                    currentUrl={(settings as unknown as Record<string, string>)[item.key] || ""}
+                    onUploaded={updateField}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Text settings sections */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {TEXT_SECTIONS.map((section) => {
+          const Icon = section.icon;
+          return (
+            <div
+              key={section.title}
+              className="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                  <Icon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                </div>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">{section.title}</h2>
+              </div>
+
+              <div className="space-y-4">
+                {section.fields.map((field) => (
+                  <div key={field.key}>
+                    <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      {field.label}
+                    </label>
+                    {"multiline" in field && field.multiline ? (
+                      <textarea
+                        value={(settings as unknown as Record<string, string>)[field.key] || ""}
+                        onChange={(e) => updateField(field.key, e.target.value)}
+                        placeholder={field.placeholder}
+                        rows={3}
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={(settings as unknown as Record<string, string>)[field.key] || ""}
+                        onChange={(e) => updateField(field.key, e.target.value)}
+                        placeholder={field.placeholder}
+                        className="h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
