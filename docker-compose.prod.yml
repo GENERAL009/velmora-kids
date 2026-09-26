@@ -41,6 +41,13 @@ services:
       CORS_ORIGINS: '["https://velmora-kids.uz","https://www.velmora-kids.uz"]'
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_GROUP_ID: ${TELEGRAM_GROUP_ID}
+      TELEGRAM_ADMIN_IDS: ${TELEGRAM_ADMIN_IDS}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-Abdulloh}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-Admin}
+      ADMIN_PHONE: ${ADMIN_PHONE:-+998900000001}
     depends_on:
       postgres:
         condition: service_healthy
@@ -60,6 +67,8 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_GROUP_ID: ${TELEGRAM_GROUP_ID}
+      TELEGRAM_ADMIN_IDS: ${TELEGRAM_ADMIN_IDS}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL}
     depends_on:
       postgres:
         condition: service_healthy

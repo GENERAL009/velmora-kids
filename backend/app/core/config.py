@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     TELEGRAM_GROUP_ID: str = ""
     TELEGRAM_ADMIN_IDS: list[int] = [1566454370, 1519994286]
 
+    # Super Admin (auto-created on startup)
+    ADMIN_EMAIL: str = "abdulloh@velmora.uz"
+    ADMIN_PASSWORD: str = "a20662006b"
+    ADMIN_FIRST_NAME: str = "Abdulloh"
+    ADMIN_LAST_NAME: str = "Admin"
+    ADMIN_PHONE: str = "+998900000001"
+
     # Upload
     UPLOAD_DIR: str = "uploads"
 
