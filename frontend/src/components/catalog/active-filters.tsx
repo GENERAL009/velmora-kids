@@ -28,9 +28,8 @@ interface ActiveFiltersProps {
 }
 
 const genderLabels: Record<string, string> = {
-  girls: "Девочки",
-  boys: "Мальчики",
-  unisex: "Унисекс",
+  girls: "Для девочек",
+  boys: "Для мальчиков",
 };
 
 export function ActiveFilters({

@@ -13,8 +13,6 @@ import { useProducts, useCategories, useBrands } from "@/hooks/use-products";
 const GENDER_MAP: Record<string, { label: string; gender: string }> = {
   girls: { label: "Для девочек", gender: "girls" },
   boys: { label: "Для мальчиков", gender: "boys" },
-  newborn: { label: "Для новорожденных", gender: "newborn" },
-  unisex: { label: "Унисекс", gender: "unisex" },
 };
 
 const SORT_OPTIONS = [

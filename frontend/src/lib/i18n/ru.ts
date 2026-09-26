@@ -100,7 +100,7 @@ export const ru = {
     gender: "Пол",
     girls: "Для девочек",
     boys: "Для мальчиков",
-    newborn: "Для новорожденных",
+    newborn: "Все товары",
     onSale: "Со скидкой",
     inStock: "В наличии",
     clearAll: "Сбросить все",

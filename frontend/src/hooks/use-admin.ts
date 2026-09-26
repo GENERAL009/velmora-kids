@@ -58,7 +58,6 @@ interface LowStockItem {
       name: string;
       sku: string;
     };
-    size?: { id: string; name: string };
     color?: { id: string; name: string; hex_code: string };
   };
   warehouse?: {
@@ -139,7 +138,7 @@ export interface AdminOrderDetail {
     id: string;
     product_name: string;
     product_sku: string;
-    size_name: string;
+    size_name?: string | null;
     color_name: string;
     quantity: number;
     unit_price: number;
@@ -219,7 +218,6 @@ export interface InventoryItem {
     id: string;
     sku: string;
     product?: { id: string; name: string; sku: string };
-    size?: { id: string; name: string };
     color?: { id: string; name: string; hex_code: string };
   };
   warehouse?: { id: string; name: string };

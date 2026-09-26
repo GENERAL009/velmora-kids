@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductGallery } from "@/components/product/product-gallery";
-import { SizeSelector } from "@/components/product/size-selector";
 import { ColorSelector } from "@/components/product/color-selector";
 import { QuantitySelector } from "@/components/product/quantity-selector";
 import { ProductTabs } from "@/components/product/product-tabs";
@@ -35,7 +34,6 @@ export default function ProductDetailPage() {
   const { data: product, isLoading, error } = useProduct(slug);
   const addItem = useCartStore((state) => state.addItem);
 
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -94,13 +92,13 @@ export default function ProductDetailPage() {
     : 0;
 
   const selectedVariant = useMemo(() => {
-    if (!product || !selectedSize || !selectedColor) return null;
+    if (!product || !selectedColor) return null;
     return product.variants.find(
-      (v) => v.size_id === selectedSize && v.color_id === selectedColor
+      (v) => v.color_id === selectedColor
     );
-  }, [product, selectedSize, selectedColor]);
+  }, [product, selectedColor]);
 
-  const canAddToCart = !!selectedSize && !!selectedColor;
+  const canAddToCart = !!selectedColor;
 
   if (isLoading) {
     return (
@@ -144,6 +142,23 @@ export default function ProductDetailPage() {
       </div>
     );
   }
+
+  const specifications: Record<string, string> = {
+    Артикул: product.sku,
+    ...(product.gender ? { Пол: product.gender === "girls" ? "Для девочек" : product.gender === "boys" ? "Для мальчиков" : "Для мальчиков и девочек" } : {}),
+    ...(product.age_min ? { "Возраст от": `${product.age_min} мес` } : {}),
+    ...(product.age_max ? { "Возраст до": `${product.age_max} мес` } : {}),
+    ...(product.max_weight_kg ? { "Макс. нагрузка": `${product.max_weight_kg} кг` } : {}),
+    ...(product.product_weight_kg ? { "Вес изделия": `${product.product_weight_kg} кг` } : {}),
+    ...(product.dimensions ? { Габариты: product.dimensions } : {}),
+    ...(product.wheel_type ? { "Тип колёс": product.wheel_type } : {}),
+    ...(product.wheel_count ? { "Кол-во колёс": String(product.wheel_count) } : {}),
+    ...(product.max_speed_kmh ? { "Макс. скорость": `${product.max_speed_kmh} км/ч` } : {}),
+    ...(product.battery_type ? { Аккумулятор: product.battery_type } : {}),
+    ...(product.has_remote_control ? { "Пульт управления": "Да" } : {}),
+    ...(product.has_lights ? { Подсветка: "Да" } : {}),
+    ...(product.has_music ? { "Музыка/звуки": "Да" } : {}),
+  };
 
   return (
     <div className="bg-cream dark:bg-neutral-950">
@@ -261,15 +276,6 @@ export default function ProductDetailPage() {
               />
             )}
 
-            {/* Size selector */}
-            {product.variants.length > 0 && (
-              <SizeSelector
-                variants={product.variants}
-                selectedSize={selectedSize}
-                onSizeSelect={setSelectedSize}
-              />
-            )}
-
             {/* Quantity */}
             <QuantitySelector
               value={quantity}
@@ -292,7 +298,7 @@ export default function ProductDetailPage() {
                   }
                 }}
               >
-                {canAddToCart ? "В корзину" : "Выберите размер и цвет"}
+                {canAddToCart ? "В корзину" : "Выберите цвет"}
               </Button>
 
               <div className="flex gap-3">
@@ -346,18 +352,7 @@ export default function ProductDetailPage() {
         <div className="mt-16">
           <ProductTabs
             description={product.description}
-            material={product.material}
-            specifications={
-              product.gender || product.age_min
-                ? {
-                    ...(product.gender ? { Пол: product.gender === "girls" ? "Для девочек" : product.gender === "boys" ? "Для мальчиков" : product.gender === "newborn" ? "Для новорождённых" : "Унисекс" } : {}),
-                    ...(product.age_min ? { "Возраст от": `${product.age_min} мес` } : {}),
-                    ...(product.age_max ? { "Возраст до": `${product.age_max} мес` } : {}),
-                    ...(product.material ? { Материал: product.material } : {}),
-                    Артикул: product.sku,
-                  }
-                : { Артикул: product.sku }
-            }
+            specifications={specifications}
           />
         </div>
 

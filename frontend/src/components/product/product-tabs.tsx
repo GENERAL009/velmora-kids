@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Package, Truck, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type TabId = "description" | "specs" | "size-guide" | "shipping" | "reviews";
+type TabId = "description" | "specs" | "shipping" | "reviews";
 
 interface Tab {
   id: TabId;
@@ -15,8 +15,6 @@ interface Tab {
 
 interface ProductTabsProps {
   description: string;
-  material?: string;
-  careInstructions?: string;
   specifications?: Record<string, string>;
   className?: string;
 }
@@ -24,15 +22,12 @@ interface ProductTabsProps {
 const tabs: Tab[] = [
   { id: "description", label: "Описание" },
   { id: "specs", label: "Характеристики" },
-  { id: "size-guide", label: "Размерная сетка" },
   { id: "shipping", label: "Доставка" },
   { id: "reviews", label: "Отзывы" },
 ];
 
 export function ProductTabs({
   description,
-  material,
-  careInstructions,
   specifications = {},
   className,
 }: ProductTabsProps) {
@@ -87,22 +82,6 @@ export function ProductTabs({
         {activeTab === "description" && (
           <div className="prose prose-sm max-w-none">
             <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">{description}</p>
-            {material && (
-              <div className="mt-6">
-                <h4 className="mb-2 text-sm font-semibold text-charcoal dark:text-white">
-                  Материал
-                </h4>
-                <p className="text-neutral-700 dark:text-neutral-300">{material}</p>
-              </div>
-            )}
-            {careInstructions && (
-              <div className="mt-6">
-                <h4 className="mb-2 text-sm font-semibold text-charcoal dark:text-white">
-                  Уход за изделием
-                </h4>
-                <p className="text-neutral-700 dark:text-neutral-300">{careInstructions}</p>
-              </div>
-            )}
           </div>
         )}
 
@@ -126,66 +105,6 @@ export function ProductTabs({
                 </p>
               </div>
             )}
-          </div>
-        )}
-
-        {activeTab === "size-guide" && (
-          <div className="space-y-6">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Используйте нашу размерную сетку, чтобы подобрать идеальный размер
-              для вашего ребенка.
-            </p>
-
-            {/* Sample size chart */}
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="bg-neutral-50 dark:bg-neutral-800/50">
-                    <th className="border border-neutral-200 dark:border-neutral-700 px-4 py-2 text-left font-semibold text-charcoal dark:text-white">
-                      Размер
-                    </th>
-                    <th className="border border-neutral-200 dark:border-neutral-700 px-4 py-2 text-left font-semibold text-charcoal dark:text-white">
-                      Возраст
-                    </th>
-                    <th className="border border-neutral-200 dark:border-neutral-700 px-4 py-2 text-left font-semibold text-charcoal dark:text-white">
-                      Рост (см)
-                    </th>
-                    <th className="border border-neutral-200 dark:border-neutral-700 px-4 py-2 text-left font-semibold text-charcoal dark:text-white">
-                      Обхват груди (см)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { size: "86", age: "1-1.5 года", height: "86", chest: "52" },
-                    { size: "92", age: "1.5-2 года", height: "92", chest: "54" },
-                    { size: "98", age: "2-3 года", height: "98", chest: "56" },
-                    { size: "104", age: "3-4 года", height: "104", chest: "58" },
-                    { size: "110", age: "4-5 лет", height: "110", chest: "60" },
-                    { size: "116", age: "5-6 лет", height: "116", chest: "62" },
-                  ].map((row) => (
-                    <tr key={row.size} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
-                      <td className="border border-neutral-200 dark:border-neutral-700 px-4 py-2 font-medium text-neutral-900 dark:text-neutral-200">
-                        {row.size}
-                      </td>
-                      <td className="border border-neutral-200 dark:border-neutral-700 px-4 py-2 text-neutral-700 dark:text-neutral-300">
-                        {row.age}
-                      </td>
-                      <td className="border border-neutral-200 dark:border-neutral-700 px-4 py-2 text-neutral-700 dark:text-neutral-300">
-                        {row.height}
-                      </td>
-                      <td className="border border-neutral-200 dark:border-neutral-700 px-4 py-2 text-neutral-700 dark:text-neutral-300">
-                        {row.chest}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <p className="text-xs text-neutral-500">
-              * Размеры могут незначительно отличаться в зависимости от модели.
-            </p>
           </div>
         )}
 

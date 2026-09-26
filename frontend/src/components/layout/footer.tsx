@@ -15,7 +15,6 @@ export function Footer() {
     { href: "/catalog", label: t.nav.catalog },
     { href: "/catalog?gender=girls", label: t.hero.forGirls },
     { href: "/catalog?gender=boys", label: t.hero.forBoys },
-    { href: "/catalog?gender=newborn", label: t.catalog.newborn },
   ];
 
   const customerLinks = [

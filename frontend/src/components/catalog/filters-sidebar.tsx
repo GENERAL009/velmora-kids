@@ -160,9 +160,8 @@ export function FiltersSidebar({
             </h3>
             <div className="space-y-2">
               {[
-                { value: "girls", label: "Девочки" },
-                { value: "boys", label: "Мальчики" },
-                { value: "unisex", label: "Унисекс" },
+                { value: "girls", label: "Для девочек" },
+                { value: "boys", label: "Для мальчиков" },
               ].map((gender) => (
                 <label
                   key={gender.value}

@@ -24,42 +24,40 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([
-    "Платье для девочки",
-    "Летняя коллекция",
-    "Костюм для мальчика",
+    "Самокат трёхколёсный",
+    "Электромобиль",
+    "Коляска прогулочная",
   ]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Dummy trending searches
   const trendingSearches = [
-    "Школьная форма",
-    "Праздничные платья",
-    "Спортивная одежда",
-    "Летняя коллекция",
+    "Самокаты",
+    "Электрокары",
+    "Беговелы",
+    "Квадроциклы",
   ];
 
-  // Dummy search results
   const dummyResults: SearchResult[] = [
     {
       id: "1",
-      name: "Нарядное платье для девочки с бантом",
-      slug: "elegant-dress-with-bow",
+      name: "Самокат трёхколёсный со светящимися колёсами",
+      slug: "samokat-tryokhkolyosnyy",
       price: 450000,
-      category: "Платья",
+      category: "Самокаты",
     },
     {
       id: "2",
-      name: "Костюм для мальчика классический",
-      slug: "classic-boys-suit",
-      price: 650000,
-      category: "Костюмы",
+      name: "Электромобиль Mercedes-Benz для детей",
+      slug: "elektromobil-mercedes",
+      price: 3500000,
+      category: "Электромобили",
     },
     {
       id: "3",
-      name: "Летнее платье с цветочным принтом",
-      slug: "summer-floral-dress",
-      price: 320000,
-      category: "Платья",
+      name: "Беговел алюминиевый 12 дюймов",
+      slug: "begovel-alyuminievyy",
+      price: 650000,
+      category: "Велосипеды",
     },
   ];
 

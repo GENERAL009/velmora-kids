@@ -97,7 +97,7 @@ export const uz: TranslationKeys = {
     gender: "Jins",
     girls: "Qizlar uchun",
     boys: "O'g'il bolalar uchun",
-    newborn: "Yangi tug'ilganlar uchun",
+    newborn: "Barcha mahsulotlar",
     onSale: "Chegirmada",
     inStock: "Mavjud",
     clearAll: "Hammasini tozalash",

@@ -505,9 +505,9 @@ export default function CheckoutPage() {
                       return (
                         <div key={item.variant.id} className="flex gap-3">
                           <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-primary-100 to-secondary-100">
-                            {item.product.images?.[0]?.url ? (
+                            {item.product.images?.[0]?.file_path ? (
                               <Image
-                                src={item.product.images[0].url}
+                                src={item.product.images[0].file_path}
                                 alt={item.product.name}
                                 fill
                                 className="object-cover"
@@ -523,7 +523,7 @@ export default function CheckoutPage() {
                               {item.product.name}
                             </p>
                             <p className="text-xs text-neutral-500">
-                              {item.variant.size.name}, {item.variant.color.name}
+                              {item.variant.color.name}
                             </p>
                             <p className="text-sm font-medium text-charcoal dark:text-white">
                               {item.quantity} × {formatPrice(price)}

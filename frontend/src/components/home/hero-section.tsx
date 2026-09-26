@@ -126,7 +126,7 @@ function LandscapeCard({ product, tag }: { product: Product; tag: "sale" | "new"
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800 sm:aspect-[16/7] sm:rounded-2xl lg:aspect-[16/6]">
         {primaryImage ? (
           <Image
-            src={primaryImage.url}
+            src={primaryImage.file_path}
             alt={primaryImage.alt_text || product.name}
             fill
             sizes="(max-width: 768px) 100vw, 1200px"

@@ -46,7 +46,7 @@ export function ProductGallery({
         {hasImages && currentImage ? (
           <>
             <Image
-              src={currentImage.url}
+              src={currentImage.file_path}
               alt={currentImage.alt_text || productName}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
@@ -121,7 +121,7 @@ export function ProductGallery({
               )}
             >
               <Image
-                src={image.url}
+                src={image.file_path}
                 alt={`${productName} - миниатюра ${index + 1}`}
                 fill
                 sizes="80px"

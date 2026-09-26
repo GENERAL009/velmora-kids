@@ -2,8 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, X, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/api";
 import { useCategories, useBrands } from "@/hooks/use-products";
 
-// ---- Cyrillic -> Latin transliteration map ----
 const CYR_TO_LAT: Record<string, string> = {
   а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "zh",
   з: "z", и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o",
@@ -36,14 +36,6 @@ function generateSlug(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-// ---- Types ----
-interface SizeOption {
-  id: string;
-  name: string;
-  sort_order: number;
-  size_type: string;
-}
-
 interface ColorOption {
   id: string;
   name: string;
@@ -52,7 +44,6 @@ interface ColorOption {
 
 interface VariantForm {
   _key: string;
-  size_id: string;
   color_id: string;
   sku: string;
   barcode: string;
@@ -60,17 +51,8 @@ interface VariantForm {
   is_active: boolean;
 }
 
-interface ImageForm {
-  _key: string;
-  url: string;
-  alt_text: string;
-  sort_order: number;
-  is_primary: boolean;
-}
-
 const EMPTY_VARIANT = (): VariantForm => ({
   _key: Date.now().toString() + Math.random(),
-  size_id: "",
   color_id: "",
   sku: "",
   barcode: "",
@@ -78,15 +60,6 @@ const EMPTY_VARIANT = (): VariantForm => ({
   is_active: true,
 });
 
-const EMPTY_IMAGE = (): ImageForm => ({
-  _key: Date.now().toString() + Math.random(),
-  url: "",
-  alt_text: "",
-  sort_order: 0,
-  is_primary: false,
-});
-
-// ---- Shared Tailwind classes ----
 const INPUT_CLS =
   "w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white";
 const LABEL_CLS =
@@ -97,13 +70,8 @@ const CARD_CLS =
 export default function NewProductPage() {
   const router = useRouter();
 
-  // ---- Fetch reference data ----
   const { data: categoriesData } = useCategories();
   const { data: brandsData } = useBrands();
-  const { data: sizesData } = useQuery({
-    queryKey: ["sizes"],
-    queryFn: () => apiGet<SizeOption[]>("/sizes"),
-  });
   const { data: colorsData } = useQuery({
     queryKey: ["colors"],
     queryFn: () => apiGet<ColorOption[]>("/colors"),
@@ -111,10 +79,8 @@ export default function NewProductPage() {
 
   const categories = categoriesData ?? [];
   const brands = brandsData ?? [];
-  const sizes = sizesData ?? [];
   const colors = colorsData ?? [];
 
-  // ---- Form state ----
   const [name, setName] = useState("");
   const [nameUz, setNameUz] = useState("");
   const [nameRu, setNameRu] = useState("");
@@ -129,10 +95,21 @@ export default function NewProductPage() {
   const [categoryId, setCategoryId] = useState("");
   const [collectionId, setCollectionId] = useState("");
 
-  const [gender, setGender] = useState<"boys" | "girls" | "unisex">("unisex");
+  const [gender, setGender] = useState<"boys" | "girls" | "both">("both");
   const [ageMin, setAgeMin] = useState<number | "">("");
   const [ageMax, setAgeMax] = useState<number | "">("");
-  const [material, setMaterial] = useState("");
+
+  // Vehicle fields
+  const [maxWeightKg, setMaxWeightKg] = useState<number | "">("");
+  const [productWeightKg, setProductWeightKg] = useState<number | "">("");
+  const [dimensions, setDimensions] = useState("");
+  const [wheelType, setWheelType] = useState("");
+  const [wheelCount, setWheelCount] = useState<number | "">("");
+  const [maxSpeedKmh, setMaxSpeedKmh] = useState<number | "">("");
+  const [batteryType, setBatteryType] = useState("");
+  const [hasRemoteControl, setHasRemoteControl] = useState(false);
+  const [hasLights, setHasLights] = useState(false);
+  const [hasMusic, setHasMusic] = useState(false);
 
   const [purchasePrice, setPurchasePrice] = useState<number | "">("");
   const [sellingPrice, setSellingPrice] = useState<number | "">("");
@@ -148,16 +125,12 @@ export default function NewProductPage() {
   const [seoDescription, setSeoDescription] = useState("");
 
   const [variants, setVariants] = useState<VariantForm[]>([EMPTY_VARIANT()]);
-  const [images, setImages] = useState<ImageForm[]>([]);
-
   const [errors, setErrors] = useState<string[]>([]);
 
-  // ---- Auto-generate slug from name ----
   useEffect(() => {
     if (name) setSlug(generateSlug(name));
   }, [name]);
 
-  // ---- Variant helpers ----
   const addVariant = () => setVariants((v) => [...v, EMPTY_VARIANT()]);
   const removeVariant = (key: string) =>
     setVariants((v) => v.filter((item) => item._key !== key));
@@ -166,16 +139,6 @@ export default function NewProductPage() {
       prev.map((v) => (v._key === key ? { ...v, [field]: value } : v))
     );
 
-  // ---- Image helpers ----
-  const addImage = () => setImages((imgs) => [...imgs, EMPTY_IMAGE()]);
-  const removeImage = (key: string) =>
-    setImages((imgs) => imgs.filter((item) => item._key !== key));
-  const updateImage = (key: string, field: keyof ImageForm, value: string | number | boolean) =>
-    setImages((prev) =>
-      prev.map((img) => (img._key === key ? { ...img, [field]: value } : img))
-    );
-
-  // ---- Validation ----
   const validate = useCallback((): string[] => {
     const errs: string[] = [];
     if (!name.trim()) errs.push("Название обязательно");
@@ -187,10 +150,9 @@ export default function NewProductPage() {
     return errs;
   }, [name, sku, categoryId, brandId, purchasePrice, sellingPrice]);
 
-  // ---- Mutation ----
   const createMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) =>
-      apiPost<unknown>("/products", payload),
+      apiPost<{ id: string }>("/products", payload),
     onSuccess: () => {
       alert("Товар успешно создан!");
       router.push("/admin/products");
@@ -228,7 +190,16 @@ export default function NewProductPage() {
       gender,
       age_min: ageMin !== "" ? Number(ageMin) : undefined,
       age_max: ageMax !== "" ? Number(ageMax) : undefined,
-      material: material.trim() || undefined,
+      max_weight_kg: maxWeightKg !== "" ? Number(maxWeightKg) : undefined,
+      product_weight_kg: productWeightKg !== "" ? Number(productWeightKg) : undefined,
+      dimensions: dimensions.trim() || undefined,
+      wheel_type: wheelType.trim() || undefined,
+      wheel_count: wheelCount !== "" ? Number(wheelCount) : undefined,
+      max_speed_kmh: maxSpeedKmh !== "" ? Number(maxSpeedKmh) : undefined,
+      battery_type: batteryType.trim() || undefined,
+      has_remote_control: hasRemoteControl,
+      has_lights: hasLights,
+      has_music: hasMusic,
       purchase_price: Number(purchasePrice),
       selling_price: Number(sellingPrice),
       discount_percent: discountPercent,
@@ -240,22 +211,13 @@ export default function NewProductPage() {
       is_bestseller: isBestseller,
       is_new: isNew,
       variants: variants
-        .filter((v) => v.size_id && v.color_id && v.sku)
+        .filter((v) => v.color_id && v.sku)
         .map((v) => ({
-          size_id: v.size_id,
           color_id: v.color_id,
           sku: v.sku,
           barcode: v.barcode || undefined,
           additional_price: Number(v.additional_price) || 0,
           is_active: v.is_active,
-        })),
-      images: images
-        .filter((img) => img.url.trim())
-        .map((img, idx) => ({
-          url: img.url.trim(),
-          alt_text: img.alt_text.trim() || undefined,
-          sort_order: img.sort_order || idx,
-          is_primary: img.is_primary,
         })),
     };
 
@@ -281,7 +243,6 @@ export default function NewProductPage() {
         </div>
       </div>
 
-      {/* Validation errors */}
       {errors.length > 0 && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
@@ -296,7 +257,6 @@ export default function NewProductPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
           <div className={CARD_CLS}>
@@ -309,7 +269,7 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="Платье летнее с принтом"
+                  placeholder="Самокат трёхколёсный со светящимися колёсами"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -320,7 +280,7 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="Yozgi prinli ko'ylak"
+                  placeholder="Uch g'ildirakli samokat"
                   value={nameUz}
                   onChange={(e) => setNameUz(e.target.value)}
                 />
@@ -331,7 +291,7 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="Платье летнее с принтом"
+                  placeholder="Самокат трёхколёсный"
                   value={nameRu}
                   onChange={(e) => setNameRu(e.target.value)}
                 />
@@ -342,7 +302,7 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="Summer dress with print"
+                  placeholder="Three-wheel scooter"
                   value={nameEn}
                   onChange={(e) => setNameEn(e.target.value)}
                 />
@@ -354,7 +314,7 @@ export default function NewProductPage() {
                   <input
                     type="text"
                     className={INPUT_CLS}
-                    placeholder="DRS-001"
+                    placeholder="VK-SCT-001"
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
                   />
@@ -376,7 +336,7 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="plate-letnee-s-printom"
+                  placeholder="samokat-tryokhkolyosnyy"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                 />
@@ -390,7 +350,7 @@ export default function NewProductPage() {
                 <textarea
                   rows={4}
                   className={`${INPUT_CLS} resize-none`}
-                  placeholder="Легкое летнее платье из натурального хлопка..."
+                  placeholder="Детский самокат с тремя светящимися колёсами..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -448,24 +408,24 @@ export default function NewProductPage() {
             </div>
           </div>
 
-          {/* Gender, Age, Material */}
+          {/* Gender & Age */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-              Характеристики
+              Пол и возраст
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className={LABEL_CLS}>Пол</label>
                 <select
                   className={INPUT_CLS}
                   value={gender}
                   onChange={(e) =>
-                    setGender(e.target.value as "boys" | "girls" | "unisex")
+                    setGender(e.target.value as "boys" | "girls" | "both")
                   }
                 >
-                  <option value="unisex">Унисекс</option>
-                  <option value="boys">Мальчики</option>
-                  <option value="girls">Девочки</option>
+                  <option value="both">Для всех</option>
+                  <option value="boys">Для мальчиков</option>
+                  <option value="girls">Для девочек</option>
                 </select>
               </div>
               <div>
@@ -473,7 +433,7 @@ export default function NewProductPage() {
                 <input
                   type="number"
                   className={INPUT_CLS}
-                  placeholder="0"
+                  placeholder="24"
                   min={0}
                   value={ageMin}
                   onChange={(e) =>
@@ -486,7 +446,7 @@ export default function NewProductPage() {
                 <input
                   type="number"
                   className={INPUT_CLS}
-                  placeholder="168"
+                  placeholder="96"
                   min={0}
                   value={ageMax}
                   onChange={(e) =>
@@ -494,16 +454,126 @@ export default function NewProductPage() {
                   }
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Vehicle Specs */}
+          <div className={CARD_CLS}>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
+              Характеристики транспорта
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
-                <label className={LABEL_CLS}>Материал</label>
+                <label className={LABEL_CLS}>Макс. нагрузка (кг)</label>
+                <input
+                  type="number"
+                  className={INPUT_CLS}
+                  placeholder="50"
+                  min={0}
+                  step="0.1"
+                  value={maxWeightKg}
+                  onChange={(e) => setMaxWeightKg(e.target.value ? Number(e.target.value) : "")}
+                />
+              </div>
+              <div>
+                <label className={LABEL_CLS}>Вес изделия (кг)</label>
+                <input
+                  type="number"
+                  className={INPUT_CLS}
+                  placeholder="3.5"
+                  min={0}
+                  step="0.1"
+                  value={productWeightKg}
+                  onChange={(e) => setProductWeightKg(e.target.value ? Number(e.target.value) : "")}
+                />
+              </div>
+              <div>
+                <label className={LABEL_CLS}>Габариты</label>
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="100% хлопок"
-                  value={material}
-                  onChange={(e) => setMaterial(e.target.value)}
+                  placeholder="60x30x80 см"
+                  value={dimensions}
+                  onChange={(e) => setDimensions(e.target.value)}
                 />
               </div>
+              <div>
+                <label className={LABEL_CLS}>Тип колёс</label>
+                <input
+                  type="text"
+                  className={INPUT_CLS}
+                  placeholder="PU, Резиновые, EVA"
+                  value={wheelType}
+                  onChange={(e) => setWheelType(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={LABEL_CLS}>Кол-во колёс</label>
+                <input
+                  type="number"
+                  className={INPUT_CLS}
+                  placeholder="3"
+                  min={0}
+                  value={wheelCount}
+                  onChange={(e) => setWheelCount(e.target.value ? Number(e.target.value) : "")}
+                />
+              </div>
+              <div>
+                <label className={LABEL_CLS}>Макс. скорость (км/ч)</label>
+                <input
+                  type="number"
+                  className={INPUT_CLS}
+                  placeholder="5"
+                  min={0}
+                  value={maxSpeedKmh}
+                  onChange={(e) => setMaxSpeedKmh(e.target.value ? Number(e.target.value) : "")}
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label className={LABEL_CLS}>Тип аккумулятора</label>
+                <input
+                  type="text"
+                  className={INPUT_CLS}
+                  placeholder="6V 4.5Ah, 12V 7Ah и т.д."
+                  value={batteryType}
+                  onChange={(e) => setBatteryType(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-6">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasRemoteControl}
+                  onChange={(e) => setHasRemoteControl(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  Пульт управления
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasLights}
+                  onChange={(e) => setHasLights(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  Подсветка
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasMusic}
+                  onChange={(e) => setHasMusic(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  Музыка/звуки
+                </span>
+              </label>
             </div>
           </div>
 
@@ -518,7 +588,7 @@ export default function NewProductPage() {
                 <input
                   type="number"
                   className={INPUT_CLS}
-                  placeholder="100000"
+                  placeholder="500000"
                   min={0}
                   value={purchasePrice}
                   onChange={(e) =>
@@ -531,7 +601,7 @@ export default function NewProductPage() {
                 <input
                   type="number"
                   className={INPUT_CLS}
-                  placeholder="180000"
+                  placeholder="900000"
                   min={0}
                   value={sellingPrice}
                   onChange={(e) =>
@@ -571,7 +641,7 @@ export default function NewProductPage() {
           <div className={CARD_CLS}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Варианты товара
+                Варианты (цвета)
               </h2>
               <Button
                 variant="outline"
@@ -591,20 +661,6 @@ export default function NewProductPage() {
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3">
-                      <select
-                        className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
-                        value={variant.size_id}
-                        onChange={(e) =>
-                          updateVariant(variant._key, "size_id", e.target.value)
-                        }
-                      >
-                        <option value="">Размер</option>
-                        {sizes.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </select>
                       <select
                         className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
                         value={variant.color_id}
@@ -629,15 +685,6 @@ export default function NewProductPage() {
                         className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
                       />
                       <input
-                        type="text"
-                        placeholder="Штрихкод"
-                        value={variant.barcode}
-                        onChange={(e) =>
-                          updateVariant(variant._key, "barcode", e.target.value)
-                        }
-                        className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
-                      />
-                      <input
                         type="number"
                         placeholder="Доп. цена"
                         value={variant.additional_price || ""}
@@ -650,23 +697,6 @@ export default function NewProductPage() {
                         }
                         className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
                       />
-                      <label className="flex items-center gap-2 px-3 py-2">
-                        <input
-                          type="checkbox"
-                          checked={variant.is_active}
-                          onChange={(e) =>
-                            updateVariant(
-                              variant._key,
-                              "is_active",
-                              e.target.checked
-                            )
-                          }
-                          className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                        />
-                        <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                          Активен
-                        </span>
-                      </label>
                     </div>
                     {variants.length > 1 && (
                       <button
@@ -680,89 +710,9 @@ export default function NewProductPage() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Images */}
-          <div className={CARD_CLS}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Изображения
-              </h2>
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={<Plus className="w-4 h-4" />}
-                onClick={addImage}
-              >
-                Добавить изображение
-              </Button>
-            </div>
-
-            {images.length === 0 ? (
-              <div
-                onClick={addImage}
-                className="border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-lg p-12 text-center hover:border-primary-500 transition-colors cursor-pointer"
-              >
-                <Upload className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  Нажмите, чтобы добавить URL изображения
-                </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Укажите URL-адрес изображения товара
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {images.map((img, idx) => (
-                  <div
-                    key={img._key}
-                    className="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  >
-                    <input
-                      type="text"
-                      placeholder="URL изображения"
-                      value={img.url}
-                      onChange={(e) =>
-                        updateImage(img._key, "url", e.target.value)
-                      }
-                      className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Alt text"
-                      value={img.alt_text}
-                      onChange={(e) =>
-                        updateImage(img._key, "alt_text", e.target.value)
-                      }
-                      className="w-40 px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
-                    />
-                    <label className="flex items-center gap-1 text-xs text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
-                      <input
-                        type="radio"
-                        name="primary_image"
-                        checked={img.is_primary}
-                        onChange={() =>
-                          setImages((prev) =>
-                            prev.map((im) => ({
-                              ...im,
-                              is_primary: im._key === img._key,
-                            }))
-                          )
-                        }
-                        className="w-3 h-3"
-                      />
-                      Главное
-                    </label>
-                    <button
-                      onClick={() => removeImage(img._key)}
-                      className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <p className="text-xs text-neutral-500 mt-3">
+              Изображения можно загрузить после создания товара на странице редактирования.
+            </p>
           </div>
 
           {/* SEO */}
@@ -776,26 +726,20 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="Платье летнее с принтом | Velmora Kids"
+                  placeholder="Самокат трёхколёсный | Velmora Kids"
                   value={seoTitle}
                   onChange={(e) => setSeoTitle(e.target.value)}
                 />
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  Рекомендуется: 50-60 символов
-                </p>
               </div>
               <div>
                 <label className={LABEL_CLS}>Meta Description</label>
                 <textarea
                   rows={3}
                   className={`${INPUT_CLS} resize-none`}
-                  placeholder="Купите красивое летнее платье для девочки с принтом..."
+                  placeholder="Купите детский самокат со светящимися колёсами..."
                   value={seoDescription}
                   onChange={(e) => setSeoDescription(e.target.value)}
                 />
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  Рекомендуется: 150-160 символов
-                </p>
               </div>
             </div>
           </div>
@@ -803,7 +747,6 @@ export default function NewProductPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Status */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
               Публикация
@@ -823,45 +766,39 @@ export default function NewProductPage() {
                   <option value="inactive">Неактивен</option>
                 </select>
               </div>
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isFeatured}
-                    onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                    Показывать на главной
-                  </span>
-                </label>
-              </div>
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isNew}
-                    onChange={(e) => setIsNew(e.target.checked)}
-                    className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                    Новинка
-                  </span>
-                </label>
-              </div>
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isBestseller}
-                    onChange={(e) => setIsBestseller(e.target.checked)}
-                    className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                    Хит продаж
-                  </span>
-                </label>
-              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  Показывать на главной
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isNew}
+                  onChange={(e) => setIsNew(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  Новинка
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isBestseller}
+                  onChange={(e) => setIsBestseller(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  Хит продаж
+                </span>
+              </label>
             </div>
           </div>
         </div>

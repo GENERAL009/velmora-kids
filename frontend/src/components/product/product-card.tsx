@@ -90,7 +90,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
           {/* Secondary image (hover) */}
           {secondaryImage && !imageError && (
             <Image
-              src={secondaryImage.url}
+              src={secondaryImage.file_path}
               alt={product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -195,16 +195,16 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
           )}
         </div>
 
-        {/* Size indicators */}
-        {availableSizes && availableSizes.length > 0 && (
+        {/* Color swatches */}
+        {availableColors && availableColors.length > 0 && (
           <div className="flex items-center gap-1 pt-1">
-            {availableSizes.map((size) => (
+            {availableColors.map((color) => (
               <span
-                key={size}
-                className="flex h-5 min-w-[20px] items-center justify-center rounded border border-neutral-200 dark:border-neutral-700 px-1 text-[10px] text-neutral-500 dark:text-neutral-400"
-              >
-                {size}
-              </span>
+                key={color.id}
+                className="h-4 w-4 rounded-full border border-neutral-200 dark:border-neutral-700"
+                style={{ backgroundColor: color.hex_code }}
+                title={color.name}
+              />
             ))}
           </div>
         )}

@@ -64,9 +64,8 @@ function SearchContent() {
 
   const genderOptions = [
     { value: "", label: "Все" },
-    { value: "girls", label: "Девочки" },
-    { value: "boys", label: "Мальчики" },
-    { value: "newborn", label: "Новорожденные" },
+    { value: "girls", label: "Для девочек" },
+    { value: "boys", label: "Для мальчиков" },
   ];
 
   return (
@@ -296,9 +295,8 @@ function SearchContent() {
                     <h2 className="mb-4 font-display text-xl font-semibold text-charcoal dark:text-white">По полу</h2>
                     <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       {[
-                        { value: "girls", label: "Девочки", emoji: "👧", gradient: "from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 border-pink-200 dark:border-pink-800" },
-                        { value: "boys", label: "Мальчики", emoji: "👦", gradient: "from-blue-50 to-sky-50 dark:from-blue-950/30 dark:to-sky-950/30 border-blue-200 dark:border-blue-800" },
-                        { value: "newborn", label: "Новорожденные", emoji: "👶", gradient: "from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800" },
+                        { value: "girls", label: "Для девочек", emoji: "👧", gradient: "from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 border-pink-200 dark:border-pink-800" },
+                        { value: "boys", label: "Для мальчиков", emoji: "👦", gradient: "from-blue-50 to-sky-50 dark:from-blue-950/30 dark:to-sky-950/30 border-blue-200 dark:border-blue-800" },
                       ].map((g) => (
                         <button
                           key={g.value}

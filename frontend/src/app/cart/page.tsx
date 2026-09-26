@@ -113,9 +113,9 @@ export default function CartPage() {
                       <div className="flex gap-4">
                         {/* Product Image */}
                         <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-primary-100 to-secondary-100 lg:h-32 lg:w-32">
-                          {item.product.images?.[0]?.url ? (
+                          {item.product.images?.[0]?.file_path ? (
                             <Image
-                              src={item.product.images[0].url}
+                              src={item.product.images[0].file_path}
                               alt={item.product.name}
                               fill
                               className="object-cover"
@@ -151,9 +151,6 @@ export default function CartPage() {
                             </div>
 
                             <div className="mb-2 flex flex-wrap gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                              <span className="rounded bg-neutral-100 dark:bg-neutral-800 px-2 py-1">
-                                {t.cart.size}: {item.variant.size.name}
-                              </span>
                               <span className="rounded bg-neutral-100 dark:bg-neutral-800 px-2 py-1">
                                 <span className="mr-1">{t.cart.color}:</span>
                                 <span
