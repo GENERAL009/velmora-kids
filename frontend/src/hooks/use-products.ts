@@ -5,14 +5,12 @@ import type { Product, ProductVariant, Category, Brand, Banner } from "@/types";
 interface ApiVariant {
   id: string;
   product_id: string;
-  size_id: string;
   color_id: string;
   sku: string;
   barcode?: string | null;
   additional_price: number | string;
   stock_quantity?: number;
   is_active: boolean;
-  size?: { id: string; name: string; sort_order: number; size_type: string };
   color?: {
     id: string;
     name: string;
@@ -43,9 +41,18 @@ interface ApiProduct {
   is_bestseller: boolean;
   is_new: boolean;
   views?: number;
-  material?: string | null;
   age_min?: number | null;
   age_max?: number | null;
+  max_weight_kg?: number | string | null;
+  product_weight_kg?: number | string | null;
+  dimensions?: string | null;
+  wheel_type?: string | null;
+  wheel_count?: number | null;
+  max_speed_kmh?: number | null;
+  battery_type?: string | null;
+  has_remote_control?: boolean;
+  has_lights?: boolean;
+  has_music?: boolean;
   brand?: { id: string; name: string; slug: string; is_active: boolean } | null;
   category?: {
     id: string;
@@ -59,7 +66,7 @@ interface ApiProduct {
   images: {
     id: string;
     product_id: string;
-    url: string;
+    file_path: string;
     alt_text?: string | null;
     sort_order: number;
     is_primary: boolean;
@@ -80,21 +87,11 @@ function mapVariant(v: ApiVariant, productPrice: number): ProductVariant {
   return {
     id: v.id,
     product_id: v.product_id,
-    size_id: v.size_id,
     color_id: v.color_id,
     sku: v.sku,
     is_active: v.is_active,
     stock_quantity: v.stock_quantity ?? 10,
     price_override: additionalPrice > 0 ? productPrice + additionalPrice : undefined,
-    size: v.size
-      ? {
-          id: v.size.id,
-          name: v.size.name,
-          slug: v.size.name.toLowerCase().replace(/\s+/g, "-"),
-          sort_order: v.size.sort_order,
-          size_type: v.size.size_type as "clothing" | "shoes" | "accessories",
-        }
-      : { id: v.size_id, name: "", slug: "", sort_order: 0, size_type: "clothing" },
     color: v.color
       ? {
           id: v.color.id,
@@ -139,7 +136,7 @@ export function mapApiProduct(p: ApiProduct): Product {
     images: (p.images || []).map((img) => ({
       id: img.id,
       product_id: img.product_id,
-      url: img.url,
+      file_path: img.file_path,
       alt_text: img.alt_text || undefined,
       sort_order: img.sort_order,
       is_primary: img.is_primary,
@@ -156,7 +153,16 @@ export function mapApiProduct(p: ApiProduct): Product {
     gender: p.gender as Product["gender"],
     age_min: p.age_min || undefined,
     age_max: p.age_max || undefined,
-    material: p.material || undefined,
+    max_weight_kg: p.max_weight_kg != null ? Number(p.max_weight_kg) : undefined,
+    product_weight_kg: p.product_weight_kg != null ? Number(p.product_weight_kg) : undefined,
+    dimensions: p.dimensions || undefined,
+    wheel_type: p.wheel_type || undefined,
+    wheel_count: p.wheel_count || undefined,
+    max_speed_kmh: p.max_speed_kmh || undefined,
+    battery_type: p.battery_type || undefined,
+    has_remote_control: p.has_remote_control || false,
+    has_lights: p.has_lights || false,
+    has_music: p.has_music || false,
     created_at: p.created_at,
     updated_at: p.updated_at || p.created_at,
   };

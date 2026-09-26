@@ -36,13 +36,6 @@ class InventoryProductInfo(BaseModel):
     sku: str
 
 
-class InventorySizeInfo(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    name: str
-
-
 class InventoryColorInfo(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,7 +58,6 @@ class InventoryDetailVariant(BaseModel):
     sku: str
     is_active: bool
     product: Optional[InventoryProductInfo] = None
-    size: Optional[InventorySizeInfo] = None
     color: Optional[InventoryColorInfo] = None
 
 

@@ -49,10 +49,10 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
     ? getDiscountPercentage(product.price, product.compare_at_price)
     : 0;
 
-  const availableSizes = product.variants
+  const availableColors = product.variants
     ?.filter((v) => v.is_active && v.stock_quantity > 0)
-    ?.map((v) => v.size?.name)
-    ?.filter((name, idx, arr) => name && arr.indexOf(name) === idx)
+    ?.map((v) => v.color)
+    ?.filter((color, idx, arr) => color && arr.findIndex((c) => c?.id === color?.id) === idx)
     ?.slice(0, 5);
 
   return (
@@ -69,7 +69,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
           {/* Primary image */}
           {primaryImage && !imageError ? (
             <Image
-              src={primaryImage.url}
+              src={primaryImage.file_path}
               alt={primaryImage.alt_text || product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

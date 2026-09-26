@@ -23,7 +23,7 @@ from app.core.database import Base
 class Gender(str, enum.Enum):
     BOYS = "boys"
     GIRLS = "girls"
-    UNISEX = "unisex"
+    BOTH = "both"
 
 
 class ProductStatus(str, enum.Enum):
@@ -58,7 +58,6 @@ class Category(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    # Self-referential relationship
     parent: Mapped["Category | None"] = relationship(
         "Category", remote_side="Category.id", back_populates="children", lazy="selectin"
     )
@@ -134,24 +133,6 @@ class Collection(Base):
         return f"<Collection {self.name}>"
 
 
-class Size(Base):
-    __tablename__ = "sizes"
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
-    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    size_type: Mapped[str] = mapped_column(String(50), nullable=False, default="children")
-
-    variants: Mapped[list["ProductVariant"]] = relationship(
-        "ProductVariant", back_populates="size", lazy="noload"
-    )
-
-    def __repr__(self) -> str:
-        return f"<Size {self.name} ({self.size_type})>"
-
-
 class Color(Base):
     __tablename__ = "colors"
 
@@ -206,12 +187,23 @@ class Product(Base):
 
     gender: Mapped[Gender] = mapped_column(
         Enum(Gender, name="gender_enum", create_constraint=True, values_callable=lambda x: [e.value for e in x]),
-        default=Gender.UNISEX,
+        default=Gender.BOTH,
         nullable=False,
     )
     age_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
     age_max: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    material: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    # Vehicle specs
+    max_weight_kg: Mapped[Decimal | None] = mapped_column(Numeric(6, 1), nullable=True)
+    product_weight_kg: Mapped[Decimal | None] = mapped_column(Numeric(6, 1), nullable=True)
+    dimensions: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    wheel_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    wheel_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_speed_kmh: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    battery_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    has_remote_control: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    has_lights: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    has_music: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     purchase_price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), nullable=False, default=0
@@ -278,9 +270,6 @@ class ProductVariant(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), nullable=False
     )
-    size_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("sizes.id", ondelete="RESTRICT"), nullable=False
-    )
     color_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("colors.id", ondelete="RESTRICT"), nullable=False
     )
@@ -297,7 +286,6 @@ class ProductVariant(Base):
     product: Mapped["Product"] = relationship(
         "Product", back_populates="variants", lazy="selectin"
     )
-    size: Mapped["Size"] = relationship("Size", back_populates="variants", lazy="selectin")
     color: Mapped["Color"] = relationship("Color", back_populates="variants", lazy="selectin")
     inventory_items: Mapped[list["Inventory"]] = relationship(  # noqa: F821
         "Inventory", back_populates="product_variant", lazy="noload"
@@ -316,7 +304,7 @@ class ProductImage(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), nullable=False
     )
-    url: Mapped[str] = mapped_column(String(500), nullable=False)
+    file_path: Mapped[str] = mapped_column(String(500), nullable=False)
     alt_text: Mapped[str | None] = mapped_column(String(300), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -326,4 +314,4 @@ class ProductImage(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<ProductImage {self.url}>"
+        return f"<ProductImage {self.file_path}>"

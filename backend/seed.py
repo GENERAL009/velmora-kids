@@ -1,5 +1,5 @@
 """
-Seed the database with realistic development data for Velmora Kids.
+Seed the database with realistic data for Velmora Kids (vehicles & ride-ons).
 Run: python -m seed
 """
 import asyncio
@@ -14,7 +14,7 @@ from app.core.database import AsyncSessionLocal, async_engine, Base
 from app.core.security import hash_password
 from app.models.user import User, UserRole
 from app.models.product import (
-    Category, Brand, Collection, Size, Color, Product, ProductVariant,
+    Category, Brand, Collection, Color, Product, ProductVariant,
     ProductImage, Gender, ProductStatus,
 )
 from app.models.inventory import (
@@ -40,14 +40,12 @@ async def seed():
         categories = await seed_categories(db)
         print("Seeding brands...")
         brands = await seed_brands(db)
-        print("Seeding sizes...")
-        sizes = await seed_sizes(db)
         print("Seeding colors...")
         colors = await seed_colors(db)
         print("Seeding collections...")
         collections = await seed_collections(db)
         print("Seeding products...")
-        products = await seed_products(db, categories, brands, collections, sizes, colors)
+        products = await seed_products(db, categories, brands, collections, colors)
         print("Seeding warehouse & inventory...")
         warehouse = await seed_warehouse(db, products, users)
         print("Seeding suppliers...")
@@ -98,14 +96,8 @@ async def seed_users(db: AsyncSession) -> dict:
     ]
     for email, first, last, role, phone in user_data:
         user = User(
-            email=email,
-            phone=phone,
-            hashed_password=hash_password("password123"),
-            first_name=first,
-            last_name=last,
-            role=role,
-            is_active=True,
-            is_verified=True,
+            email=email, phone=phone, hashed_password=hash_password("password123"),
+            first_name=first, last_name=last, role=role, is_active=True, is_verified=True,
         )
         db.add(user)
         await db.flush()
@@ -116,31 +108,29 @@ async def seed_users(db: AsyncSession) -> dict:
 async def seed_categories(db: AsyncSession) -> dict:
     cats = {}
     root_data = [
-        ("Девочки", "devochki", "girls"),
-        ("Мальчики", "malchiki", "boys"),
-        ("Новорожденные", "novorozhdennye", "newborn"),
-        ("Аксессуары", "aksessuary", "accessories"),
+        ("Самокаты", "samokaty", "scooters"),
+        ("Электромобили", "elektromobili", "ride_on_cars"),
+        ("Коляски", "kolyaski", "strollers"),
+        ("Велосипеды", "velosipedy", "bicycles"),
         ("Распродажа", "rasprodazha", "sale"),
     ]
-    for name, slug, key in root_data:
-        cat = Category(name=name, name_ru=name, slug=slug, is_active=True, sort_order=root_data.index((name, slug, key)))
+    for i, (name, slug, key) in enumerate(root_data):
+        cat = Category(name=name, name_ru=name, slug=slug, is_active=True, sort_order=i)
         db.add(cat)
         await db.flush()
         cats[key] = cat
 
     sub_data = [
-        ("Платья", "platya", "girls", "dresses"),
-        ("Юбки", "yubki", "girls", "skirts"),
-        ("Куртки", "kurtki-devochki", "girls", "girls_jackets"),
-        ("Комплекты", "komplekty-devochki", "girls", "girls_sets"),
-        ("Рубашки", "rubashki", "boys", "shirts"),
-        ("Брюки", "bryuki", "boys", "pants"),
-        ("Куртки", "kurtki-malchiki", "boys", "boys_jackets"),
-        ("Костюмы", "kostyumy", "boys", "suits"),
-        ("Боди", "bodi", "newborn", "bodysuits"),
-        ("Комбинезоны", "kombinezony", "newborn", "rompers"),
-        ("Конверты", "konverty", "newborn", "envelopes"),
-        ("Наборы", "nabory-novorozhdennye", "newborn", "newborn_sets"),
+        ("Трёхколёсные", "trekhkolyosnye-samokaty", "scooters", "scooters_3wheel"),
+        ("Двухколёсные", "dvukhkolyosnye-samokaty", "scooters", "scooters_2wheel"),
+        ("Кикборды", "kikbordy", "scooters", "kickboards"),
+        ("Легковые", "legkovye-elektromobili", "ride_on_cars", "cars_sedan"),
+        ("Джипы", "dzhipy", "ride_on_cars", "cars_jeep"),
+        ("Мотоциклы", "mototsikly", "ride_on_cars", "motorcycles"),
+        ("Прогулочные", "progulochnye-kolyaski", "strollers", "strollers_walk"),
+        ("Трансформеры", "transformery", "strollers", "strollers_transform"),
+        ("Трёхколёсные", "trekhkolyosnye-velo", "bicycles", "bicycles_3wheel"),
+        ("Беговелы", "begovely", "bicycles", "balance_bikes"),
     ]
     for name, slug, parent_key, key in sub_data:
         cat = Category(
@@ -157,10 +147,10 @@ async def seed_brands(db: AsyncSession) -> dict:
     brands = {}
     data = [
         ("Velmora", "velmora"),
-        ("Petit Soleil", "petit-soleil"),
-        ("Mimi & Lulu", "mimi-lulu"),
-        ("Little Lord", "little-lord"),
-        ("Nord Baby", "nord-baby"),
+        ("Micro", "micro"),
+        ("Globber", "globber"),
+        ("Xiaomi", "xiaomi"),
+        ("Chicco", "chicco"),
     ]
     for name, slug in data:
         brand = Brand(name=name, slug=slug, is_active=True)
@@ -170,32 +160,19 @@ async def seed_brands(db: AsyncSession) -> dict:
     return brands
 
 
-async def seed_sizes(db: AsyncSession) -> dict:
-    sizes = {}
-    for i, name in enumerate(["56", "62", "68", "74", "80", "86", "92", "98", "104", "110", "116", "122", "128", "134", "140"]):
-        size = Size(name=name, sort_order=i, size_type="children")
-        db.add(size)
-        await db.flush()
-        sizes[name] = size
-    return sizes
-
-
 async def seed_colors(db: AsyncSession) -> dict:
     colors = {}
     data = [
         ("Белый", "#FFFFFF", "white"),
-        ("Кремовый", "#FDF8F4", "cream"),
-        ("Розовый", "#F9C4D2", "pink"),
-        ("Пудровый", "#F2D4D7", "powder"),
-        ("Лавандовый", "#E6E6FA", "lavender"),
-        ("Голубой", "#B0D4E8", "blue"),
-        ("Тёмно-синий", "#1B2A4A", "navy"),
-        ("Бежевый", "#D4C5A9", "beige"),
-        ("Горчичный", "#C9A96E", "mustard"),
-        ("Оливковый", "#708238", "olive"),
-        ("Бордовый", "#722F37", "burgundy"),
-        ("Серый", "#9C9589", "gray"),
-        ("Молочный", "#FFFAF0", "milk"),
+        ("Чёрный", "#000000", "black"),
+        ("Красный", "#E53935", "red"),
+        ("Синий", "#1E88E5", "blue"),
+        ("Розовый", "#F48FB1", "pink"),
+        ("Зелёный", "#43A047", "green"),
+        ("Жёлтый", "#FDD835", "yellow"),
+        ("Серый", "#9E9E9E", "gray"),
+        ("Оранжевый", "#FF9800", "orange"),
+        ("Фиолетовый", "#8E24AA", "purple"),
     ]
     for name, hex_code, key in data:
         color = Color(name=name, name_ru=name, hex_code=hex_code, is_active=True)
@@ -210,7 +187,7 @@ async def seed_collections(db: AsyncSession) -> dict:
     data = [
         ("Осень-Зима 2026", "osen-zima-2026"),
         ("Весна-Лето 2027", "vesna-leto-2027"),
-        ("Праздничная коллекция", "prazdnichnaya-kollekciya"),
+        ("Новинки сезона", "novinki-sezona"),
     ]
     for name, slug in data:
         coll = Collection(name=name, name_ru=name, slug=slug, is_active=True)
@@ -220,327 +197,326 @@ async def seed_collections(db: AsyncSession) -> dict:
     return colls
 
 
-async def seed_products(db, categories, brands, collections, sizes, colors) -> list:
+async def seed_products(db, categories, brands, collections, colors) -> list:
     products = []
     product_data = [
         {
-            "name": "Платье из органического хлопка с вышивкой",
-            "slug": "plate-iz-organicheskogo-hlopka",
-            "sku": "VK-DR-001",
+            "name": "Самокат трёхколёсный Velmora Mini",
+            "slug": "samokat-velmora-mini",
+            "sku": "VK-SC-001",
             "brand": "velmora",
-            "category": "dresses",
-            "collection": "osen-zima-2026",
-            "gender": Gender.GIRLS,
-            "purchase_price": 180000,
-            "selling_price": 489000,
-            "discount_percent": 25,
-            "discount_price": 366750,
-            "material": "100% органический хлопок",
-            "sizes": ["92", "98", "104", "110"],
-            "colors": ["pink", "cream"],
-            "status": ProductStatus.ACTIVE,
-            "is_featured": True,
-            "is_bestseller": True,
-            "is_new": False,
-        },
-        {
-            "name": "Льняная рубашка с воротником-стойкой",
-            "slug": "lnyanaya-rubashka",
-            "sku": "VK-SH-002",
-            "brand": "petit-soleil",
-            "category": "shirts",
-            "collection": "osen-zima-2026",
-            "gender": Gender.BOYS,
-            "purchase_price": 120000,
-            "selling_price": 329000,
-            "material": "100% лён",
-            "sizes": ["104", "110", "116"],
-            "colors": ["white", "blue"],
-            "status": ProductStatus.ACTIVE,
-            "is_featured": True,
-            "is_new": True,
-        },
-        {
-            "name": "Кашемировый комбинезон для новорожденных",
-            "slug": "kashemirovyy-kombinezon",
-            "sku": "VK-NB-003",
-            "brand": "velmora",
-            "category": "rompers",
-            "gender": Gender.UNISEX,
-            "purchase_price": 280000,
-            "selling_price": 720000,
-            "material": "70% хлопок, 30% кашемир",
-            "sizes": ["56", "62", "68"],
-            "colors": ["cream", "milk"],
-            "status": ProductStatus.ACTIVE,
-            "is_featured": True,
-            "is_bestseller": True,
-        },
-        {
-            "name": "Вельветовые брюки с высокой посадкой",
-            "slug": "velvetovye-bryuki",
-            "sku": "VK-PT-004",
-            "brand": "mimi-lulu",
-            "category": "skirts",
-            "gender": Gender.GIRLS,
-            "purchase_price": 140000,
-            "selling_price": 385000,
-            "discount_percent": 20,
-            "discount_price": 308000,
-            "material": "98% хлопок, 2% эластан",
-            "sizes": ["104", "110", "116"],
-            "colors": ["burgundy", "beige"],
-            "status": ProductStatus.ACTIVE,
-            "is_featured": True,
-        },
-        {
-            "name": "Шерстяной кардиган с жемчужными пуговицами",
-            "slug": "sherstyanoy-kardigan",
-            "sku": "VK-KN-005",
-            "brand": "velmora",
-            "category": "girls_sets",
-            "gender": Gender.GIRLS,
-            "purchase_price": 200000,
-            "selling_price": 560000,
-            "material": "100% мериносовая шерсть",
-            "sizes": ["98", "104", "110"],
-            "colors": ["powder", "cream"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Хлопковый костюм-тройка",
-            "slug": "hlopkovyy-kostyum-troyka",
-            "sku": "VK-ST-006",
-            "brand": "little-lord",
-            "category": "suits",
-            "collection": "prazdnichnaya-kollekciya",
-            "gender": Gender.BOYS,
-            "purchase_price": 350000,
-            "selling_price": 890000,
-            "discount_percent": 20,
-            "discount_price": 712000,
-            "material": "95% хлопок, 5% эластан",
-            "sizes": ["110", "116", "122"],
-            "colors": ["navy", "gray"],
-            "status": ProductStatus.ACTIVE,
-            "is_featured": True,
-            "is_bestseller": True,
-        },
-        {
-            "name": "Муслиновый конверт на выписку",
-            "slug": "muslinovyy-konvert",
-            "sku": "VK-NB-007",
-            "brand": "velmora",
-            "category": "envelopes",
-            "gender": Gender.UNISEX,
-            "purchase_price": 150000,
-            "selling_price": 450000,
-            "material": "100% органический муслин",
-            "sizes": ["56"],
-            "colors": ["white", "cream"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Утеплённая куртка с капюшоном",
-            "slug": "uteplennaya-kurtka",
-            "sku": "VK-JK-008",
-            "brand": "nord-baby",
-            "category": "girls_jackets",
-            "collection": "osen-zima-2026",
-            "gender": Gender.UNISEX,
-            "purchase_price": 300000,
-            "selling_price": 780000,
-            "discount_percent": 20,
-            "discount_price": 624000,
-            "material": "Верх: нейлон. Утеплитель: пух/перо 90/10",
-            "sizes": ["104", "110", "116", "122"],
-            "colors": ["olive", "navy"],
-            "status": ProductStatus.ACTIVE,
-        },
-        {
-            "name": "Трикотажное платье с рюшами",
-            "slug": "trikotazhnoe-plate",
-            "sku": "VK-DR-009",
-            "brand": "mimi-lulu",
-            "category": "dresses",
-            "gender": Gender.GIRLS,
-            "purchase_price": 140000,
-            "selling_price": 415000,
-            "material": "95% хлопок, 5% эластан",
-            "sizes": ["92", "98", "104"],
-            "colors": ["lavender", "pink"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Шерстяной свитер Fair Isle",
-            "slug": "sherstyanoy-sviter-fair-isle",
-            "sku": "VK-KN-010",
-            "brand": "nord-baby",
-            "category": "shirts",
-            "collection": "osen-zima-2026",
-            "gender": Gender.BOYS,
-            "purchase_price": 190000,
-            "selling_price": 520000,
-            "material": "80% мериносовая шерсть, 20% нейлон",
-            "sizes": ["104", "110", "116"],
-            "colors": ["beige", "gray"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Бамбуковый боди-набор (3 шт)",
-            "slug": "bambukovyy-bodi-nabor",
-            "sku": "VK-NB-011",
-            "brand": "velmora",
-            "category": "bodysuits",
-            "gender": Gender.UNISEX,
-            "purchase_price": 110000,
-            "selling_price": 350000,
-            "material": "70% бамбуковое волокно, 30% органический хлопок",
-            "sizes": ["56", "62", "68"],
-            "colors": ["milk", "cream"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Вельветовый комбинезон с подтяжками",
-            "slug": "velvetovyy-kombinezon-podtyazhki",
-            "sku": "VK-OV-012",
-            "brand": "little-lord",
-            "category": "pants",
-            "gender": Gender.BOYS,
-            "purchase_price": 160000,
-            "selling_price": 445000,
-            "material": "100% хлопковый вельвет",
-            "sizes": ["92", "98", "104"],
-            "colors": ["mustard", "olive"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Плиссированная юбка из тюля",
-            "slug": "plissirovannaya-yubka",
-            "sku": "VK-SK-013",
-            "brand": "mimi-lulu",
-            "category": "skirts",
-            "collection": "prazdnichnaya-kollekciya",
-            "gender": Gender.GIRLS,
-            "purchase_price": 95000,
-            "selling_price": 295000,
-            "material": "Подкладка: хлопок. Верх: полиэстер тюль",
-            "sizes": ["92", "98", "104", "110"],
-            "colors": ["lavender", "pink", "cream"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Флисовый джемпер с вышивкой",
-            "slug": "flisovyy-dzhemper",
-            "sku": "VK-FL-014",
-            "brand": "nord-baby",
-            "category": "shirts",
-            "gender": Gender.UNISEX,
-            "purchase_price": 90000,
-            "selling_price": 275000,
-            "material": "100% органический флис",
-            "sizes": ["92", "98", "104", "110"],
-            "colors": ["milk", "beige"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Хлопковый комплект «Маленький путешественник»",
-            "slug": "komplekt-malenkiy-puteshestvennik",
-            "sku": "VK-SET-015",
-            "brand": "petit-soleil",
-            "category": "suits",
-            "gender": Gender.BOYS,
-            "purchase_price": 130000,
-            "selling_price": 395000,
-            "material": "100% хлопок",
-            "sizes": ["98", "104", "110"],
-            "colors": ["olive", "beige"],
-            "status": ProductStatus.ACTIVE,
-        },
-        {
-            "name": "Кашемировая шапочка и пинетки (набор)",
-            "slug": "kashemirovaya-shapochka-pinetki",
-            "sku": "VK-NB-016",
-            "brand": "velmora",
-            "category": "newborn_sets",
-            "gender": Gender.UNISEX,
-            "purchase_price": 100000,
-            "selling_price": 320000,
-            "material": "100% кашемир",
-            "sizes": ["56", "62"],
-            "colors": ["cream", "white", "pink"],
-            "status": ProductStatus.ACTIVE,
-            "is_new": True,
-        },
-        {
-            "name": "Праздничное платье с пайетками",
-            "slug": "prazdnichnoe-plate-payetki",
-            "sku": "VK-DR-017",
-            "brand": "mimi-lulu",
-            "category": "dresses",
-            "collection": "prazdnichnaya-kollekciya",
-            "gender": Gender.GIRLS,
+            "category": "scooters_3wheel",
+            "collection": "novinki-sezona",
+            "gender": Gender.BOTH,
             "purchase_price": 250000,
-            "selling_price": 750000,
-            "material": "Верх: полиэстер с пайетками. Подкладка: хлопок",
-            "sizes": ["104", "110", "116", "122"],
-            "colors": ["pink", "lavender"],
+            "selling_price": 590000,
+            "discount_percent": 15,
+            "discount_price": 501500,
+            "age_min": 2, "age_max": 5,
+            "max_weight_kg": 35, "product_weight_kg": 2.5,
+            "wheel_type": "PU (полиуретан)",
+            "wheel_count": 3,
+            "has_lights": True,
+            "colors": ["pink", "blue", "green"],
+            "status": ProductStatus.ACTIVE,
+            "is_featured": True, "is_bestseller": True,
+        },
+        {
+            "name": "Самокат двухколёсный Micro Cruiser",
+            "slug": "samokat-micro-cruiser",
+            "sku": "VK-SC-002",
+            "brand": "micro",
+            "category": "scooters_2wheel",
+            "gender": Gender.BOYS,
+            "purchase_price": 400000,
+            "selling_price": 890000,
+            "age_min": 5, "age_max": 12,
+            "max_weight_kg": 50, "product_weight_kg": 3.2,
+            "wheel_type": "PU 120мм",
+            "wheel_count": 2,
+            "has_lights": False,
+            "colors": ["black", "blue"],
+            "status": ProductStatus.ACTIVE,
+            "is_featured": True, "is_new": True,
+        },
+        {
+            "name": "Электромобиль Mercedes-Benz G63 Kids",
+            "slug": "elektromobil-mercedes-g63",
+            "sku": "VK-EC-001",
+            "brand": "velmora",
+            "category": "cars_jeep",
+            "collection": "osen-zima-2026",
+            "gender": Gender.BOYS,
+            "purchase_price": 1800000,
+            "selling_price": 3490000,
+            "discount_percent": 10,
+            "discount_price": 3141000,
+            "age_min": 2, "age_max": 6,
+            "max_weight_kg": 30, "product_weight_kg": 18,
+            "dimensions": "110×65×55 см",
+            "wheel_type": "EVA резина",
+            "wheel_count": 4,
+            "max_speed_kmh": 5,
+            "battery_type": "12V 7Ah",
+            "has_remote_control": True, "has_lights": True, "has_music": True,
+            "colors": ["black", "white", "red"],
+            "status": ProductStatus.ACTIVE,
+            "is_featured": True, "is_bestseller": True,
+        },
+        {
+            "name": "Электромобиль BMW i8 для девочек",
+            "slug": "elektromobil-bmw-i8-pink",
+            "sku": "VK-EC-002",
+            "brand": "velmora",
+            "category": "cars_sedan",
+            "gender": Gender.GIRLS,
+            "purchase_price": 1500000,
+            "selling_price": 2890000,
+            "age_min": 1, "age_max": 5,
+            "max_weight_kg": 25, "product_weight_kg": 14,
+            "dimensions": "100×55×45 см",
+            "wheel_type": "Пластик + резиновая накладка",
+            "wheel_count": 4,
+            "max_speed_kmh": 4,
+            "battery_type": "6V 4.5Ah",
+            "has_remote_control": True, "has_lights": True, "has_music": True,
+            "colors": ["pink", "white"],
             "status": ProductStatus.ACTIVE,
             "is_featured": True,
         },
         {
-            "name": "Кожаные мокасины",
-            "slug": "kozhanye-mokasiny",
-            "sku": "VK-SH-018",
-            "brand": "little-lord",
-            "category": "suits",
-            "gender": Gender.BOYS,
-            "purchase_price": 180000,
-            "selling_price": 490000,
-            "material": "Натуральная кожа",
-            "sizes": ["98", "104", "110", "116"],
-            "colors": ["navy", "burgundy"],
-            "status": ProductStatus.ACTIVE,
-        },
-        {
-            "name": "Пуховой жилет",
-            "slug": "puhovoy-zhilet",
-            "sku": "VK-VT-019",
-            "brand": "nord-baby",
-            "category": "boys_jackets",
-            "collection": "osen-zima-2026",
-            "gender": Gender.UNISEX,
-            "purchase_price": 150000,
-            "selling_price": 420000,
-            "discount_percent": 15,
-            "discount_price": 357000,
-            "material": "Верх: нейлон. Утеплитель: 90% пух",
-            "sizes": ["104", "110", "116", "122"],
-            "colors": ["navy", "olive", "burgundy"],
-            "status": ProductStatus.ACTIVE,
-        },
-        {
-            "name": "Хлопковый муслиновый набор (5 предметов)",
-            "slug": "muslinovyy-nabor-5",
-            "sku": "VK-NB-020",
+            "name": "Детский мотоцикл Ducati",
+            "slug": "detskiy-mototsikl-ducati",
+            "sku": "VK-MC-001",
             "brand": "velmora",
-            "category": "newborn_sets",
-            "gender": Gender.UNISEX,
-            "purchase_price": 200000,
-            "selling_price": 580000,
-            "material": "100% органический муслин",
-            "sizes": ["56", "62"],
-            "colors": ["cream", "milk"],
+            "category": "motorcycles",
+            "gender": Gender.BOYS,
+            "purchase_price": 800000,
+            "selling_price": 1690000,
+            "age_min": 3, "age_max": 8,
+            "max_weight_kg": 35, "product_weight_kg": 10,
+            "dimensions": "90×45×60 см",
+            "wheel_type": "EVA",
+            "wheel_count": 2,
+            "max_speed_kmh": 6,
+            "battery_type": "12V 7Ah",
+            "has_lights": True, "has_music": True,
+            "colors": ["red", "black"],
+            "status": ProductStatus.ACTIVE,
+            "is_new": True,
+        },
+        {
+            "name": "Коляска Chicco Bravo 3-в-1",
+            "slug": "kolyaska-chicco-bravo",
+            "sku": "VK-ST-001",
+            "brand": "chicco",
+            "category": "strollers_transform",
+            "gender": Gender.BOTH,
+            "purchase_price": 2200000,
+            "selling_price": 4290000,
+            "discount_percent": 20,
+            "discount_price": 3432000,
+            "age_min": 0, "age_max": 3,
+            "max_weight_kg": 22, "product_weight_kg": 12,
+            "dimensions": "85×60×105 см",
+            "wheel_type": "Резина надувная",
+            "wheel_count": 4,
+            "colors": ["gray", "black"],
+            "status": ProductStatus.ACTIVE,
+            "is_featured": True, "is_bestseller": True,
+        },
+        {
+            "name": "Прогулочная коляска Globber Compact",
+            "slug": "kolyaska-globber-compact",
+            "sku": "VK-ST-002",
+            "brand": "globber",
+            "category": "strollers_walk",
+            "gender": Gender.BOTH,
+            "purchase_price": 900000,
+            "selling_price": 1890000,
+            "age_min": 0, "age_max": 3,
+            "max_weight_kg": 22, "product_weight_kg": 7,
+            "dimensions": "75×50×100 см",
+            "wheel_type": "EVA",
+            "wheel_count": 4,
+            "colors": ["blue", "pink", "gray"],
+            "status": ProductStatus.ACTIVE,
+            "is_new": True,
+        },
+        {
+            "name": "Кикборд Globber Elite Deluxe",
+            "slug": "kikbord-globber-elite",
+            "sku": "VK-KB-001",
+            "brand": "globber",
+            "category": "kickboards",
+            "gender": Gender.BOTH,
+            "purchase_price": 350000,
+            "selling_price": 750000,
+            "age_min": 3, "age_max": 10,
+            "max_weight_kg": 50, "product_weight_kg": 2.8,
+            "wheel_type": "PU со светодиодами",
+            "wheel_count": 3,
+            "has_lights": True,
+            "colors": ["green", "pink", "blue"],
+            "status": ProductStatus.ACTIVE,
+            "is_new": True,
+        },
+        {
+            "name": "Электросамокат Xiaomi Kids Pro",
+            "slug": "elektrosamokat-xiaomi-kids",
+            "sku": "VK-ES-001",
+            "brand": "xiaomi",
+            "category": "scooters_2wheel",
+            "collection": "novinki-sezona",
+            "gender": Gender.BOTH,
+            "purchase_price": 700000,
+            "selling_price": 1450000,
+            "age_min": 6, "age_max": 14,
+            "max_weight_kg": 60, "product_weight_kg": 7.5,
+            "dimensions": "100×42×95 см",
+            "wheel_type": "Пневматические 8 дюймов",
+            "wheel_count": 2,
+            "max_speed_kmh": 14,
+            "battery_type": "36V 5Ah Li-ion",
+            "has_lights": True,
+            "colors": ["black", "white"],
+            "status": ProductStatus.ACTIVE,
+            "is_featured": True, "is_new": True,
+        },
+        {
+            "name": "Беговел Micro Balance Bike",
+            "slug": "begovel-micro-balance",
+            "sku": "VK-BB-001",
+            "brand": "micro",
+            "category": "balance_bikes",
+            "gender": Gender.BOTH,
+            "purchase_price": 450000,
+            "selling_price": 890000,
+            "age_min": 2, "age_max": 5,
+            "max_weight_kg": 25, "product_weight_kg": 3,
+            "wheel_type": "EVA 12 дюймов",
+            "wheel_count": 2,
+            "colors": ["red", "blue", "yellow"],
+            "status": ProductStatus.ACTIVE,
+            "is_new": True,
+        },
+        {
+            "name": "Велосипед трёхколёсный Chicco Pelican",
+            "slug": "velosiped-chicco-pelican",
+            "sku": "VK-VL-001",
+            "brand": "chicco",
+            "category": "bicycles_3wheel",
+            "gender": Gender.BOTH,
+            "purchase_price": 600000,
+            "selling_price": 1190000,
+            "age_min": 1, "age_max": 4,
+            "max_weight_kg": 25, "product_weight_kg": 8,
+            "dimensions": "75×50×90 см",
+            "wheel_type": "Резина EVA",
+            "wheel_count": 3,
+            "has_music": True,
+            "colors": ["red", "blue", "green"],
+            "status": ProductStatus.ACTIVE,
+            "is_featured": True,
+        },
+        {
+            "name": "Электроквадроцикл Velmora ATV-1000",
+            "slug": "elektrokvadrotsikl-velmora",
+            "sku": "VK-ATV-001",
+            "brand": "velmora",
+            "category": "cars_jeep",
+            "gender": Gender.BOYS,
+            "purchase_price": 1200000,
+            "selling_price": 2490000,
+            "age_min": 3, "age_max": 8,
+            "max_weight_kg": 40, "product_weight_kg": 15,
+            "dimensions": "100×65×70 см",
+            "wheel_type": "EVA резина",
+            "wheel_count": 4,
+            "max_speed_kmh": 7,
+            "battery_type": "12V 10Ah",
+            "has_remote_control": True, "has_lights": True, "has_music": True,
+            "colors": ["green", "red", "orange"],
             "status": ProductStatus.ACTIVE,
             "is_bestseller": True,
+        },
+        {
+            "name": "Самокат-трансформер Globber 5-в-1",
+            "slug": "samokat-globber-5v1",
+            "sku": "VK-SC-003",
+            "brand": "globber",
+            "category": "scooters_3wheel",
+            "collection": "novinki-sezona",
+            "gender": Gender.BOTH,
+            "purchase_price": 500000,
+            "selling_price": 1090000,
+            "discount_percent": 10,
+            "discount_price": 981000,
+            "age_min": 1, "age_max": 6,
+            "max_weight_kg": 50, "product_weight_kg": 3.5,
+            "wheel_type": "PU светящиеся",
+            "wheel_count": 3,
+            "has_lights": True,
+            "colors": ["pink", "blue", "green"],
+            "status": ProductStatus.ACTIVE,
+            "is_featured": True, "is_new": True,
+        },
+        {
+            "name": "Электромобиль Range Rover Evoque",
+            "slug": "elektromobil-range-rover-evoque",
+            "sku": "VK-EC-003",
+            "brand": "velmora",
+            "category": "cars_jeep",
+            "gender": Gender.BOTH,
+            "purchase_price": 2000000,
+            "selling_price": 3990000,
+            "age_min": 2, "age_max": 7,
+            "max_weight_kg": 35, "product_weight_kg": 20,
+            "dimensions": "120×70×60 см",
+            "wheel_type": "EVA резина",
+            "wheel_count": 4,
+            "max_speed_kmh": 6,
+            "battery_type": "12V 10Ah",
+            "has_remote_control": True, "has_lights": True, "has_music": True,
+            "colors": ["white", "black"],
+            "status": ProductStatus.ACTIVE,
+        },
+        {
+            "name": "Коляска-трость Xiaomi MITU",
+            "slug": "kolyaska-trost-xiaomi",
+            "sku": "VK-ST-003",
+            "brand": "xiaomi",
+            "category": "strollers_walk",
+            "gender": Gender.BOTH,
+            "purchase_price": 1100000,
+            "selling_price": 2190000,
+            "discount_percent": 15,
+            "discount_price": 1861500,
+            "age_min": 0, "age_max": 3,
+            "max_weight_kg": 20, "product_weight_kg": 6,
+            "dimensions": "70×45×100 см",
+            "wheel_type": "Резина",
+            "wheel_count": 4,
+            "colors": ["gray", "black"],
+            "status": ProductStatus.ACTIVE,
+        },
+        {
+            "name": "Самокат Micro Maxi Deluxe LED",
+            "slug": "samokat-micro-maxi-led",
+            "sku": "VK-SC-004",
+            "brand": "micro",
+            "category": "scooters_3wheel",
+            "gender": Gender.GIRLS,
+            "purchase_price": 450000,
+            "selling_price": 950000,
+            "age_min": 5, "age_max": 12,
+            "max_weight_kg": 50, "product_weight_kg": 2.5,
+            "wheel_type": "PU LED",
+            "wheel_count": 3,
+            "has_lights": True,
+            "colors": ["purple", "pink"],
+            "status": ProductStatus.ACTIVE,
+            "is_new": True,
         },
     ]
 
@@ -558,7 +534,18 @@ async def seed_products(db, categories, brands, collections, sizes, colors) -> l
             selling_price=Decimal(str(p["selling_price"])),
             discount_percent=p.get("discount_percent", 0),
             discount_price=Decimal(str(p["discount_price"])) if p.get("discount_price") else None,
-            material=p.get("material"),
+            age_min=p.get("age_min"),
+            age_max=p.get("age_max"),
+            max_weight_kg=Decimal(str(p["max_weight_kg"])) if p.get("max_weight_kg") else None,
+            product_weight_kg=Decimal(str(p["product_weight_kg"])) if p.get("product_weight_kg") else None,
+            dimensions=p.get("dimensions"),
+            wheel_type=p.get("wheel_type"),
+            wheel_count=p.get("wheel_count"),
+            max_speed_kmh=p.get("max_speed_kmh"),
+            battery_type=p.get("battery_type"),
+            has_remote_control=p.get("has_remote_control", False),
+            has_lights=p.get("has_lights", False),
+            has_music=p.get("has_music", False),
             status=p.get("status", ProductStatus.ACTIVE),
             is_featured=p.get("is_featured", False),
             is_bestseller=p.get("is_bestseller", False),
@@ -571,23 +558,21 @@ async def seed_products(db, categories, brands, collections, sizes, colors) -> l
 
         img = ProductImage(
             product_id=product.id,
-            url="/images/placeholder.webp",
+            file_path="/uploads/products/placeholder.webp",
             alt_text=p["name"],
             sort_order=0,
             is_primary=True,
         )
         db.add(img)
 
-        for s_name in p["sizes"]:
-            for c_key in p["colors"]:
-                variant = ProductVariant(
-                    product_id=product.id,
-                    size_id=sizes[s_name].id,
-                    color_id=colors[c_key].id,
-                    sku=f"{p['sku']}-{s_name}-{c_key[:3].upper()}",
-                    is_active=True,
-                )
-                db.add(variant)
+        for c_key in p["colors"]:
+            variant = ProductVariant(
+                product_id=product.id,
+                color_id=colors[c_key].id,
+                sku=f"{p['sku']}-{c_key[:3].upper()}",
+                is_active=True,
+            )
+            db.add(variant)
 
         await db.flush()
         products.append(product)
@@ -611,7 +596,7 @@ async def seed_warehouse(db, products, users):
 
     for variant in variants:
         import random
-        qty = random.randint(5, 50)
+        qty = random.randint(5, 30)
         inv = Inventory(
             product_variant_id=variant.id,
             warehouse_id=warehouse.id,
@@ -640,9 +625,9 @@ async def seed_warehouse(db, products, users):
 
 async def seed_suppliers(db):
     data = [
-        ("TurkTekstil", "Турция", "Мехмет Йылдыз", "+905321234567"),
-        ("ChinaFashion Kids", "Китай", "Li Wei", "+8613812345678"),
-        ("UzbekPima Cotton", "Узбекистан", "Равшан Холматов", "+998712345678"),
+        ("ChinaRide", "Китай", "Li Wei", "+8613812345678"),
+        ("TurkVehicle", "Турция", "Мехмет Йылдыз", "+905321234567"),
+        ("UzToys", "Узбекистан", "Равшан Холматов", "+998712345678"),
     ]
     suppliers = []
     for name, company, contact, phone in data:
@@ -657,22 +642,14 @@ async def seed_customers(db, users):
     customers = []
     customer_users = [u for k, u in users.items() if k.startswith("customer_")]
     for u in customer_users:
-        profile = CustomerProfile(
-            user_id=u.id,
-            crm_status=CRMStatus.NEW,
-        )
+        profile = CustomerProfile(user_id=u.id, crm_status=CRMStatus.NEW)
         db.add(profile)
-
         addr = CustomerAddress(
-            user_id=u.id,
-            label="Дом",
-            city="Ташкент",
-            address="ул. Амира Темура, д. 50, кв. 12",
-            is_default=True,
+            user_id=u.id, label="Дом", city="Ташкент",
+            address="ул. Амира Темура, д. 50, кв. 12", is_default=True,
         )
         db.add(addr)
         customers.append(u)
-
     await db.flush()
     return customers
 
@@ -680,10 +657,6 @@ async def seed_customers(db, users):
 async def seed_orders(db, users, products, customers):
     if not customers or not products:
         return
-
-    admin = users.get("super_admin")
-    seller = users.get("seller")
-
     result = await db.execute(select(ProductVariant).limit(10))
     variants = list(result.scalars().all())
     if not variants:
@@ -698,23 +671,19 @@ async def seed_orders(db, users, products, customers):
         (customers[3] if len(customers) > 3 else customers[0], OrderStatus.NEW, PaymentStatus.PENDING, PaymentMethod.CASH),
     ]
 
-    for i, (customer, status, pay_status, pay_method) in enumerate(orders_data):
+    for i, (customer, o_status, pay_status, pay_method) in enumerate(orders_data):
         import random
         v = variants[i % len(variants)]
-        qty = random.randint(1, 3)
-        price = Decimal("350000")
+        qty = random.randint(1, 2)
+        price = Decimal("890000")
         total = price * qty
 
         order = Order(
-            order_number=f"VK-20260918-{str(i+1).zfill(4)}",
+            order_number=f"VK-20260926-{str(i+1).zfill(4)}",
             customer_id=customer.id,
-            status=status,
-            subtotal=total,
-            discount_amount=0,
-            delivery_fee=0,
-            total=total,
-            payment_method=pay_method,
-            payment_status=pay_status,
+            status=o_status,
+            subtotal=total, discount_amount=0, delivery_fee=0, total=total,
+            payment_method=pay_method, payment_status=pay_status,
             customer_first_name=customer.first_name,
             customer_last_name=customer.last_name,
             customer_phone=customer.phone or "+998901234573",
@@ -730,8 +699,8 @@ async def seed_orders(db, users, products, customers):
             product_variant_id=v.id,
             product_name=f"Товар {i+1}",
             product_sku=v.sku,
-            size_name="104",
-            color_name="Белый",
+            size_name=None,
+            color_name="Чёрный",
             quantity=qty,
             unit_price=price,
             total=total,
@@ -755,32 +724,23 @@ async def seed_crm(db, users, products, customers):
         return
 
     leads_data = [
-        ("Фарход Каримов", "+998901112233", "phone", "Хочу заказать комбинезон", LeadPriority.HIGH),
-        ("Нигора Ахмедова", "+998901112234", "website", "Вопрос по доставке", LeadPriority.MEDIUM),
-        ("Шахзод Ибрагимов", "+998901112235", "product_question", "Есть ли размер 128?", LeadPriority.LOW),
+        ("Фарход Каримов", "+998901112233", "phone", "Хочу заказать электромобиль", LeadPriority.HIGH),
+        ("Нигора Ахмедова", "+998901112234", "website", "Вопрос по доставке самоката", LeadPriority.MEDIUM),
+        ("Шахзод Ибрагимов", "+998901112235", "product_question", "Есть ли белый цвет?", LeadPriority.LOW),
         ("Дилором Усмонова", "+998901112236", "callback", None, LeadPriority.URGENT),
     ]
-
     for name, phone, source, message, priority in leads_data:
         lead = CRMLead(
-            customer_name=name,
-            customer_phone=phone,
-            source=source,
-            message=message,
-            priority=priority,
-            status=LeadStatus.NEW,
+            customer_name=name, customer_phone=phone,
+            source=source, message=message, priority=priority, status=LeadStatus.NEW,
         )
         db.add(lead)
         await db.flush()
-
         activity = CRMActivity(
-            lead_id=lead.id,
-            activity_type="created",
-            description=f"Обращение от {name} через {source}",
-            performed_by=cc.id,
+            lead_id=lead.id, activity_type="created",
+            description=f"Обращение от {name} через {source}", performed_by=cc.id,
         )
         db.add(activity)
-
     await db.flush()
 
 
@@ -795,9 +755,8 @@ async def seed_content(db, users, products):
                 product_id=product.id,
                 rating=4 + (i % 2),
                 title="Отличное качество!",
-                comment="Ребёнку очень понравилось. Ткань мягкая, пошив аккуратный.",
-                is_approved=True,
-                is_visible=True,
+                comment="Ребёнку очень понравилось. Крепкий, красивый, быстро доставили.",
+                is_approved=True, is_visible=True,
             )
             db.add(review)
 
@@ -806,8 +765,8 @@ async def seed_content(db, users, products):
                 product_id=product.id,
                 customer_name="Зарина",
                 customer_phone="+998901234573",
-                question="Этот товар подходит для 5-летнего ребёнка?",
-                answer="Да, рекомендуем размер 110 для возраста 4-5 лет." if i < 2 else None,
+                question="Этот товар подходит для 3-летнего ребёнка?",
+                answer="Да, рекомендуем для возраста 2-5 лет." if i < 2 else None,
                 answered_by=admin.id if i < 2 else None,
                 is_public=True,
             )
@@ -815,62 +774,49 @@ async def seed_content(db, users, products):
 
     now = datetime.now(timezone.utc)
     promo = Promotion(
-        name="Скидка на первый заказ",
-        code="WELCOME10",
-        discount_type=DiscountType.PERCENTAGE,
-        discount_value=Decimal("10"),
-        is_active=True,
-        start_date=now - timedelta(days=30),
-        end_date=now + timedelta(days=60),
-        applies_to=PromotionAppliesTo.ALL,
+        name="Скидка на первый заказ", code="WELCOME10",
+        discount_type=DiscountType.PERCENTAGE, discount_value=Decimal("10"),
+        is_active=True, start_date=now - timedelta(days=30),
+        end_date=now + timedelta(days=60), applies_to=PromotionAppliesTo.ALL,
     )
     db.add(promo)
-
     promo2 = Promotion(
-        name="Зимняя распродажа",
-        code="WINTER20",
-        discount_type=DiscountType.PERCENTAGE,
-        discount_value=Decimal("20"),
-        min_order_amount=Decimal("500000"),
-        is_active=True,
-        start_date=now,
-        end_date=now + timedelta(days=90),
-        applies_to=PromotionAppliesTo.ALL,
+        name="Зимняя распродажа", code="WINTER20",
+        discount_type=DiscountType.PERCENTAGE, discount_value=Decimal("20"),
+        min_order_amount=Decimal("500000"), is_active=True,
+        start_date=now, end_date=now + timedelta(days=90), applies_to=PromotionAppliesTo.ALL,
     )
     db.add(promo2)
 
     if admin:
         notif = Notification(
-            user_id=admin.id,
-            title="Добро пожаловать!",
-            message="Система Velmora Kids успешно настроена.",
-            type="system",
+            user_id=admin.id, title="Добро пожаловать!",
+            message="Система Velmora Kids успешно настроена.", type="system",
         )
         db.add(notif)
-
     await db.flush()
 
 
 async def seed_banners(db):
     banners = [
         Banner(
-            title="Новая коллекция Осень-Зима 2026",
-            title_ru="Новая коллекция Осень-Зима 2026",
-            subtitle="Премиальная детская одежда для особенных моментов",
-            subtitle_ru="Премиальная детская одежда для особенных моментов",
-            image="/images/hero-banner.webp",
-            button_text="Смотреть коллекцию",
-            link="/catalog?collection=osen-zima-2026",
+            title="Новинки сезона — самокаты и электромобили",
+            title_ru="Новинки сезона — самокаты и электромобили",
+            subtitle="Премиальный детский транспорт для ваших малышей",
+            subtitle_ru="Премиальный детский транспорт для ваших малышей",
+            image="/uploads/banners/hero-banner.webp",
+            button_text="Смотреть каталог",
+            link="/catalog",
             position="hero",
             sort_order=0,
             is_active=True,
         ),
         Banner(
-            title="Скидки до 25%",
-            title_ru="Скидки до 25%",
-            subtitle="На избранные модели прошлого сезона",
-            subtitle_ru="На избранные модели прошлого сезона",
-            image="/images/promo-banner.webp",
+            title="Скидки до 25% на электромобили",
+            title_ru="Скидки до 25% на электромобили",
+            subtitle="Успейте купить по лучшей цене!",
+            subtitle_ru="Успейте купить по лучшей цене!",
+            image="/uploads/banners/promo-banner.webp",
             button_text="Смотреть распродажу",
             link="/catalog?is_on_sale=true",
             position="promo",

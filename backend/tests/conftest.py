@@ -13,7 +13,7 @@ from app.core.security import hash_password, create_access_token
 from app.main import app
 from app.models.user import User, UserRole
 from app.models.product import (
-    Category, Brand, Size, Color, Product, ProductVariant,
+    Category, Brand, Color, Product, ProductVariant,
     ProductImage, Gender, ProductStatus,
 )
 from app.models.inventory import Warehouse, Inventory
@@ -157,7 +157,7 @@ async def call_center_token(call_center_user: User) -> str:
 
 @pytest_asyncio.fixture
 async def sample_category(db_session: AsyncSession) -> Category:
-    cat = Category(name="Girls", slug="girls", is_active=True)
+    cat = Category(name="Самокаты", slug="samokaty", is_active=True)
     db_session.add(cat)
     await db_session.flush()
     await db_session.refresh(cat)
@@ -171,15 +171,6 @@ async def sample_brand(db_session: AsyncSession) -> Brand:
     await db_session.flush()
     await db_session.refresh(brand)
     return brand
-
-
-@pytest_asyncio.fixture
-async def sample_size(db_session: AsyncSession) -> Size:
-    size = Size(name="104", sort_order=1, size_type="children")
-    db_session.add(size)
-    await db_session.flush()
-    await db_session.refresh(size)
-    return size
 
 
 @pytest_asyncio.fixture
@@ -198,12 +189,16 @@ async def sample_product(
     sample_brand: Brand,
 ) -> Product:
     product = Product(
-        name="Test Dress",
-        slug="test-dress",
+        name="Детский самокат трёхколёсный",
+        slug="detskiy-samokat",
         sku="VK-TEST-001",
         brand_id=sample_brand.id,
         category_id=sample_category.id,
-        gender=Gender.GIRLS,
+        gender=Gender.BOTH,
+        age_min=3,
+        age_max=8,
+        max_weight_kg=Decimal("50"),
+        wheel_count=3,
         purchase_price=Decimal("100000"),
         selling_price=Decimal("250000"),
         status=ProductStatus.ACTIVE,
@@ -218,14 +213,12 @@ async def sample_product(
 async def sample_variant(
     db_session: AsyncSession,
     sample_product: Product,
-    sample_size: Size,
     sample_color: Color,
 ) -> ProductVariant:
     variant = ProductVariant(
         product_id=sample_product.id,
-        size_id=sample_size.id,
         color_id=sample_color.id,
-        sku="VK-TEST-001-104-PNK",
+        sku="VK-TEST-001-PNK",
         is_active=True,
     )
     db_session.add(variant)

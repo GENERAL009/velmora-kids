@@ -27,7 +27,7 @@ class OrderItemResponse(BaseModel):
     id: UUID
     product_name: str
     product_sku: str
-    size_name: str
+    size_name: Optional[str] = None
     color_name: str
     quantity: int
     unit_price: float

@@ -140,24 +140,6 @@ class CollectionResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ──── Size ────
-
-
-class SizeCreate(BaseModel):
-    name: str = Field(..., max_length=50)
-    sort_order: int = 0
-    size_type: str = Field(default="children", max_length=50)
-
-
-class SizeResponse(BaseModel):
-    id: uuid.UUID
-    name: str
-    sort_order: int
-    size_type: str
-
-    model_config = {"from_attributes": True}
-
-
 # ──── Color ────
 
 
@@ -185,17 +167,10 @@ class ColorResponse(BaseModel):
 # ──── ProductImage ────
 
 
-class ProductImageCreate(BaseModel):
-    url: str = Field(..., max_length=500)
-    alt_text: Optional[str] = Field(None, max_length=300)
-    sort_order: int = 0
-    is_primary: bool = False
-
-
 class ProductImageResponse(BaseModel):
     id: uuid.UUID
     product_id: uuid.UUID
-    url: str
+    file_path: str
     alt_text: Optional[str] = None
     sort_order: int
     is_primary: bool
@@ -207,7 +182,6 @@ class ProductImageResponse(BaseModel):
 
 
 class ProductVariantCreate(BaseModel):
-    size_id: uuid.UUID
     color_id: uuid.UUID
     sku: str = Field(..., max_length=100)
     barcode: Optional[str] = Field(None, max_length=100)
@@ -216,7 +190,6 @@ class ProductVariantCreate(BaseModel):
 
 
 class ProductVariantUpdate(BaseModel):
-    size_id: Optional[uuid.UUID] = None
     color_id: Optional[uuid.UUID] = None
     sku: Optional[str] = Field(None, max_length=100)
     barcode: Optional[str] = Field(None, max_length=100)
@@ -227,13 +200,11 @@ class ProductVariantUpdate(BaseModel):
 class ProductVariantResponse(BaseModel):
     id: uuid.UUID
     product_id: uuid.UUID
-    size_id: uuid.UUID
     color_id: uuid.UUID
     sku: str
     barcode: Optional[str] = None
     additional_price: Decimal
     is_active: bool
-    size: Optional[SizeResponse] = None
     color: Optional[ColorResponse] = None
 
     model_config = {"from_attributes": True}
@@ -258,10 +229,19 @@ class ProductCreate(BaseModel):
     brand_id: uuid.UUID
     category_id: uuid.UUID
     collection_id: Optional[uuid.UUID] = None
-    gender: Gender = Gender.UNISEX
+    gender: Gender = Gender.BOTH
     age_min: Optional[int] = None
     age_max: Optional[int] = None
-    material: Optional[str] = Field(None, max_length=200)
+    max_weight_kg: Optional[Decimal] = None
+    product_weight_kg: Optional[Decimal] = None
+    dimensions: Optional[str] = Field(None, max_length=100)
+    wheel_type: Optional[str] = Field(None, max_length=100)
+    wheel_count: Optional[int] = None
+    max_speed_kmh: Optional[int] = None
+    battery_type: Optional[str] = Field(None, max_length=100)
+    has_remote_control: bool = False
+    has_lights: bool = False
+    has_music: bool = False
     purchase_price: Decimal = Decimal("0.00")
     selling_price: Decimal = Decimal("0.00")
     discount_percent: int = 0
@@ -273,7 +253,6 @@ class ProductCreate(BaseModel):
     is_bestseller: bool = False
     is_new: bool = True
     variants: list[ProductVariantCreate] = []
-    images: list[ProductImageCreate] = []
 
 
 class ProductUpdate(BaseModel):
@@ -295,7 +274,16 @@ class ProductUpdate(BaseModel):
     gender: Optional[Gender] = None
     age_min: Optional[int] = None
     age_max: Optional[int] = None
-    material: Optional[str] = Field(None, max_length=200)
+    max_weight_kg: Optional[Decimal] = None
+    product_weight_kg: Optional[Decimal] = None
+    dimensions: Optional[str] = Field(None, max_length=100)
+    wheel_type: Optional[str] = Field(None, max_length=100)
+    wheel_count: Optional[int] = None
+    max_speed_kmh: Optional[int] = None
+    battery_type: Optional[str] = Field(None, max_length=100)
+    has_remote_control: Optional[bool] = None
+    has_lights: Optional[bool] = None
+    has_music: Optional[bool] = None
     purchase_price: Optional[Decimal] = None
     selling_price: Optional[Decimal] = None
     discount_percent: Optional[int] = None
@@ -328,7 +316,16 @@ class ProductResponse(BaseModel):
     gender: Gender
     age_min: Optional[int] = None
     age_max: Optional[int] = None
-    material: Optional[str] = None
+    max_weight_kg: Optional[Decimal] = None
+    product_weight_kg: Optional[Decimal] = None
+    dimensions: Optional[str] = None
+    wheel_type: Optional[str] = None
+    wheel_count: Optional[int] = None
+    max_speed_kmh: Optional[int] = None
+    battery_type: Optional[str] = None
+    has_remote_control: bool = False
+    has_lights: bool = False
+    has_music: bool = False
     purchase_price: Decimal
     selling_price: Decimal
     discount_percent: int
@@ -365,6 +362,8 @@ class ProductList(BaseModel):
     is_new: bool
     views: int = 0
     gender: Gender
+    age_min: Optional[int] = None
+    age_max: Optional[int] = None
     brand: Optional[BrandResponse] = None
     category: Optional[CategoryResponse] = None
     images: list[ProductImageResponse] = []

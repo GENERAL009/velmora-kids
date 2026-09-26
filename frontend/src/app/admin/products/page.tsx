@@ -67,9 +67,9 @@ export default function ProductsPage() {
       render: (product) => (
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-            {product.images?.[0]?.url ? (
+            {product.images?.[0]?.file_path ? (
               <img
-                src={product.images[0].url}
+                src={product.images[0].file_path}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />

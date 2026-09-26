@@ -20,7 +20,7 @@ interface ReceiveItem {
 }
 
 interface WarehouseOption { id: string; name: string; }
-interface VariantOption { id: string; sku: string; product?: { name: string }; size?: { name: string }; color?: { name: string } }
+interface VariantOption { id: string; sku: string; product?: { name: string }; color?: { name: string } }
 
 export default function InventoryPage() {
   const queryClient = useQueryClient();
@@ -95,7 +95,7 @@ export default function InventoryPage() {
       render: (item) => (
         <div>
           <p className="font-medium">{item.product_variant?.product?.name ?? "—"}</p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">{item.product_variant?.size?.name ?? "—"} / {item.product_variant?.color?.name ?? "—"}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">{item.product_variant?.color?.name ?? "—"}</p>
         </div>
       ),
     },

@@ -54,11 +54,19 @@ export interface Product {
   views?: number;
   avg_rating: number;
   review_count: number;
-  gender?: "girls" | "boys" | "unisex" | "newborn";
+  gender?: "girls" | "boys" | "both";
   age_min?: number;
   age_max?: number;
-  material?: string;
-  care_instructions?: string;
+  max_weight_kg?: number;
+  product_weight_kg?: number;
+  dimensions?: string;
+  wheel_type?: string;
+  wheel_count?: number;
+  max_speed_kmh?: number;
+  battery_type?: string;
+  has_remote_control?: boolean;
+  has_lights?: boolean;
+  has_music?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -66,8 +74,6 @@ export interface Product {
 export interface ProductVariant {
   id: string;
   product_id: string;
-  size: Size;
-  size_id: string;
   color: Color;
   color_id: string;
   sku: string;
@@ -79,7 +85,7 @@ export interface ProductVariant {
 export interface ProductImage {
   id: string;
   product_id: string;
-  url: string;
+  file_path: string;
   alt_text?: string;
   sort_order: number;
   is_primary: boolean;
@@ -122,14 +128,6 @@ export interface Collection {
   is_active: boolean;
   start_date?: string;
   end_date?: string;
-}
-
-export interface Size {
-  id: string;
-  name: string;
-  slug: string;
-  sort_order: number;
-  size_type: "clothing" | "shoes" | "accessories";
 }
 
 export interface Color {
@@ -526,7 +524,6 @@ export interface ProductFilters {
   gender?: string;
   min_price?: number;
   max_price?: number;
-  sizes?: string[];
   colors?: string[];
   tags?: string[];
   is_new?: boolean;

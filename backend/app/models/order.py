@@ -190,7 +190,7 @@ class OrderItem(Base):
     )
     product_name: Mapped[str] = mapped_column(String(300), nullable=False)
     product_sku: Mapped[str] = mapped_column(String(100), nullable=False)
-    size_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    size_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     color_name: Mapped[str] = mapped_column(String(100), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)

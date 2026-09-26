@@ -27,7 +27,6 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
             select(ProductVariant).where(ProductVariant.id == item_data.product_variant_id)
             .options(
                 selectinload(ProductVariant.product),
-                selectinload(ProductVariant.size),
                 selectinload(ProductVariant.color),
             )
         )
@@ -44,7 +43,7 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
             available = (inventory.quantity - inventory.reserved) if inventory else 0
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Insufficient stock for {variant.product.name} ({variant.size.name}/{variant.color.name}). Available: {available}"
+                detail=f"Insufficient stock for {variant.product.name} ({variant.color.name}). Available: {available}"
             )
 
         product = variant.product
@@ -60,7 +59,7 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
             "inventory": inventory,
             "product_name": product.name,
             "product_sku": variant.sku,
-            "size_name": variant.size.name,
+            "size_name": None,
             "color_name": variant.color.name,
             "quantity": item_data.quantity,
             "unit_price": Decimal(str(unit_price)),

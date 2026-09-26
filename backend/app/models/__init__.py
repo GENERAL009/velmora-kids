@@ -11,7 +11,6 @@ from app.models.product import (  # noqa: F401
     ProductImage,
     ProductStatus,
     ProductVariant,
-    Size,
 )
 from app.models.inventory import (  # noqa: F401
     Inventory,

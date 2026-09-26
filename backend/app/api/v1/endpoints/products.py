@@ -1,16 +1,21 @@
+import os
+import uuid as uuid_mod
 from typing import Annotated
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.v1.deps import get_current_active_user, get_db, RoleChecker
+from app.core.config import settings
 from app.models.user import User, UserRole
-from app.models.product import Product
+from app.models.product import Product, ProductImage
 from app.services import product_service
 from app.schemas.product import (
     CategoryCreate, CategoryResponse, BrandCreate, BrandResponse,
     ProductCreate, ProductResponse, PaginatedProducts, ProductList,
-    SizeResponse, ColorResponse,
+    ColorResponse, ProductImageResponse,
 )
 
 router = APIRouter(tags=["Products"])
@@ -129,6 +134,78 @@ async def delete_product(
     await db.flush()
 
 
+@router.post("/products/{product_id}/images", response_model=ProductImageResponse)
+async def upload_product_image(
+    product_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+    file: UploadFile = File(...),
+    is_primary: bool = False,
+):
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    allowed = {"image/jpeg", "image/png", "image/webp", "image/avif"}
+    if file.content_type not in allowed:
+        raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP, AVIF images allowed")
+
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
+    filename = f"{uuid_mod.uuid4().hex}.{ext}"
+    product_dir = os.path.join(settings.UPLOAD_DIR, "products", str(product_id))
+    os.makedirs(product_dir, exist_ok=True)
+
+    filepath = os.path.join(product_dir, filename)
+    content = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(content)
+
+    rel_path = f"/uploads/products/{product_id}/{filename}"
+
+    if is_primary:
+        from sqlalchemy import update as sql_update
+        await db.execute(
+            sql_update(ProductImage)
+            .where(ProductImage.product_id == product_id)
+            .values(is_primary=False)
+        )
+
+    image = ProductImage(
+        product_id=product_id,
+        file_path=rel_path,
+        alt_text=product.name,
+        sort_order=0,
+        is_primary=is_primary,
+    )
+    db.add(image)
+    await db.flush()
+    await db.refresh(image)
+    return image
+
+
+@router.delete("/products/{product_id}/images/{image_id}", status_code=204)
+async def delete_product_image(
+    product_id: UUID,
+    image_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+):
+    result = await db.execute(
+        select(ProductImage).where(ProductImage.id == image_id, ProductImage.product_id == product_id)
+    )
+    image = result.scalar_one_or_none()
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    full_path = image.file_path.lstrip("/")
+    if os.path.exists(full_path):
+        os.remove(full_path)
+
+    await db.delete(image)
+    await db.flush()
+
+
 @router.get("/categories", response_model=list[CategoryResponse])
 async def list_categories(db: Annotated[AsyncSession, Depends(get_db)]):
     return await product_service.get_categories_tree(db)
@@ -163,11 +240,6 @@ async def create_brand(
     current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
 ):
     return await product_service.create_brand(db, data)
-
-
-@router.get("/sizes", response_model=list[SizeResponse])
-async def list_sizes(db: Annotated[AsyncSession, Depends(get_db)]):
-    return await product_service.get_sizes(db)
 
 
 @router.get("/colors", response_model=list[ColorResponse])

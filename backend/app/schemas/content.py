@@ -17,7 +17,7 @@ class CartItemResponse(BaseModel):
     product_variant_id: UUID
     product_name: str
     product_image: Optional[str] = None
-    size_name: str
+    size_name: Optional[str] = None
     color_name: str
     quantity: int
     unit_price: float

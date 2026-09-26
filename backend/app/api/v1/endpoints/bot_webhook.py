@@ -246,7 +246,8 @@ async def _approve_payment(payment_id: str, admin_name: str, callback_id: str, c
             if order:
                 items_text = ""
                 for item in order.items:
-                    items_text += f"  • {item.product_name} ({item.size_name}/{item.color_name}) × {item.quantity}\n"
+                    color_info = f" ({item.color_name})" if item.color_name else ""
+                    items_text += f"  • {item.product_name}{color_info} × {item.quantity}\n"
 
                 address = f"{order.delivery_city or ''}, {order.delivery_address or ''}".strip(", ")
 
@@ -267,8 +268,8 @@ async def _approve_payment(payment_id: str, admin_name: str, callback_id: str, c
                                 .where(ProductImage.product_id == variant.product_id, ProductImage.is_primary == True)
                             )
                             img = img_result.scalar_one_or_none()
-                            if img and img.url:
-                                url = img.url
+                            if img and img.file_path:
+                                url = img.file_path
                                 if url.startswith("/") and base_url:
                                     url = base_url + url
                                 if url.startswith("http"):

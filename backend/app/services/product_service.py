@@ -2,7 +2,7 @@ from uuid import UUID
 from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from app.models.product import Product, Category, Brand, Collection, Size, Color, ProductVariant, ProductImage, ProductStatus, Gender
+from app.models.product import Product, Category, Brand, Collection, Color, ProductVariant, ProductImage, ProductStatus, Gender
 from app.models.content import Favorite
 from app.models.inventory import Inventory
 from slugify import slugify
@@ -10,7 +10,6 @@ import uuid as uuid_mod
 
 
 async def get_categories_tree(db: AsyncSession) -> list:
-    """Get all active categories as a tree (only root-level, children are loaded via relationships)."""
     result = await db.execute(
         select(Category).where(Category.parent_id == None, Category.is_active == True).order_by(Category.sort_order)
     )
@@ -42,10 +41,8 @@ async def create_category(db: AsyncSession, data) -> Category:
 
 
 async def get_products(db: AsyncSession, filters, user_id: UUID | None = None) -> dict:
-    """Get paginated product list with filters. Returns dict with items, total, page, pages."""
     query = select(Product).where(Product.status == ProductStatus.ACTIVE)
 
-    # Apply filters
     if hasattr(filters, 'category_id') and filters.category_id:
         query = query.where(Product.category_id == filters.category_id)
     if hasattr(filters, 'brand_id') and filters.brand_id:
@@ -53,7 +50,10 @@ async def get_products(db: AsyncSession, filters, user_id: UUID | None = None) -
     if hasattr(filters, 'collection_id') and filters.collection_id:
         query = query.where(Product.collection_id == filters.collection_id)
     if hasattr(filters, 'gender') and filters.gender:
-        query = query.where(Product.gender == filters.gender)
+        # BOTH products appear in both boys and girls
+        query = query.where(
+            or_(Product.gender == filters.gender, Product.gender == Gender.BOTH)
+        )
     if hasattr(filters, 'min_price') and filters.min_price is not None:
         query = query.where(Product.selling_price >= filters.min_price)
     if hasattr(filters, 'max_price') and filters.max_price is not None:
@@ -76,12 +76,10 @@ async def get_products(db: AsyncSession, filters, user_id: UUID | None = None) -
             )
         )
 
-    # Count total
     count_query = select(func.count()).select_from(query.subquery())
     total_result = await db.execute(count_query)
     total = total_result.scalar() or 0
 
-    # Sorting
     sort_by = getattr(filters, 'sort_by', 'newest') or 'newest'
     if sort_by == 'price_asc':
         query = query.order_by(Product.selling_price.asc())
@@ -89,20 +87,17 @@ async def get_products(db: AsyncSession, filters, user_id: UUID | None = None) -
         query = query.order_by(Product.selling_price.desc())
     elif sort_by == 'popular':
         query = query.order_by(Product.is_bestseller.desc(), Product.created_at.desc())
-    else:  # newest
+    else:
         query = query.order_by(Product.created_at.desc())
 
-    # Pagination
     page = getattr(filters, 'page', 1) or 1
     page_size = getattr(filters, 'page_size', 20) or 20
     query = query.offset((page - 1) * page_size).limit(page_size)
 
-    # Load with relationships
     query = query.options(
         selectinload(Product.brand),
         selectinload(Product.category),
         selectinload(Product.images),
-        selectinload(Product.variants).selectinload(ProductVariant.size),
         selectinload(Product.variants).selectinload(ProductVariant.color),
     )
 
@@ -121,7 +116,6 @@ async def get_product_by_slug(db: AsyncSession, slug: str):
         selectinload(Product.category),
         selectinload(Product.collection),
         selectinload(Product.images),
-        selectinload(Product.variants).selectinload(ProductVariant.size),
         selectinload(Product.variants).selectinload(ProductVariant.color),
         selectinload(Product.variants).selectinload(ProductVariant.inventory_items),
     )
@@ -131,7 +125,6 @@ async def get_product_by_slug(db: AsyncSession, slug: str):
 
 async def create_product(db: AsyncSession, data) -> Product:
     slug = data.slug or slugify(data.name)
-    # Ensure unique slug
     existing = await db.execute(select(Product).where(Product.slug == slug))
     if existing.scalar_one_or_none():
         slug = f"{slug}-{uuid_mod.uuid4().hex[:6]}"
@@ -146,7 +139,10 @@ async def create_product(db: AsyncSession, data) -> Product:
         short_description=data.short_description,
         brand_id=data.brand_id, category_id=data.category_id, collection_id=data.collection_id,
         gender=data.gender, age_min=data.age_min, age_max=data.age_max,
-        material=data.material,
+        max_weight_kg=data.max_weight_kg, product_weight_kg=data.product_weight_kg,
+        dimensions=data.dimensions, wheel_type=data.wheel_type, wheel_count=data.wheel_count,
+        max_speed_kmh=data.max_speed_kmh, battery_type=data.battery_type,
+        has_remote_control=data.has_remote_control, has_lights=data.has_lights, has_music=data.has_music,
         purchase_price=data.purchase_price, selling_price=data.selling_price,
         discount_percent=data.discount_percent or 0,
         discount_price=data.discount_price,
@@ -159,30 +155,16 @@ async def create_product(db: AsyncSession, data) -> Product:
     db.add(product)
     await db.flush()
 
-    # Create variants
     if hasattr(data, 'variants') and data.variants:
         for v in data.variants:
             variant = ProductVariant(
                 product_id=product.id,
-                size_id=v.size_id,
                 color_id=v.color_id,
                 sku=v.sku or f"{sku}-{uuid_mod.uuid4().hex[:4].upper()}",
                 barcode=v.barcode,
                 additional_price=v.additional_price or 0,
             )
             db.add(variant)
-
-    # Create images
-    if hasattr(data, 'images') and data.images:
-        for idx, img in enumerate(data.images):
-            image = ProductImage(
-                product_id=product.id,
-                url=img.url,
-                alt_text=img.alt_text,
-                sort_order=img.sort_order or idx,
-                is_primary=img.is_primary or (idx == 0),
-            )
-            db.add(image)
 
     await db.flush()
     await db.refresh(product)
@@ -216,11 +198,6 @@ async def create_brand(db: AsyncSession, data) -> Brand:
     await db.flush()
     await db.refresh(brand)
     return brand
-
-
-async def get_sizes(db: AsyncSession) -> list:
-    result = await db.execute(select(Size).order_by(Size.sort_order))
-    return list(result.scalars().all())
 
 
 async def get_colors(db: AsyncSession) -> list:

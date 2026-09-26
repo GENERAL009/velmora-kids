@@ -264,7 +264,6 @@ export default function OrderDetailPage() {
                         {item.product_sku}
                       </p>
                       <div className="flex gap-4 text-sm text-neutral-600 dark:text-neutral-400">
-                        <span>Размер: {item.size_name}</span>
                         <span>Цвет: {item.color_name}</span>
                       </div>
                     </div>
