@@ -10,27 +10,31 @@ from app.core.database import async_engine
 
 async def ensure_superadmin():
     from sqlalchemy import select
+    from sqlalchemy.exc import IntegrityError
     from app.core.database import AsyncSessionLocal
     from app.models.user import User, UserRole
     from app.core.security import hash_password
 
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(select(User).where(User.email == settings.ADMIN_EMAIL))
-        if result.scalar_one_or_none():
-            return
-        admin = User(
-            email=settings.ADMIN_EMAIL,
-            phone=settings.ADMIN_PHONE,
-            hashed_password=hash_password(settings.ADMIN_PASSWORD),
-            first_name=settings.ADMIN_FIRST_NAME,
-            last_name=settings.ADMIN_LAST_NAME,
-            role=UserRole.SUPER_ADMIN,
-            is_active=True,
-            is_verified=True,
-        )
-        db.add(admin)
-        await db.commit()
-        print(f"Super admin created: {settings.ADMIN_EMAIL}")
+    try:
+        async with AsyncSessionLocal() as db:
+            result = await db.execute(select(User).where(User.email == settings.ADMIN_EMAIL))
+            if result.scalar_one_or_none():
+                return
+            admin = User(
+                email=settings.ADMIN_EMAIL,
+                phone=settings.ADMIN_PHONE,
+                hashed_password=hash_password(settings.ADMIN_PASSWORD),
+                first_name=settings.ADMIN_FIRST_NAME,
+                last_name=settings.ADMIN_LAST_NAME,
+                role=UserRole.SUPER_ADMIN,
+                is_active=True,
+                is_verified=True,
+            )
+            db.add(admin)
+            await db.commit()
+            print(f"Super admin created: {settings.ADMIN_EMAIL}")
+    except (IntegrityError, Exception):
+        pass
 
 
 @asynccontextmanager
