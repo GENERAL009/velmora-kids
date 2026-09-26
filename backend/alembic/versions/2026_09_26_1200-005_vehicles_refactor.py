@@ -22,8 +22,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # 1. Add 'both' to gender enum
-    op.execute("ALTER TYPE gender_enum ADD VALUE IF NOT EXISTS 'both'")
+    # 1. Add 'both' to gender enum — must commit before use in PostgreSQL
+    with op.get_context().autocommit_block():
+        op.execute("ALTER TYPE gender_enum ADD VALUE IF NOT EXISTS 'both'")
 
     # 2. Update existing UNISEX products to BOTH
     op.execute("UPDATE products SET gender = 'both' WHERE gender = 'unisex'")
