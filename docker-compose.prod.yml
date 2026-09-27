@@ -33,6 +33,8 @@ services:
       dockerfile: Dockerfile.prod
     container_name: velmora_backend
     restart: always
+    volumes:
+      - uploads_data:/app/uploads
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       DATABASE_URL_SYNC: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -115,3 +117,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:
