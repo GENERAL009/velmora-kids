@@ -90,7 +90,7 @@ function mapVariant(v: ApiVariant, productPrice: number): ProductVariant {
     color_id: v.color_id,
     sku: v.sku,
     is_active: v.is_active,
-    stock: v.stock ?? 10,
+    stock: v.stock || 10,
     additional_price: additionalPrice,
     color: v.color
       ? {

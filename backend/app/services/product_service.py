@@ -162,6 +162,7 @@ async def create_product(db: AsyncSession, data) -> Product:
                 sku=v.sku or f"{sku}-{uuid_mod.uuid4().hex[:4].upper()}",
                 barcode=v.barcode,
                 additional_price=v.additional_price or 0,
+                stock=10,
             )
             db.add(variant)
 
@@ -189,6 +190,25 @@ async def update_product(db: AsyncSession, product_id: UUID, data) -> Product:
     for field, value in update_data.items():
         if field not in ('variants', 'images'):
             setattr(product, field, value)
+
+    if 'variants' in update_data and update_data['variants']:
+        existing = await db.execute(
+            select(ProductVariant).where(ProductVariant.product_id == product_id)
+        )
+        for old_v in existing.scalars().all():
+            await db.delete(old_v)
+        await db.flush()
+
+        for v in data.variants:
+            variant = ProductVariant(
+                product_id=product_id,
+                color_id=v.color_id,
+                sku=v.sku or f"{product.sku}-{uuid_mod.uuid4().hex[:4].upper()}",
+                barcode=v.barcode,
+                additional_price=v.additional_price or 0,
+                stock=10,
+            )
+            db.add(variant)
 
     await db.flush()
 
