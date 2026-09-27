@@ -15,7 +15,7 @@ from app.services import product_service
 from app.schemas.product import (
     CategoryCreate, CategoryResponse, BrandCreate, BrandResponse,
     ProductCreate, ProductResponse, PaginatedProducts, ProductList,
-    ColorResponse, ProductImageResponse,
+    ColorCreate, ColorResponse, ProductImageResponse,
 )
 
 router = APIRouter(tags=["Products"])
@@ -206,6 +206,31 @@ async def delete_product_image(
     await db.flush()
 
 
+@router.post("/products/{product_id}/images/{image_id}/set-primary", response_model=ProductImageResponse)
+async def set_primary_image(
+    product_id: UUID,
+    image_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+):
+    result = await db.execute(
+        select(ProductImage).where(ProductImage.id == image_id, ProductImage.product_id == product_id)
+    )
+    image = result.scalar_one_or_none()
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    await db.execute(
+        update(ProductImage)
+        .where(ProductImage.product_id == product_id)
+        .values(is_primary=False)
+    )
+    image.is_primary = True
+    await db.flush()
+    await db.refresh(image)
+    return image
+
+
 @router.get("/categories", response_model=list[CategoryResponse])
 async def list_categories(db: Annotated[AsyncSession, Depends(get_db)]):
     return await product_service.get_categories_tree(db)
@@ -245,3 +270,12 @@ async def create_brand(
 @router.get("/colors", response_model=list[ColorResponse])
 async def list_colors(db: Annotated[AsyncSession, Depends(get_db)]):
     return await product_service.get_colors(db)
+
+
+@router.post("/colors", status_code=status.HTTP_201_CREATED, response_model=ColorResponse)
+async def create_color(
+    data: ColorCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+):
+    return await product_service.create_color(db, data)

@@ -102,7 +102,7 @@ export default function CartPage() {
             <div className="lg:col-span-2">
               <div className="space-y-4">
                 {items.map((item) => {
-                  const price = item.variant.price_override ?? item.product.price;
+                  const price = item.product.price + (item.variant.additional_price ?? 0);
                   const itemTotal = price * item.quantity;
 
                   return (

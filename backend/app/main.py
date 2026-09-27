@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Velmora Kids API",
-    description="Premium Kids E-commerce + Warehouse + CRM platform API",
+    description="Premium Kids E-commerce + POS + CRM platform API",
     version="1.0.0",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url="/docs",

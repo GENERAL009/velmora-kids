@@ -50,7 +50,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
     : 0;
 
   const availableColors = product.variants
-    ?.filter((v) => v.is_active && v.stock_quantity > 0)
+    ?.filter((v) => v.is_active && v.stock > 0)
     ?.map((v) => v.color)
     ?.filter((color, idx, arr) => color && arr.findIndex((c) => c?.id === color?.id) === idx)
     ?.slice(0, 5);

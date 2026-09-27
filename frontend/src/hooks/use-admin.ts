@@ -47,23 +47,12 @@ interface PaginatedOrders {
 
 interface LowStockItem {
   id: string;
-  quantity: number;
-  reserved: number;
-  reorder_point: number;
-  product_variant?: {
-    id: string;
-    sku: string;
-    product?: {
-      id: string;
-      name: string;
-      sku: string;
-    };
-    color?: { id: string; name: string; hex_code: string };
-  };
-  warehouse?: {
-    id: string;
-    name: string;
-  };
+  sku: string;
+  stock: number;
+  is_active: boolean;
+  additional_price: number;
+  product?: { id: string; name: string; sku: string };
+  color?: { id: string; name: string; hex_code: string };
 }
 
 export function useDashboardKPIs(days: number = 30) {
@@ -209,22 +198,18 @@ export function useAdminCustomers(params: { search?: string; page?: number; page
   });
 }
 
-export interface InventoryItem {
+export interface StockItem {
   id: string;
-  quantity: number;
-  reserved: number;
-  reorder_point: number;
-  product_variant?: {
-    id: string;
-    sku: string;
-    product?: { id: string; name: string; sku: string };
-    color?: { id: string; name: string; hex_code: string };
-  };
-  warehouse?: { id: string; name: string };
+  sku: string;
+  stock: number;
+  is_active: boolean;
+  additional_price: number;
+  product?: { id: string; name: string; sku: string };
+  color?: { id: string; name: string; hex_code: string };
 }
 
-interface PaginatedInventory {
-  items: InventoryItem[];
+interface PaginatedStock {
+  items: StockItem[];
   total: number;
   page: number;
   pages: number;
@@ -233,7 +218,7 @@ interface PaginatedInventory {
 export function useAdminInventory(params: {
   page?: number;
   page_size?: number;
-  warehouse_id?: string;
+  search?: string;
   low_stock?: boolean;
   out_of_stock?: boolean;
 } = {}) {
@@ -246,7 +231,27 @@ export function useAdminInventory(params: {
   const qs = searchParams.toString();
   return useQuery({
     queryKey: ["admin", "inventory", params],
-    queryFn: () => apiGet<PaginatedInventory>(`/inventory${qs ? `?${qs}` : ""}`),
+    queryFn: () => apiGet<PaginatedStock>(`/inventory${qs ? `?${qs}` : ""}`),
+    retry: 1,
+  });
+}
+
+export interface StockLogItem {
+  id: string;
+  product_variant_id: string;
+  movement_type: string;
+  quantity: number;
+  stock_before: number;
+  stock_after: number;
+  note?: string;
+  created_at: string;
+}
+
+export function useStockLogs(variantId: string) {
+  return useQuery({
+    queryKey: ["admin", "stock-logs", variantId],
+    queryFn: () => apiGet<StockLogItem[]>(`/inventory/logs/${variantId}`),
+    enabled: !!variantId,
     retry: 1,
   });
 }
@@ -316,25 +321,6 @@ export function useAdminPromotions() {
   });
 }
 
-export interface AdminSupplier {
-  id: string;
-  name: string;
-  company: string | null;
-  contact_person: string | null;
-  phone: string;
-  email: string | null;
-  address: string | null;
-  is_active: boolean;
-  created_at: string;
-}
-
-export function useAdminSuppliers() {
-  return useQuery({
-    queryKey: ["admin", "suppliers"],
-    queryFn: () => apiGet<AdminSupplier[]>("/suppliers"),
-    retry: 1,
-  });
-}
 
 // ============================================================
 // Users (staff management)

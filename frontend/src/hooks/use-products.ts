@@ -9,7 +9,7 @@ interface ApiVariant {
   sku: string;
   barcode?: string | null;
   additional_price: number | string;
-  stock_quantity?: number;
+  stock?: number;
   is_active: boolean;
   color?: {
     id: string;
@@ -90,8 +90,8 @@ function mapVariant(v: ApiVariant, productPrice: number): ProductVariant {
     color_id: v.color_id,
     sku: v.sku,
     is_active: v.is_active,
-    stock_quantity: v.stock_quantity ?? 10,
-    price_override: additionalPrice > 0 ? productPrice + additionalPrice : undefined,
+    stock: v.stock ?? 10,
+    additional_price: additionalPrice,
     color: v.color
       ? {
           id: v.color.id,

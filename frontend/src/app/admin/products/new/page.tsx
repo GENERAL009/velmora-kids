@@ -8,9 +8,63 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, X, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/api";
 import { useCategories, useBrands } from "@/hooks/use-products";
+
+function ColorCreator({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [colorName, setColorName] = useState("");
+  const [hex, setHex] = useState("#000000");
+  const [saving, setSaving] = useState(false);
+
+  const handleCreate = async () => {
+    if (!colorName.trim() || !hex) return;
+    setSaving(true);
+    try {
+      await apiPost("/colors", { name: colorName.trim(), hex_code: hex });
+      setColorName("");
+      setHex("#000000");
+      setOpen(false);
+      onCreated();
+    } catch {
+      alert("Ошибка создания цвета");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="mt-3 text-xs text-primary-600 hover:underline">
+        + Добавить новый цвет
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700">
+      <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Новый цвет</p>
+      <div className="flex items-end gap-3">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Название (напр. Розовый)"
+            value={colorName}
+            onChange={(e) => setColorName(e.target.value)}
+            className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="color" value={hex} onChange={(e) => setHex(e.target.value)} className="h-9 w-12 rounded border border-neutral-200 dark:border-neutral-700 cursor-pointer" />
+          <span className="text-xs font-mono text-neutral-500">{hex}</span>
+        </div>
+        <Button variant="default" size="sm" onClick={handleCreate} isLoading={saving}>Создать</Button>
+        <button onClick={() => setOpen(false)} className="p-2 text-neutral-400 hover:text-neutral-600"><X className="w-4 h-4" /></button>
+      </div>
+    </div>
+  );
+}
 
 const CYR_TO_LAT: Record<string, string> = {
   а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "zh",
@@ -69,6 +123,7 @@ const CARD_CLS =
 
 export default function NewProductPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: categoriesData } = useCategories();
   const { data: brandsData } = useBrands();
@@ -710,6 +765,7 @@ export default function NewProductPage() {
                 </div>
               ))}
             </div>
+            <ColorCreator onCreated={() => queryClient.invalidateQueries({ queryKey: ["colors"] })} />
             <p className="text-xs text-neutral-500 mt-3">
               Изображения можно загрузить после создания товара на странице редактирования.
             </p>

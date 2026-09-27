@@ -17,10 +17,7 @@ from app.models.product import (
     Category, Brand, Collection, Color, Product, ProductVariant,
     ProductImage, Gender, ProductStatus,
 )
-from app.models.inventory import (
-    Warehouse, WarehouseLocation, Inventory, InventoryMovement,
-    MovementType, Supplier, Purchase, PurchaseItem, PurchaseStatus,
-)
+from app.models.inventory import StockLog, StockMovementType
 from app.models.order import Order, OrderItem, Payment, OrderStatus, PaymentMethod, PaymentStatus, TransactionStatus
 from app.models.crm import CustomerProfile, CustomerAddress, CRMLead, CRMActivity, CRMStatus, LeadStatus, LeadPriority
 from app.models.content import (
@@ -46,10 +43,8 @@ async def seed():
         collections = await seed_collections(db)
         print("Seeding products...")
         products = await seed_products(db, categories, brands, collections, colors)
-        print("Seeding warehouse & inventory...")
-        warehouse = await seed_warehouse(db, products, users)
-        print("Seeding suppliers...")
-        suppliers = await seed_suppliers(db)
+        print("Seeding stock...")
+        await seed_stock(db, products, users)
         print("Seeding customers...")
         customers = await seed_customers(db, users)
         print("Seeding orders...")
@@ -580,62 +575,29 @@ async def seed_products(db, categories, brands, collections, colors) -> list:
     return products
 
 
-async def seed_warehouse(db, products, users):
-    warehouse = Warehouse(name="Главный склад", address="Ташкент, ул. Навои, 12", is_active=True)
-    db.add(warehouse)
-    await db.flush()
-
-    loc = WarehouseLocation(warehouse_id=warehouse.id, name="A-1-1", description="Основной стеллаж")
-    db.add(loc)
-    await db.flush()
-
-    admin = users.get("super_admin")
+async def seed_stock(db, products, users):
+    import random
+    admin = users.get("super_admin") or users.get("dev_admin")
 
     result = await db.execute(select(ProductVariant))
     variants = list(result.scalars().all())
 
     for variant in variants:
-        import random
         qty = random.randint(5, 30)
-        inv = Inventory(
-            product_variant_id=variant.id,
-            warehouse_id=warehouse.id,
-            quantity=qty,
-            reserved=0,
-            location_id=loc.id,
-        )
-        db.add(inv)
-        await db.flush()
+        variant.stock = qty
 
-        mov = InventoryMovement(
-            inventory_id=inv.id,
-            movement_type=MovementType.INCOMING,
+        log = StockLog(
+            product_variant_id=variant.id,
+            movement_type=StockMovementType.INCOMING,
             quantity=qty,
-            quantity_before=0,
-            quantity_after=qty,
-            reference_type="seed",
-            notes="Initial stock seed",
+            stock_before=0,
+            stock_after=qty,
+            note="Initial stock seed",
             created_by=admin.id,
         )
-        db.add(mov)
+        db.add(log)
 
     await db.flush()
-    return warehouse
-
-
-async def seed_suppliers(db):
-    data = [
-        ("ChinaRide", "Китай", "Li Wei", "+8613812345678"),
-        ("TurkVehicle", "Турция", "Мехмет Йылдыз", "+905321234567"),
-        ("UzToys", "Узбекистан", "Равшан Холматов", "+998712345678"),
-    ]
-    suppliers = []
-    for name, company, contact, phone in data:
-        s = Supplier(name=name, company=company, contact_person=contact, phone=phone, is_active=True)
-        db.add(s)
-        await db.flush()
-        suppliers.append(s)
-    return suppliers
 
 
 async def seed_customers(db, users):

@@ -13,15 +13,8 @@ from app.models.product import (  # noqa: F401
     ProductVariant,
 )
 from app.models.inventory import (  # noqa: F401
-    Inventory,
-    InventoryMovement,
-    MovementType,
-    Purchase,
-    PurchaseItem,
-    PurchaseStatus,
-    Supplier,
-    Warehouse,
-    WarehouseLocation,
+    StockLog,
+    StockMovementType,
 )
 from app.models.order import (  # noqa: F401
     Order,

@@ -22,7 +22,7 @@ export function ColorSelector({
   // Get unique colors with their availability
   const colorAvailability = variants.reduce((acc, variant) => {
     const colorId = variant.color_id;
-    const isAvailable = variant.is_active && variant.stock_quantity > 0;
+    const isAvailable = variant.is_active && variant.stock > 0;
 
     if (!acc[colorId]) {
       acc[colorId] = {

@@ -9,8 +9,9 @@ from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 from app.models.order import Order, OrderItem, Payment, OrderStatus, PaymentMethod, PaymentStatus, TransactionStatus
 from app.models.product import ProductVariant
-from app.models.inventory import Inventory, InventoryMovement, MovementType
+from app.models.inventory import StockMovementType
 from app.models.user import User, UserRole
+from app.services import inventory_service
 logger = logging.getLogger(__name__)
 
 
@@ -35,15 +36,10 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product variant {item_data.product_variant_id} not found")
 
         # Check stock availability
-        inv_result = await db.execute(
-            select(Inventory).where(Inventory.product_variant_id == variant.id).with_for_update()
-        )
-        inventory = inv_result.scalar_one_or_none()
-        if not inventory or (inventory.quantity - inventory.reserved) < item_data.quantity:
-            available = (inventory.quantity - inventory.reserved) if inventory else 0
+        if variant.stock < item_data.quantity:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Insufficient stock for {variant.product.name} ({variant.color.name}). Available: {available}"
+                detail=f"Insufficient stock for {variant.product.name} ({variant.color.name}). Available: {variant.stock}"
             )
 
         product = variant.product
@@ -56,7 +52,6 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
 
         order_items.append({
             "variant": variant,
-            "inventory": inventory,
             "product_name": product.name,
             "product_sku": variant.sku,
             "size_name": None,
@@ -94,7 +89,7 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
     db.add(order)
     await db.flush()
 
-    # Create order items and reserve stock
+    # Create order items and decrement stock
     for item in order_items:
         oi = OrderItem(
             order_id=order.id,
@@ -110,22 +105,10 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
         )
         db.add(oi)
 
-        # Reserve stock
-        inv = item["inventory"]
-        before = inv.reserved
-        inv.reserved += item["quantity"]
-
-        movement = InventoryMovement(
-            inventory_id=inv.id,
-            movement_type=MovementType.RESERVED,
-            quantity=item["quantity"],
-            quantity_before=before,
-            quantity_after=inv.reserved,
-            reference_type="order",
-            reference_id=order.id,
-            created_by=customer_id,
+        await inventory_service.decrease_stock_for_sale(
+            db, item["variant"].id, item["quantity"], customer_id,
+            StockMovementType.SALE, order.id,
         )
-        db.add(movement)
 
     # Create payment record
     payment = Payment(
@@ -195,43 +178,13 @@ async def update_order_status(db: AsyncSession, order_id: uuid.UUID, new_status:
     elif new_status == OrderStatus.DELIVERED.value:
         order.delivered_at = now
         order.payment_status = PaymentStatus.PAID
-        for item in order.items:
-            inv_result = await db.execute(
-                select(Inventory).where(Inventory.product_variant_id == item.product_variant_id).with_for_update()
-            )
-            inv = inv_result.scalar_one_or_none()
-            if inv:
-                if inv.quantity < item.quantity:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Insufficient stock for {item.product_name}. Available: {inv.quantity}, required: {item.quantity}",
-                    )
-                before = inv.quantity
-                inv.quantity -= item.quantity
-                inv.reserved = max(0, inv.reserved - item.quantity)
-                m = InventoryMovement(
-                    inventory_id=inv.id, movement_type=MovementType.SALE,
-                    quantity=-item.quantity, quantity_before=before, quantity_after=inv.quantity,
-                    reference_type="order", reference_id=order.id, created_by=user_id,
-                )
-                db.add(m)
     elif new_status == OrderStatus.CANCELLED.value:
         order.cancelled_at = now
-        # Release reserved stock
         for item in order.items:
-            inv_result = await db.execute(
-                select(Inventory).where(Inventory.product_variant_id == item.product_variant_id).with_for_update()
+            await inventory_service.add_stock(
+                db, item.product_variant_id, item.quantity,
+                f"Order {order.order_number} cancelled — stock returned", user_id,
             )
-            inv = inv_result.scalar_one_or_none()
-            if inv:
-                before = inv.reserved
-                inv.reserved = max(0, inv.reserved - item.quantity)
-                m = InventoryMovement(
-                    inventory_id=inv.id, movement_type=MovementType.RELEASED,
-                    quantity=-item.quantity, quantity_before=before, quantity_after=inv.reserved,
-                    reference_type="order", reference_id=order.id, created_by=user_id,
-                )
-                db.add(m)
 
     await db.flush()
     await db.refresh(order)

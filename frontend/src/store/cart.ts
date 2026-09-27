@@ -34,7 +34,7 @@ export const useCartStore = create<CartState>()(
 
           if (existingIndex > -1) {
             const updatedItems = [...state.items];
-            const maxQty = variant.stock_quantity ?? 99;
+            const maxQty = variant.stock ?? 99;
             const newQty = Math.min(updatedItems[existingIndex].quantity + quantity, maxQty);
             updatedItems[existingIndex] = {
               ...updatedItems[existingIndex],
@@ -61,7 +61,7 @@ export const useCartStore = create<CartState>()(
           return;
         }
         const item = get().items.find((i) => i.variant.id === variantId);
-        const maxQty = item?.variant.stock_quantity ?? 99;
+        const maxQty = item?.variant.stock ?? 99;
         const clampedQty = Math.min(quantity, maxQty);
 
         set((state) => ({
@@ -89,7 +89,7 @@ export const useCartStore = create<CartState>()(
 
       getTotal: () => {
         return get().items.reduce((total, item) => {
-          const price = item.variant.price_override ?? item.product.price;
+          const price = item.product.price + (item.variant.additional_price ?? 0);
           return total + price * item.quantity;
         }, 0);
       },

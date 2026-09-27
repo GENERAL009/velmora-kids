@@ -501,7 +501,7 @@ export default function CheckoutPage() {
                   {/* Items Mini List */}
                   <div className="mb-4 space-y-3 border-b border-neutral-200 dark:border-neutral-700 pb-4">
                     {items.slice(0, 3).map((item) => {
-                      const price = item.variant.price_override ?? item.product.price;
+                      const price = item.product.price + (item.variant.additional_price ?? 0);
                       return (
                         <div key={item.variant.id} className="flex gap-3">
                           <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-primary-100 to-secondary-100">

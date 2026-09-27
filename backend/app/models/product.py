@@ -280,6 +280,7 @@ class ProductVariant(Base):
     additional_price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), default=0, nullable=False
     )
+    stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
@@ -287,9 +288,6 @@ class ProductVariant(Base):
         "Product", back_populates="variants", lazy="selectin"
     )
     color: Mapped["Color"] = relationship("Color", back_populates="variants", lazy="selectin")
-    inventory_items: Mapped[list["Inventory"]] = relationship(  # noqa: F821
-        "Inventory", back_populates="product_variant", lazy="noload"
-    )
 
     def __repr__(self) -> str:
         return f"<ProductVariant {self.sku}>"

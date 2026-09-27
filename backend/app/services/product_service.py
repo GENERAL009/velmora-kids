@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.models.product import Product, Category, Brand, Collection, Color, ProductVariant, ProductImage, ProductStatus, Gender
 from app.models.content import Favorite
-from app.models.inventory import Inventory
 from slugify import slugify
 import uuid as uuid_mod
 
@@ -117,7 +116,7 @@ async def get_product_by_slug(db: AsyncSession, slug: str):
         selectinload(Product.collection),
         selectinload(Product.images),
         selectinload(Product.variants).selectinload(ProductVariant.color),
-        selectinload(Product.variants).selectinload(ProductVariant.inventory_items),
+        selectinload(Product.variants).selectinload(ProductVariant.color),
     )
     result = await db.execute(query)
     return result.scalar_one_or_none()
@@ -203,6 +202,21 @@ async def create_brand(db: AsyncSession, data) -> Brand:
 async def get_colors(db: AsyncSession) -> list:
     result = await db.execute(select(Color).where(Color.is_active == True).order_by(Color.name))
     return list(result.scalars().all())
+
+
+async def create_color(db: AsyncSession, data) -> Color:
+    color = Color(
+        name=data.name,
+        name_uz=getattr(data, "name_uz", None),
+        name_ru=getattr(data, "name_ru", None),
+        name_en=getattr(data, "name_en", None),
+        hex_code=data.hex_code,
+        is_active=data.is_active if hasattr(data, "is_active") else True,
+    )
+    db.add(color)
+    await db.flush()
+    await db.refresh(color)
+    return color
 
 
 async def search_products(db: AsyncSession, query_str: str, limit: int = 10) -> list:

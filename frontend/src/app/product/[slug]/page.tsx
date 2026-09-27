@@ -281,7 +281,7 @@ export default function ProductDetailPage() {
               value={quantity}
               onChange={setQuantity}
               min={1}
-              max={selectedVariant?.stock_quantity || 10}
+              max={selectedVariant?.stock || 10}
             />
 
             {/* Action buttons */}

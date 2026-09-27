@@ -6,8 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.deps import get_db, RoleChecker
 from app.models.user import User, UserRole
 from app.models.order import Order, OrderStatus, PaymentStatus, PaymentMethod
-from app.models.product import Product
-from app.models.inventory import Inventory
+from app.models.product import Product, ProductVariant
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
@@ -37,11 +36,11 @@ async def dashboard_kpis(
     )).scalar() or 0
 
     low_stock = (await db.execute(
-        select(func.count()).where(Inventory.quantity > 0, Inventory.quantity <= 5)
+        select(func.count()).where(ProductVariant.stock > 0, ProductVariant.stock <= 5)
     )).scalar() or 0
 
     out_of_stock = (await db.execute(
-        select(func.count()).where(Inventory.quantity == 0)
+        select(func.count()).where(ProductVariant.stock == 0)
     )).scalar() or 0
 
     total_products = (await db.execute(select(func.count()).select_from(Product))).scalar() or 0

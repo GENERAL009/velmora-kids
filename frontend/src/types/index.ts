@@ -77,8 +77,8 @@ export interface ProductVariant {
   color: Color;
   color_id: string;
   sku: string;
-  price_override?: number;
-  stock_quantity: number;
+  additional_price?: number;
+  stock: number;
   is_active: boolean;
 }
 
@@ -215,99 +215,27 @@ export interface OrderItem {
 }
 
 // ============================================================
-// Inventory
+// Stock
 // ============================================================
 
-export type InventoryMovementType =
-  | "purchase"
+export type StockMovementType =
+  | "incoming"
   | "sale"
+  | "pos_sale"
   | "return"
-  | "adjustment"
-  | "transfer"
-  | "damage"
-  | "write_off";
+  | "adjustment";
 
-export interface Inventory {
+export interface StockLog {
   id: string;
-  variant_id: string;
-  variant?: ProductVariant;
-  warehouse_id: string;
+  product_variant_id: string;
+  movement_type: StockMovementType;
   quantity: number;
-  reserved_quantity: number;
-  available_quantity: number;
-  reorder_point: number;
-  reorder_quantity: number;
-  updated_at: string;
-}
-
-export interface InventoryMovement {
-  id: string;
-  inventory_id: string;
-  type: InventoryMovementType;
-  quantity: number;
+  stock_before: number;
+  stock_after: number;
   reference_id?: string;
-  reference_type?: string;
-  notes?: string;
+  note?: string;
   created_by: string;
   created_at: string;
-}
-
-// ============================================================
-// Supplier & Purchases
-// ============================================================
-
-export interface Supplier {
-  id: string;
-  name: string;
-  contact_person?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  website?: string;
-  notes?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export type PurchaseStatus =
-  | "draft"
-  | "ordered"
-  | "partially_received"
-  | "received"
-  | "cancelled";
-
-export interface Purchase {
-  id: string;
-  purchase_number: string;
-  supplier_id: string;
-  supplier?: Supplier;
-  items: PurchaseItem[];
-  status: PurchaseStatus;
-  subtotal: number;
-  tax_amount: number;
-  shipping_amount: number;
-  total: number;
-  currency: string;
-  notes?: string;
-  ordered_at?: string;
-  received_at?: string;
-  expected_at?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PurchaseItem {
-  id: string;
-  purchase_id: string;
-  variant_id: string;
-  variant?: ProductVariant;
-  quantity_ordered: number;
-  quantity_received: number;
-  unit_cost: number;
-  total_cost: number;
 }
 
 // ============================================================

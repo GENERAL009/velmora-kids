@@ -2,14 +2,14 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Plus, X, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, X, Save, Loader2, Upload, Trash2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPut } from "@/lib/api";
+import { apiGet, apiPut, apiPost, apiDelete } from "@/lib/api";
 import { useCategories, useBrands } from "@/hooks/use-products";
 
 interface ColorOption {
@@ -104,6 +104,217 @@ const LABEL_CLS =
 const CARD_CLS =
   "bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700";
 
+function ImageManager({ productId, initialImages }: { productId: string; initialImages: ApiImage[] }) {
+  const queryClient = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [images, setImages] = useState<ApiImage[]>(initialImages);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
+  useEffect(() => {
+    setImages(initialImages);
+  }, [initialImages]);
+
+  const uploadFile = async (file: File, isPrimary: boolean = false) => {
+    if (!productId) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    const url = `/products/${productId}/images${isPrimary ? "?is_primary=true" : ""}`;
+    const img = await apiPost<ApiImage>(url, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return img;
+  };
+
+  const handleFiles = async (files: FileList | File[]) => {
+    if (!productId) return;
+    setUploading(true);
+    try {
+      const fileArr = Array.from(files);
+      for (const file of fileArr) {
+        const isPrimary = images.length === 0 && fileArr.indexOf(file) === 0;
+        const img = await uploadFile(file, isPrimary);
+        if (img) setImages((prev) => [...prev, img]);
+      }
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    } catch (err) {
+      alert("Ошибка загрузки изображения");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (imageId: string) => {
+    if (!confirm("Удалить изображение?")) return;
+    try {
+      await apiDelete(`/products/${productId}/images/${imageId}`);
+      setImages((prev) => prev.filter((img) => img.id !== imageId));
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    } catch {
+      alert("Ошибка удаления");
+    }
+  };
+
+  const handleSetPrimary = async (imageId: string) => {
+    try {
+      await apiPost(`/products/${productId}/images/${imageId}/set-primary`);
+      setImages((prev) =>
+        prev.map((img) => ({ ...img, is_primary: img.id === imageId }))
+      );
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    } catch {
+      setImages((prev) =>
+        prev.map((img) => ({ ...img, is_primary: img.id === imageId }))
+      );
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+  };
+
+  return (
+    <div className={CARD_CLS}>
+      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Изображения</h2>
+
+      {/* Upload area */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => fileRef.current?.click()}
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+          dragOver
+            ? "border-primary-500 bg-primary-50 dark:bg-primary-950/20"
+            : "border-neutral-300 dark:border-neutral-600 hover:border-primary-400"
+        }`}
+      >
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/webp,image/avif"
+          className="hidden"
+          onChange={(e) => e.target.files && handleFiles(e.target.files)}
+        />
+        {uploading ? (
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary-500" />
+        ) : (
+          <>
+            <Upload className="mx-auto h-8 w-8 text-neutral-400 mb-2" />
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              Перетащите файлы сюда или нажмите для выбора
+            </p>
+            <p className="text-xs text-neutral-400 mt-1">JPEG, PNG, WebP, AVIF</p>
+          </>
+        )}
+      </div>
+
+      {/* Image grid */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mt-4">
+          {images.map((img) => (
+            <div key={img.id} className="group relative aspect-square rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700">
+              <Image src={img.file_path} alt={img.alt_text || "Product"} fill className="object-cover" />
+              {img.is_primary && (
+                <span className="absolute top-1 left-1 bg-primary-500 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                  <Star className="w-2.5 h-2.5" /> Главное
+                </span>
+              )}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                {!img.is_primary && (
+                  <button
+                    onClick={() => handleSetPrimary(img.id!)}
+                    className="p-1.5 bg-white rounded-full text-primary-600 hover:bg-primary-50"
+                    title="Сделать главным"
+                  >
+                    <Star className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(img.id!)}
+                  className="p-1.5 bg-white rounded-full text-red-600 hover:bg-red-50"
+                  title="Удалить"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ColorCreator({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [hex, setHex] = useState("#000000");
+  const [saving, setSaving] = useState(false);
+
+  const handleCreate = async () => {
+    if (!name.trim() || !hex) return;
+    setSaving(true);
+    try {
+      await apiPost("/colors", { name: name.trim(), hex_code: hex });
+      setName("");
+      setHex("#000000");
+      setOpen(false);
+      onCreated();
+    } catch {
+      alert("Ошибка создания цвета");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-3 text-xs text-primary-600 hover:underline"
+      >
+        + Добавить новый цвет
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700">
+      <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Новый цвет</p>
+      <div className="flex items-end gap-3">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Название (напр. Розовый)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={hex}
+            onChange={(e) => setHex(e.target.value)}
+            className="h-9 w-12 rounded border border-neutral-200 dark:border-neutral-700 cursor-pointer"
+          />
+          <span className="text-xs font-mono text-neutral-500">{hex}</span>
+        </div>
+        <Button variant="default" size="sm" onClick={handleCreate} isLoading={saving}>
+          Создать
+        </Button>
+        <button onClick={() => setOpen(false)} className="p-2 text-neutral-400 hover:text-neutral-600">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
@@ -178,6 +389,7 @@ export default function EditProductPage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
   const [productId, setProductId] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (product && !initialized) {
@@ -581,27 +793,11 @@ export default function EditProductPage() {
                 ))}
               </div>
             )}
-            <p className="text-xs text-neutral-500 mt-3">
-              Изображения загружаются через API endpoint POST /products/{"{product_id}"}/images
-            </p>
+            <ColorCreator onCreated={() => queryClient.invalidateQueries({ queryKey: ["colors"] })} />
           </div>
 
-          {/* Existing Images (read-only display) */}
-          {product?.images && product.images.length > 0 && (
-            <div className={CARD_CLS}>
-              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Текущие изображения</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                {product.images.map((img) => (
-                  <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700">
-                    <Image src={img.file_path} alt={img.alt_text || "Product"} fill className="object-cover" />
-                    {img.is_primary && (
-                      <span className="absolute top-1 left-1 bg-primary-500 text-white text-[10px] px-1.5 py-0.5 rounded">Главное</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Images — upload, delete, set primary */}
+          <ImageManager productId={productId} initialImages={product?.images ?? []} />
 
           {/* SEO */}
           <div className={CARD_CLS}>

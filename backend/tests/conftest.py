@@ -16,7 +16,7 @@ from app.models.product import (
     Category, Brand, Color, Product, ProductVariant,
     ProductImage, Gender, ProductStatus,
 )
-from app.models.inventory import Warehouse, Inventory
+from app.models.inventory import StockLog, StockMovementType
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -228,27 +228,11 @@ async def sample_variant(
 
 
 @pytest_asyncio.fixture
-async def sample_warehouse(db_session: AsyncSession) -> Warehouse:
-    wh = Warehouse(name="Main Warehouse", is_active=True)
-    db_session.add(wh)
-    await db_session.flush()
-    await db_session.refresh(wh)
-    return wh
-
-
-@pytest_asyncio.fixture
-async def sample_inventory(
+async def sample_variant_with_stock(
     db_session: AsyncSession,
     sample_variant: ProductVariant,
-    sample_warehouse: Warehouse,
-) -> Inventory:
-    inv = Inventory(
-        product_variant_id=sample_variant.id,
-        warehouse_id=sample_warehouse.id,
-        quantity=50,
-        reserved=0,
-    )
-    db_session.add(inv)
+) -> ProductVariant:
+    sample_variant.stock = 50
     await db_session.flush()
-    await db_session.refresh(inv)
-    return inv
+    await db_session.refresh(sample_variant)
+    return sample_variant
