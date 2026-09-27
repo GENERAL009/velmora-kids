@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { formatPrice, getDiscountPercentage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ProductCardSkeleton } from "@/components/ui/skeleton";
+import { useAuthStore } from "@/store/auth";
+import { apiPost } from "@/lib/api";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -20,6 +22,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className, isLoading }: ProductCardProps) {
   const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [isHovered, setIsHovered] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -34,6 +37,9 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
     const next = isFavorite ? favorites.filter((id) => id !== product.id) : [...favorites, product.id];
     localStorage.setItem("velmora-favorites", JSON.stringify(next));
     setIsFavorite(!isFavorite);
+    if (isAuthenticated) {
+      apiPost(`/favorites/${product.id}`).catch(() => {});
+    }
   };
 
   if (isLoading) {

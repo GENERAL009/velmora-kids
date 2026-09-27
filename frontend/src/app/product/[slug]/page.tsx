@@ -24,6 +24,7 @@ import { ProductTabs } from "@/components/product/product-tabs";
 import { ProductGrid } from "@/components/product/product-grid";
 import { useProduct, useProducts } from "@/hooks/use-products";
 import { useCartStore } from "@/store/cart";
+import { useAuthStore } from "@/store/auth";
 import { apiPost } from "@/lib/api";
 import { cn, formatPrice, getDiscountPercentage } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export default function ProductDetailPage() {
 
   const { data: product, isLoading, error } = useProduct(slug);
   const addItem = useCartStore((state) => state.addItem);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -52,6 +54,9 @@ export default function ProductDetailPage() {
     const next = isFavorite ? favorites.filter((id) => id !== product.id) : [...favorites, product.id];
     localStorage.setItem("velmora-favorites", JSON.stringify(next));
     setIsFavorite(!isFavorite);
+    if (isAuthenticated) {
+      apiPost(`/favorites/${product.id}`).catch(() => {});
+    }
   };
 
   const handleShare = async () => {

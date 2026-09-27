@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import toast from "react-hot-toast";
 import type { CartItem, Product, ProductVariant } from "@/types";
 
 interface CartState {
@@ -40,9 +41,11 @@ export const useCartStore = create<CartState>()(
               ...updatedItems[existingIndex],
               quantity: newQty,
             };
+            toast.success(`${product.name} — количество обновлено`);
             return { items: updatedItems };
           }
 
+          toast.success(`${product.name} добавлен в корзину`);
           return {
             items: [...state.items, { product, variant, quantity }],
           };
@@ -105,7 +108,14 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "velmora-cart",
+      version: 2,
       storage: createJSONStorage(() => localStorage),
+      migrate: (persisted: unknown, version: number) => {
+        if (version < 2) {
+          return { items: [], promoCode: null, discountPercent: 0 };
+        }
+        return persisted as CartState;
+      },
     }
   )
 );

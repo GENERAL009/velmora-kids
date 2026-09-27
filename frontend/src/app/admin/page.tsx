@@ -381,14 +381,14 @@ export default function AdminDashboard() {
                   >
                     <div>
                       <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                        {item.product_variant?.product?.name ?? "—"}
+                        {item.product?.name ?? "—"}
                       </p>
                       <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {item.product_variant?.sku ?? "—"}
+                        {item.sku ?? "—"}
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
-                      {item.quantity} шт
+                      {item.stock} шт
                     </span>
                   </div>
                 ))}
