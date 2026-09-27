@@ -166,8 +166,17 @@ async def create_product(db: AsyncSession, data) -> Product:
             db.add(variant)
 
     await db.flush()
-    await db.refresh(product)
-    return product
+
+    result = await db.execute(
+        select(Product).where(Product.id == product.id).options(
+            selectinload(Product.brand),
+            selectinload(Product.category),
+            selectinload(Product.collection),
+            selectinload(Product.images),
+            selectinload(Product.variants).selectinload(ProductVariant.color),
+        )
+    )
+    return result.scalar_one()
 
 
 async def update_product(db: AsyncSession, product_id: UUID, data) -> Product:
@@ -182,8 +191,17 @@ async def update_product(db: AsyncSession, product_id: UUID, data) -> Product:
             setattr(product, field, value)
 
     await db.flush()
-    await db.refresh(product)
-    return product
+
+    result2 = await db.execute(
+        select(Product).where(Product.id == product_id).options(
+            selectinload(Product.brand),
+            selectinload(Product.category),
+            selectinload(Product.collection),
+            selectinload(Product.images),
+            selectinload(Product.variants).selectinload(ProductVariant.color),
+        )
+    )
+    return result2.scalar_one()
 
 
 async def get_brands(db: AsyncSession) -> list:
