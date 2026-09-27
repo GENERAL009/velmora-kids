@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -25,11 +25,14 @@ import { ProductGrid } from "@/components/product/product-grid";
 import { useProduct, useProducts } from "@/hooks/use-products";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
-import { apiPost } from "@/lib/api";
+import { apiPost, apiDelete } from "@/lib/api";
+import { saveDeferredAction } from "@/store/deferred-action";
+import toast from "react-hot-toast";
 import { cn, formatPrice, getDiscountPercentage } from "@/lib/utils";
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
 
   const { data: product, isLoading, error } = useProduct(slug);
@@ -50,11 +53,23 @@ export default function ProductDetailPage() {
 
   const toggleFavorite = () => {
     if (!product) return;
+    if (!isAuthenticated) {
+      saveDeferredAction({
+        type: "favorite",
+        productId: product.id,
+        returnUrl: `/product/${slug}`,
+      });
+      toast("Войдите, чтобы сохранить в избранное", { icon: "❤️" });
+      router.push("/auth/login");
+      return;
+    }
     const favorites: string[] = JSON.parse(localStorage.getItem("velmora-favorites") || "[]");
     const next = isFavorite ? favorites.filter((id) => id !== product.id) : [...favorites, product.id];
     localStorage.setItem("velmora-favorites", JSON.stringify(next));
     setIsFavorite(!isFavorite);
-    if (isAuthenticated) {
+    if (isFavorite) {
+      apiDelete(`/favorites/${product.id}`).catch(() => {});
+    } else {
       apiPost(`/favorites/${product.id}`).catch(() => {});
     }
   };
@@ -299,6 +314,18 @@ export default function ProductDetailPage() {
                 leftIcon={<ShoppingBag className="h-5 w-5" />}
                 onClick={() => {
                   if (product && selectedVariant) {
+                    if (!isAuthenticated) {
+                      saveDeferredAction({
+                        type: "cart",
+                        product,
+                        variant: selectedVariant,
+                        quantity,
+                        returnUrl: `/product/${slug}`,
+                      });
+                      toast("Войдите, чтобы добавить в корзину", { icon: "🛒" });
+                      router.push("/auth/login");
+                      return;
+                    }
                     addItem(product, selectedVariant, quantity);
                   }
                 }}

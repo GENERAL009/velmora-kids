@@ -10,9 +10,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, Mail, Lock, Sparkles } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useCartStore } from "@/store/cart";
+import { getDeferredAction, clearDeferredAction } from "@/store/deferred-action";
+import { apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/hooks/use-translation";
+import toast from "react-hot-toast";
 
 const loginSchema = z.object({
   email: z.string().email("Введите корректный email"),
@@ -36,10 +40,29 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  const addItem = useCartStore((s) => s.addItem);
+
   const onSubmit = async (data: LoginFormData) => {
     setServerError("");
     try {
       await login(data.email, data.password);
+
+      const deferred = getDeferredAction();
+      if (deferred) {
+        clearDeferredAction();
+        if (deferred.type === "favorite") {
+          apiPost(`/favorites/${deferred.productId}`).catch(() => {});
+          toast.success("Товар добавлен в избранное");
+          router.push(deferred.returnUrl);
+          return;
+        }
+        if (deferred.type === "cart") {
+          addItem(deferred.product, deferred.variant, deferred.quantity);
+          router.push(deferred.returnUrl);
+          return;
+        }
+      }
+
       router.push("/account");
     } catch (error) {
       const err = error as { response?: { data?: { detail?: string } } };

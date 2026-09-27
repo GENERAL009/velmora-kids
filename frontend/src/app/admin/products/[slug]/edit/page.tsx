@@ -121,7 +121,7 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
     formData.append("file", file);
     const url = `/products/${productId}/images${isPrimary ? "?is_primary=true" : ""}`;
     const img = await apiPost<ApiImage>(url, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { "Content-Type": undefined },
     });
     return img;
   };

@@ -28,7 +28,7 @@ export default function AccountLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout, refreshUser } = useAuthStore();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const t = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -50,7 +50,10 @@ export default function AccountLayout({
     if (mounted && !isAuthenticated) {
       router.push("/auth/login");
     }
-  }, [mounted, isAuthenticated, router]);
+    if (mounted && isAuthenticated && !user) {
+      refreshUser();
+    }
+  }, [mounted, isAuthenticated, user, router, refreshUser]);
 
   const handleLogout = () => {
     logout();

@@ -11,7 +11,9 @@ import { formatPrice, getDiscountPercentage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ProductCardSkeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/auth";
-import { apiPost } from "@/lib/api";
+import { apiPost, apiDelete } from "@/lib/api";
+import { saveDeferredAction } from "@/store/deferred-action";
+import toast from "react-hot-toast";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -33,11 +35,23 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
   }, [product.id]);
 
   const toggleFavorite = () => {
+    if (!isAuthenticated) {
+      saveDeferredAction({
+        type: "favorite",
+        productId: product.id,
+        returnUrl: window.location.pathname,
+      });
+      toast("Войдите, чтобы сохранить в избранное", { icon: "❤️" });
+      router.push("/auth/login");
+      return;
+    }
     const favorites: string[] = JSON.parse(localStorage.getItem("velmora-favorites") || "[]");
     const next = isFavorite ? favorites.filter((id) => id !== product.id) : [...favorites, product.id];
     localStorage.setItem("velmora-favorites", JSON.stringify(next));
     setIsFavorite(!isFavorite);
-    if (isAuthenticated) {
+    if (isFavorite) {
+      apiDelete(`/favorites/${product.id}`).catch(() => {});
+    } else {
       apiPost(`/favorites/${product.id}`).catch(() => {});
     }
   };
