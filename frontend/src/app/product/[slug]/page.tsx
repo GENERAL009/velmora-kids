@@ -48,8 +48,11 @@ export default function ProductDetailPage() {
     if (product) {
       const favorites: string[] = JSON.parse(localStorage.getItem("velmora-favorites") || "[]");
       setIsFavorite(favorites.includes(product.id));
+      if (product.variants.length === 1 && !selectedColor) {
+        setSelectedColor(product.variants[0].color_id);
+      }
     }
-  }, [product]);
+  }, [product, selectedColor]);
 
   const toggleFavorite = () => {
     if (!product) return;
@@ -118,8 +121,7 @@ export default function ProductDetailPage() {
     );
   }, [product, selectedColor]);
 
-  const hasVariants = product ? product.variants.length > 0 : false;
-  const canAddToCart = hasVariants ? !!selectedColor : true;
+  const canAddToCart = !!selectedColor;
 
   if (isLoading) {
     return (
@@ -314,31 +316,21 @@ export default function ProductDetailPage() {
                 disabled={!canAddToCart}
                 leftIcon={<ShoppingBag className="h-5 w-5" />}
                 onClick={() => {
-                  if (!product) return;
-                  const variant = selectedVariant || (!hasVariants ? {
-                    id: product.id,
-                    product_id: product.id,
-                    color_id: "default",
-                    sku: product.sku,
-                    is_active: true,
-                    stock: 10,
-                    additional_price: 0,
-                    color: { id: "default", name: "Стандарт", slug: "default", hex_code: "#000000" },
-                  } : null);
-                  if (!variant) return;
-                  if (!isAuthenticated) {
-                    saveDeferredAction({
-                      type: "cart",
-                      product,
-                      variant,
-                      quantity,
-                      returnUrl: `/product/${slug}`,
-                    });
-                    toast("Войдите, чтобы добавить в корзину", { icon: "🛒" });
-                    router.push("/auth/login");
-                    return;
+                  if (product && selectedVariant) {
+                    if (!isAuthenticated) {
+                      saveDeferredAction({
+                        type: "cart",
+                        product,
+                        variant: selectedVariant,
+                        quantity,
+                        returnUrl: `/product/${slug}`,
+                      });
+                      toast("Войдите, чтобы добавить в корзину", { icon: "🛒" });
+                      router.push("/auth/login");
+                      return;
+                    }
+                    addItem(product, selectedVariant, quantity);
                   }
-                  addItem(product, variant, quantity);
                 }}
               >
                 {canAddToCart ? "В корзину" : "Выберите цвет"}

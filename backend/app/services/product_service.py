@@ -122,6 +122,16 @@ async def get_product_by_slug(db: AsyncSession, slug: str):
     return result.scalar_one_or_none()
 
 
+async def get_or_create_default_color(db: AsyncSession) -> Color:
+    result = await db.execute(select(Color).where(Color.name == "Стандарт"))
+    color = result.scalar_one_or_none()
+    if not color:
+        color = Color(name="Стандарт", name_uz="Standart", name_ru="Стандарт", name_en="Standard", hex_code="#808080")
+        db.add(color)
+        await db.flush()
+    return color
+
+
 async def create_product(db: AsyncSession, data) -> Product:
     slug = data.slug or slugify(data.name)
     existing = await db.execute(select(Product).where(Product.slug == slug))
@@ -154,7 +164,8 @@ async def create_product(db: AsyncSession, data) -> Product:
     db.add(product)
     await db.flush()
 
-    if hasattr(data, 'variants') and data.variants:
+    has_variants = hasattr(data, 'variants') and data.variants
+    if has_variants:
         for v in data.variants:
             variant = ProductVariant(
                 product_id=product.id,
@@ -165,6 +176,16 @@ async def create_product(db: AsyncSession, data) -> Product:
                 stock=10,
             )
             db.add(variant)
+    else:
+        default_color = await get_or_create_default_color(db)
+        variant = ProductVariant(
+            product_id=product.id,
+            color_id=default_color.id,
+            sku=f"{sku}-STD",
+            additional_price=0,
+            stock=10,
+        )
+        db.add(variant)
 
     await db.flush()
 
