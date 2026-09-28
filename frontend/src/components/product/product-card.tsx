@@ -92,6 +92,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
               src={primaryImage.file_path}
               alt={primaryImage.alt_text || product.name}
               fill
+              unoptimized
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className={cn(
                 "object-cover transition-all duration-500",
@@ -113,6 +114,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
               src={secondaryImage.file_path}
               alt={product.name}
               fill
+              unoptimized
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className={cn(
                 "absolute inset-0 object-cover transition-all duration-500",

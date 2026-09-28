@@ -217,7 +217,7 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mt-4">
           {images.map((img) => (
             <div key={img.id} className="group relative aspect-square rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700">
-              <Image src={img.file_path} alt={img.alt_text || "Product"} fill className="object-cover" />
+              <Image src={img.file_path} alt={img.alt_text || "Product"} fill unoptimized className="object-cover" />
               {img.is_primary && (
                 <span className="absolute top-1 left-1 bg-primary-500 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
                   <Star className="w-2.5 h-2.5" /> Главное

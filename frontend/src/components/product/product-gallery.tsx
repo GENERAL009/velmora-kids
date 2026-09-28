@@ -49,6 +49,7 @@ export function ProductGallery({
               src={currentImage.file_path}
               alt={currentImage.alt_text || productName}
               fill
+              unoptimized
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
               priority
               className={cn(
@@ -124,6 +125,7 @@ export function ProductGallery({
                 src={image.file_path}
                 alt={`${productName} - миниатюра ${index + 1}`}
                 fill
+                unoptimized
                 sizes="80px"
                 className="object-cover"
                 onError={() => setImageError(true)}
