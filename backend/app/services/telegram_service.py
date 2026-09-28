@@ -253,32 +253,32 @@ async def send_payment_verification_request(
 ) -> list[dict]:
     """Send all product images + receipt to admins, then Approve/Reject buttons."""
     caption = (
-        f"💳 <b>Чек загружен — Проверка оплаты</b>\n"
+        f"💳 <b>Chek yuklandi — To'lov tekshiruvi</b>\n"
         f"━━━━━━━━━━━━━━━━━━\n"
         f"\n"
-        f"🛒 Заказ: <b>#{order_number}</b>\n"
-        f"👤 Покупатель: <b>{customer_name}</b>\n"
-        f"📞 Телефон: {customer_phone}\n"
-        f"💰 Сумма: <b>{amount} сум</b>\n"
+        f"🛒 Buyurtma: <b>#{order_number}</b>\n"
+        f"👤 Xaridor: <b>{customer_name}</b>\n"
+        f"📞 Telefon: {customer_phone}\n"
+        f"💰 Summa: <b>{amount} so'm</b>\n"
         f"\n"
-        f"⏳ Ожидает проверки..."
+        f"⏳ Tekshiruv kutilmoqda..."
     )
 
     inline_keyboard = {
         "inline_keyboard": [
             [
                 {
-                    "text": "✅ Подтвердить оплату",
+                    "text": "✅ To'lovni tasdiqlash",
                     "callback_data": f"approve_payment:{payment_id}",
                 },
             ],
             [
                 {
-                    "text": "❌ Отклонить",
+                    "text": "❌ Rad etish",
                     "callback_data": f"reject_payment:{payment_id}",
                 },
                 {
-                    "text": "🤔 Подозрительно",
+                    "text": "🤔 Shubhali",
                     "callback_data": f"suspicious_payment:{payment_id}",
                 },
             ],
@@ -308,9 +308,9 @@ async def send_payment_verification_request(
     # Step 2: Send inline buttons as a separate text message to admins
     button_results = await send_message_to_admins(
         text=(
-            f"👆 <b>Проверьте фото выше</b>\n"
-            f"Заказ: <b>#{order_number}</b> — {amount} сум\n\n"
-            f"Выберите действие:"
+            f"👆 <b>Yuqoridagi rasmlarni tekshiring</b>\n"
+            f"Buyurtma: <b>#{order_number}</b> — {amount} so'm\n\n"
+            f"Amalni tanlang:"
         ),
         reply_markup=inline_keyboard,
     )
@@ -364,25 +364,26 @@ async def notify_payment_approved(
     if not target:
         logger.warning("TELEGRAM_GROUP_ID not configured — skipping channel notification")
         return False
+    logger.info(f"Sending approved order notification to channel {target}")
 
     text = (
-        f"✅ <b>Оплата подтверждена — Готово к доставке!</b>\n"
+        f"✅ <b>To'lov tasdiqlandi — Yetkazishga tayyor!</b>\n"
         f"━━━━━━━━━━━━━━━━━━\n"
         f"\n"
-        f"🛒 Заказ: <b>#{order_number}</b>\n"
-        f"👤 Покупатель: <b>{customer_name}</b>\n"
-        f"📞 Телефон: {customer_phone}\n"
-        f"💰 Сумма: <b>{amount} сум</b>\n"
+        f"🛒 Buyurtma: <b>#{order_number}</b>\n"
+        f"👤 Xaridor: <b>{customer_name}</b>\n"
+        f"📞 Telefon: {customer_phone}\n"
+        f"💰 Summa: <b>{amount} so'm</b>\n"
         f"\n"
-        f"📦 <b>Товары:</b>\n"
+        f"📦 <b>Tovarlar:</b>\n"
         f"{items_text}\n"
         f"\n"
-        f"📍 <b>Адрес доставки:</b>\n"
+        f"📍 <b>Yetkazish manzili:</b>\n"
         f"  {address}\n"
         f"\n"
-        f"👨‍💼 Подтвердил: {approved_by}\n"
+        f"👨‍💼 Tasdiqlagan: {approved_by}\n"
         f"\n"
-        f"🚚 <b>Подготовьте заказ к отправке!</b>"
+        f"🚚 <b>Buyurtmani yetkazishga tayyorlang!</b>"
     )
 
     urls = [u for u in (product_image_urls or []) if u and u.startswith("http")]

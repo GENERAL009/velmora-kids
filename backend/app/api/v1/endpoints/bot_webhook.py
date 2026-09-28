@@ -225,7 +225,7 @@ async def _approve_payment(payment_id: str, admin_name: str, callback_id: str, c
             await db.commit()
 
             # Answer callback
-            await answer_callback_query(callback_id, "✅ Оплата подтверждена!")
+            await answer_callback_query(callback_id, "✅ To'lov tasdiqlandi!")
 
             # Edit original button message (text message, not photo)
             if message_id and chat_id:
@@ -233,10 +233,10 @@ async def _approve_payment(payment_id: str, admin_name: str, callback_id: str, c
                     "chat_id": chat_id,
                     "message_id": message_id,
                     "text": (
-                        f"✅ <b>ОПЛАТА ПОДТВЕРЖДЕНА</b>\n\n"
-                        f"🛒 Заказ: <b>#{order.order_number if order else 'N/A'}</b>\n"
-                        f"💰 Сумма: <b>{payment.amount:,.0f} сум</b>\n"
-                        f"👨‍💼 Подтвердил: {admin_name}\n"
+                        f"✅ <b>TO'LOV TASDIQLANDI</b>\n\n"
+                        f"🛒 Buyurtma: <b>#{order.order_number if order else 'N/A'}</b>\n"
+                        f"💰 Summa: <b>{payment.amount:,.0f} so'm</b>\n"
+                        f"👨‍💼 Tasdiqlagan: {admin_name}\n"
                         f"🕐 {datetime.now(timezone.utc).strftime('%d.%m.%Y %H:%M')}"
                     ),
                     "parse_mode": "HTML",
