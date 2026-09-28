@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
 import type { Product, ProductVariant, Category, Brand, Banner } from "@/types";
 
@@ -255,5 +255,34 @@ export function useBanners() {
   return useQuery({
     queryKey: ["banners"],
     queryFn: () => apiGet<Banner[]>("/banners"),
+  });
+}
+
+export function useInfiniteProducts(params: Omit<UseProductsParams, "page"> = {}) {
+  return useInfiniteQuery({
+    queryKey: ["products-infinite", params],
+    queryFn: async ({ pageParam = 1 }) => {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          searchParams.set(key, String(value));
+        }
+      });
+      searchParams.set("page", String(pageParam));
+      if (!searchParams.has("page_size")) {
+        searchParams.set("page_size", "20");
+      }
+      const qs = searchParams.toString();
+      const data = await apiGet<ApiPaginatedProducts>(`/products?${qs}`);
+      return {
+        items: data.items.map(mapApiProduct),
+        total: data.total,
+        page: data.page,
+        pages: data.pages,
+      };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.pages ? lastPage.page + 1 : undefined,
   });
 }
