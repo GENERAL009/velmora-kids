@@ -118,7 +118,8 @@ export default function ProductDetailPage() {
     );
   }, [product, selectedColor]);
 
-  const canAddToCart = !!selectedColor;
+  const hasVariants = product ? product.variants.length > 0 : false;
+  const canAddToCart = hasVariants ? !!selectedColor : true;
 
   if (isLoading) {
     return (
@@ -313,21 +314,31 @@ export default function ProductDetailPage() {
                 disabled={!canAddToCart}
                 leftIcon={<ShoppingBag className="h-5 w-5" />}
                 onClick={() => {
-                  if (product && selectedVariant) {
-                    if (!isAuthenticated) {
-                      saveDeferredAction({
-                        type: "cart",
-                        product,
-                        variant: selectedVariant,
-                        quantity,
-                        returnUrl: `/product/${slug}`,
-                      });
-                      toast("Войдите, чтобы добавить в корзину", { icon: "🛒" });
-                      router.push("/auth/login");
-                      return;
-                    }
-                    addItem(product, selectedVariant, quantity);
+                  if (!product) return;
+                  const variant = selectedVariant || (!hasVariants ? {
+                    id: product.id,
+                    product_id: product.id,
+                    color_id: "default",
+                    sku: product.sku,
+                    is_active: true,
+                    stock: 10,
+                    additional_price: 0,
+                    color: { id: "default", name: "Стандарт", slug: "default", hex_code: "#000000" },
+                  } : null);
+                  if (!variant) return;
+                  if (!isAuthenticated) {
+                    saveDeferredAction({
+                      type: "cart",
+                      product,
+                      variant,
+                      quantity,
+                      returnUrl: `/product/${slug}`,
+                    });
+                    toast("Войдите, чтобы добавить в корзину", { icon: "🛒" });
+                    router.push("/auth/login");
+                    return;
                   }
+                  addItem(product, variant, quantity);
                 }}
               >
                 {canAddToCart ? "В корзину" : "Выберите цвет"}
