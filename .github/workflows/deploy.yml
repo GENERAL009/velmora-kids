@@ -77,8 +77,8 @@ jobs:
             git reset --hard origin/main
 
             echo "=== Building & deploying ==="
-            docker compose -f docker-compose.prod.yml --env-file .env.prod build --parallel
-            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+            docker compose -f docker-compose.prod.yml --env-file .env build --parallel
+            docker compose -f docker-compose.prod.yml --env-file .env up -d
 
             echo "=== Running migrations ==="
             sleep 8
