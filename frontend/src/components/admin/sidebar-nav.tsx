@@ -19,6 +19,7 @@ import {
   BarChart3,
   UserCog,
   Settings,
+  Image as ImageIcon,
   LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,12 @@ const navItems: NavItem[] = [
     label: "Бренды",
     href: "/admin/brands",
     icon: Tag,
+  },
+  {
+    label: "Баннеры",
+    href: "/admin/banners",
+    icon: ImageIcon,
+    roles: ["director", "admin", "super_admin"],
   },
   {
     label: "Остатки",

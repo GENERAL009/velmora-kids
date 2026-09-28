@@ -386,6 +386,7 @@ export interface Banner {
   is_active: boolean;
   start_date?: string;
   end_date?: string;
+  created_at?: string;
 }
 
 export interface Promotion {

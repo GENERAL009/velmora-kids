@@ -4,14 +4,13 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Sparkles, Tag } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { create } from "zustand";
 import { useQuery } from "@tanstack/react-query";
-import { cn, formatPrice, getDiscountPercentage } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { apiGet } from "@/lib/api";
-import { useProducts } from "@/hooks/use-products";
 import { useTranslation } from "@/hooks/use-translation";
-import type { Product } from "@/types";
+import type { Banner } from "@/types";
 
 interface SiteSettings {
   hero_video_url?: string;
@@ -115,101 +114,62 @@ function GenderSelector({ onSelect }: { onSelect: (g: GenderChoice) => void }) {
   );
 }
 
-function LandscapeCard({ product, tag }: { product: Product; tag: "sale" | "new" }) {
-  const primaryImage = product.images?.find((img) => img.is_primary) || product.images?.[0];
-  const discount = product.compare_at_price
-    ? getDiscountPercentage(product.price, product.compare_at_price)
-    : 0;
+function BannerCard({ banner }: { banner: Banner }) {
+  const content = (
+    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800 sm:aspect-[16/7] sm:rounded-2xl lg:aspect-[16/6]">
+      {banner.image ? (
+        <Image
+          src={banner.image}
+          alt={banner.title}
+          fill
+          sizes="(max-width: 768px) 100vw, 1200px"
+          className="object-cover transition-transform duration-700 hover:scale-105"
+          priority
+          unoptimized
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30">
+          <span className="font-display text-4xl text-neutral-300 dark:text-neutral-600">Velmora Kids</span>
+        </div>
+      )}
 
-  return (
-    <Link href={`/product/${product.slug}`} className="block w-full flex-shrink-0">
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800 sm:aspect-[16/7] sm:rounded-2xl lg:aspect-[16/6]">
-        {primaryImage ? (
-          <Image
-            src={primaryImage.file_path}
-            alt={primaryImage.alt_text || product.name}
-            fill
-            sizes="(max-width: 768px) 100vw, 1200px"
-            className="object-cover transition-transform duration-700 hover:scale-105"
-            priority
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30">
-            <span className="font-display text-4xl text-neutral-300 dark:text-neutral-600">Velmora Kids</span>
-          </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+      <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+        {banner.subtitle && (
+          <p className="text-xs font-medium uppercase tracking-wider text-white/70 sm:text-sm">
+            {banner.subtitle}
+          </p>
         )}
-
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-
-        <div className="absolute left-4 top-4 flex gap-2 sm:left-6 sm:top-6">
-          {tag === "sale" && discount > 0 && (
-            <span className="flex items-center gap-1 rounded-full bg-red-500 px-3 py-1.5 text-xs font-bold text-white shadow-lg sm:text-sm">
-              <Tag className="h-3 w-3 sm:h-4 sm:w-4" />
-              -{discount}%
-            </span>
-          )}
-          {tag === "new" && (
-            <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white shadow-lg sm:text-sm">
-              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
-              New
-            </span>
-          )}
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
-          {product.brand && (
-            <p className="text-xs font-medium uppercase tracking-wider text-white/70 sm:text-sm">
-              {product.brand.name}
-            </p>
-          )}
-          <h3 className="mt-1 text-lg font-bold text-white sm:text-2xl">
-            {product.name}
-          </h3>
-          <div className="mt-2 flex items-center gap-3">
-            <span className="text-lg font-bold text-white sm:text-xl">
-              {formatPrice(product.price)}
-            </span>
-            {product.compare_at_price && product.compare_at_price > product.price && (
-              <span className="text-sm text-white/60 line-through sm:text-base">
-                {formatPrice(product.compare_at_price)}
-              </span>
-            )}
-          </div>
-        </div>
+        <h3 className="mt-1 text-lg font-bold text-white sm:text-2xl">
+          {banner.title}
+        </h3>
       </div>
-    </Link>
+    </div>
   );
+
+  if (banner.link) {
+    return (
+      <Link href={banner.link} className="block w-full flex-shrink-0">
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="block w-full flex-shrink-0">{content}</div>;
 }
 
-function ProductCarousel({ gender }: { gender: "girls" | "boys" }) {
+function BannerCarousel({ gender }: { gender: "girls" | "boys" }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const { data: saleData } = useProducts({
-    gender,
-    is_on_sale: true,
-    page_size: 12,
-    sort_by: "newest",
+  const { data: banners = [] } = useQuery({
+    queryKey: ["banners", "hero"],
+    queryFn: () => apiGet<Banner[]>("/banners?position=hero"),
+    staleTime: 60 * 1000,
   });
 
-  const { data: newData } = useProducts({
-    gender,
-    is_new: true,
-    page_size: 12,
-    sort_by: "newest",
-  });
-
-  const saleProducts = saleData?.items ?? [];
-  const newProducts = newData?.items ?? [];
-
-  const allProducts = [
-    ...saleProducts.map((p) => ({ ...p, _tag: "sale" as const })),
-    ...newProducts
-      .filter((np) => !saleProducts.some((sp) => sp.id === np.id))
-      .map((p) => ({ ...p, _tag: "new" as const })),
-  ];
-
-  const totalSlides = allProducts.length;
+  const totalSlides = banners.length;
 
   const isAutoPlaying = useRef(true);
   const autoPlayTimer = useRef<ReturnType<typeof setInterval>>();
@@ -270,21 +230,20 @@ function ProductCarousel({ gender }: { gender: "girls" | "boys" }) {
         ref={containerRef}
         className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto px-4 sm:px-6 lg:px-8"
       >
-        {allProducts.length === 0 &&
+        {banners.length === 0 &&
           Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="w-full flex-shrink-0 snap-center px-1">
               <div className="aspect-[4/3] animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800 sm:aspect-[16/7] sm:rounded-2xl lg:aspect-[16/6]" />
             </div>
           ))}
 
-        {allProducts.map((product) => (
-          <div key={product.id} className="w-full flex-shrink-0 snap-center px-1">
-            <LandscapeCard product={product} tag={product._tag} />
+        {banners.map((banner) => (
+          <div key={banner.id} className="w-full flex-shrink-0 snap-center px-1">
+            <BannerCard banner={banner} />
           </div>
         ))}
       </div>
 
-      {/* Arrows */}
       {totalSlides > 1 && (
         <>
           <button
@@ -302,10 +261,9 @@ function ProductCarousel({ gender }: { gender: "girls" | "boys" }) {
         </>
       )}
 
-      {/* Dots */}
       {totalSlides > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          {allProducts.map((_, i) => (
+          {banners.map((_, i) => (
             <button
               key={i}
               onClick={() => handleManualNav(i)}
@@ -352,7 +310,7 @@ export function HeroSection() {
                   {t.hero.changeChoice}
                 </button>
               </div>
-              <ProductCarousel gender={gender} />
+              <BannerCarousel gender={gender} />
             </div>
           </motion.div>
         )}
