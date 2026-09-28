@@ -6,15 +6,9 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "http",
-        hostname: "localhost",
-        port: "9000",
-        pathname: "/velmora/**",
-      },
-      {
         protocol: "https",
-        hostname: "*.minio.example.com",
-        pathname: "/velmora/**",
+        hostname: "velmora-kids.uz",
+        pathname: "/uploads/**",
       },
       {
         protocol: "https",
@@ -27,6 +21,10 @@ const nextConfig = {
       {
         source: "/api/v1/:path*",
         destination: `${process.env.BACKEND_URL || 'http://127.0.0.1:8000'}/api/v1/:path*`,
+      },
+      {
+        source: "/uploads/:path*",
+        destination: `${process.env.BACKEND_URL || 'http://127.0.0.1:8000'}/uploads/:path*`,
       },
     ];
   },
