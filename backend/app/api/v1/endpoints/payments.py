@@ -137,8 +137,8 @@ async def upload_receipt(
                 )
             )
             img = img_result.scalar_one_or_none()
-            if img and img.url:
-                url = img.url
+            if img and img.file_path:
+                url = img.file_path
                 if url.startswith("/") and base_url:
                     url = base_url + url
                 if url.startswith("http"):
