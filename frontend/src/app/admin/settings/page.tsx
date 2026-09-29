@@ -97,19 +97,29 @@ const TEXT_SECTIONS = [
 
 const UPLOAD_FIELDS = [
   {
-    title: "Видео (Hero секция)",
+    title: "Orqa fon video",
     icon: Video,
     items: [
-      { key: "hero_video_url", label: "Фоновое видео", accept: "video/mp4,video/webm", type: "video" as const },
-      { key: "hero_video_poster", label: "Постер видео", accept: "image/*", type: "image" as const },
+      { key: "hero_video_url", label: "Video (Light mode)", accept: "video/mp4,video/webm", type: "video" as const },
+      { key: "hero_video_url_dark", label: "Video (Dark mode)", accept: "video/mp4,video/webm", type: "video" as const },
     ],
   },
   {
-    title: "Логотипы",
+    title: "Jins tanlash rasmlari",
     icon: ImageIcon,
     items: [
-      { key: "logo_header", label: "Логотип (шапка)", accept: "image/*", type: "image" as const },
-      { key: "logo_footer", label: "Логотип (футер)", accept: "image/*", type: "image" as const },
+      { key: "hero_girls_image_light", label: "Qiz bola (Light mode)", accept: "image/*", type: "image" as const },
+      { key: "hero_girls_image_dark", label: "Qiz bola (Dark mode)", accept: "image/*", type: "image" as const },
+      { key: "hero_boys_image_light", label: "O'g'il bola (Light mode)", accept: "image/*", type: "image" as const },
+      { key: "hero_boys_image_dark", label: "O'g'il bola (Dark mode)", accept: "image/*", type: "image" as const },
+    ],
+  },
+  {
+    title: "Logotiplar",
+    icon: ImageIcon,
+    items: [
+      { key: "logo_header", label: "Logotip (shapka)", accept: "image/*", type: "image" as const },
+      { key: "logo_footer", label: "Logotip (futer)", accept: "image/*", type: "image" as const },
       { key: "logo_favicon", label: "Favicon", accept: "image/*", type: "image" as const },
     ],
   },
