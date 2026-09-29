@@ -1,10 +1,13 @@
 import json
+import logging
 import shutil
 import uuid
 from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException
+
+logger = logging.getLogger(__name__)
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +18,7 @@ from app.core.config import settings as app_settings
 
 router = APIRouter(prefix="/settings", tags=["Site Settings"])
 
-SETTINGS_FILE = Path(__file__).resolve().parents[4] / "data" / "site_settings.json"
+SETTINGS_FILE = Path(app_settings.UPLOAD_DIR) / "data" / "site_settings.json"
 
 DEFAULT_SETTINGS: dict[str, Any] = {
     "phone_primary": "+998 71 200 00 00",
@@ -150,29 +153,33 @@ async def upload_setting_file(
     if len(content) > max_size:
         raise HTTPException(400, f"File too large. Max: {max_size // (1024*1024)}MB")
 
-    ext = Path(file.filename).suffix.lower() if file.filename else (".mp4" if is_video else ".jpg")
-    upload_dir = Path(app_settings.UPLOAD_DIR) / "settings"
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        ext = Path(file.filename).suffix.lower() if file.filename else (".mp4" if is_video else ".jpg")
+        upload_dir = Path(app_settings.UPLOAD_DIR) / "settings"
+        upload_dir.mkdir(parents=True, exist_ok=True)
 
-    filename = f"{field}_{uuid.uuid4().hex[:8]}{ext}"
-    file_path = upload_dir / filename
+        filename = f"{field}_{uuid.uuid4().hex[:8]}{ext}"
+        file_path = upload_dir / filename
 
-    with open(file_path, "wb") as f:
-        f.write(content)
+        with open(file_path, "wb") as f:
+            f.write(content)
 
-    file_url = f"/uploads/settings/{filename}"
+        file_url = f"/uploads/settings/{filename}"
 
-    current = _read_settings()
-    old_url = current.get(field, "")
-    if old_url and old_url.startswith("/uploads/settings/"):
-        old_path = Path(app_settings.UPLOAD_DIR) / "settings" / Path(old_url).name
-        if old_path.exists():
-            old_path.unlink()
+        current = _read_settings()
+        old_url = current.get(field, "")
+        if old_url and old_url.startswith("/uploads/settings/"):
+            old_path = Path(app_settings.UPLOAD_DIR) / "settings" / Path(old_url).name
+            if old_path.exists():
+                old_path.unlink()
 
-    current[field] = file_url
-    _write_settings(current)
+        current[field] = file_url
+        _write_settings(current)
 
-    return {"field": field, "url": file_url}
+        return {"field": field, "url": file_url}
+    except Exception as e:
+        logger.exception("Settings upload failed for field=%s", field)
+        raise HTTPException(500, f"Upload failed: {e}")
 
 
 @router.post("/reset-all-data")
