@@ -4,9 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Save, Loader2, Globe, Phone, MapPin, Video, FileText,
   Search as SearchIcon, CreditCard, Upload, Image as ImageIcon, X, Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { apiGet, apiPut, apiPost } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 interface SiteSettings {
   phone_primary: string;
@@ -381,6 +383,60 @@ export default function AdminSettingsPage() {
             </div>
           );
         })}
+      </div>
+
+      <ResetDataSection />
+    </div>
+  );
+}
+
+function ResetDataSection() {
+  const [resetting, setResetting] = useState(false);
+
+  const handleReset = async () => {
+    const first = confirm(
+      "DIQQAT! Barcha mahsulotlar, buyurtmalar, to'lovlar va statistikalar o'chiriladi. Kategoriyalar, brendlar va foydalanuvchilar qoladi. Davom etasizmi?"
+    );
+    if (!first) return;
+    const second = confirm(
+      "Bu amalni qaytarib bo'lmaydi! Haqiqatan ham barcha ma'lumotlarni tozalamoqchimisiz?"
+    );
+    if (!second) return;
+
+    setResetting(true);
+    try {
+      await apiPost("/settings/reset-all-data");
+      toast.success("Barcha ma'lumotlar tozalandi");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Xatolik yuz berdi");
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border-2 border-red-200 bg-red-50/50 p-6 dark:border-red-900/50 dark:bg-red-900/10">
+      <div className="flex items-start gap-4">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+          <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-lg font-semibold text-red-800 dark:text-red-300">
+            Ma'lumotlarni tozalash
+          </h2>
+          <p className="mt-1 text-sm text-red-600/80 dark:text-red-400/80">
+            Barcha mahsulotlar, buyurtmalar, to'lovlar, savatlar, sevimlilar, sharhlar va statistikalarni o'chiradi.
+            Kategoriyalar, brendlar, bannerlar va foydalanuvchilar saqlanadi.
+          </p>
+          <button
+            onClick={handleReset}
+            disabled={resetting}
+            className="mt-4 flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+          >
+            {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            {resetting ? "Tozalanmoqda..." : "Hammasini tozalash"}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -146,12 +146,30 @@ async def delete_product(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
 ):
+    from app.models.product import ProductVariant
+    from app.models.order import OrderItem
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    product.status = "archived"
-    await db.flush()
+    has_orders = (await db.execute(
+        select(OrderItem).where(
+            OrderItem.product_variant_id.in_(
+                select(ProductVariant.id).where(ProductVariant.product_id == product_id)
+            )
+        ).limit(1)
+    )).scalar_one_or_none()
+    if has_orders:
+        raise HTTPException(
+            status_code=400,
+            detail="Mahsulot buyurtmalarda ishlatilgan, o'chirib bo'lmaydi"
+        )
+    try:
+        await db.delete(product)
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Mahsulotni o'chirib bo'lmadi")
     await cache_delete_pattern("products:*")
 
 

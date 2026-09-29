@@ -2,12 +2,14 @@ import json
 import shutil
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.deps import RoleChecker
+from app.api.v1.deps import get_db, RoleChecker
 from app.models.user import User, UserRole
 from app.core.config import settings as app_settings
 
@@ -171,3 +173,42 @@ async def upload_setting_file(
     _write_settings(current)
 
     return {"field": field, "url": file_url}
+
+
+@router.post("/reset-all-data")
+async def reset_all_data(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN)),
+):
+    """Wipe all products, orders, and statistics. Categories, brands, banners, users stay."""
+    from app.core.cache import cache_delete_pattern
+
+    await db.execute(text("DELETE FROM stock_logs"))
+    await db.execute(text("DELETE FROM cart_items"))
+    await db.execute(text("DELETE FROM carts"))
+    await db.execute(text("DELETE FROM crm_activities"))
+    await db.execute(text("DELETE FROM crm_leads"))
+    await db.execute(text("DELETE FROM reviews"))
+    await db.execute(text("DELETE FROM product_questions"))
+    await db.execute(text("DELETE FROM favorites"))
+    await db.execute(text("DELETE FROM notifications"))
+    await db.execute(text("DELETE FROM audit_logs"))
+    await db.execute(text("DELETE FROM payments"))
+    await db.execute(text("DELETE FROM order_items"))
+    await db.execute(text("DELETE FROM orders"))
+    await db.execute(text("DELETE FROM product_images"))
+    await db.execute(text("DELETE FROM product_variants"))
+    await db.execute(text("DELETE FROM products"))
+    await db.execute(text("DELETE FROM promotions"))
+    await db.execute(text(
+        "UPDATE customer_profiles SET total_spent = 0, order_count = 0, "
+        "average_order = 0, crm_status = 'new'"
+    ))
+    await db.flush()
+
+    await cache_delete_pattern("products:*")
+    await cache_delete_pattern("categories:*")
+    await cache_delete_pattern("brands:*")
+    await cache_delete_pattern("banners:*")
+
+    return {"message": "Barcha mahsulotlar, buyurtmalar va statistikalar tozalandi"}
