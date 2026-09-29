@@ -68,7 +68,7 @@ export function Pagination({
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-sm border transition-all",
+          "flex h-10 w-10 items-center justify-center rounded-sm border transition-all",
           currentPage === 1
             ? "cursor-not-allowed border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 text-neutral-300 dark:text-neutral-600"
             : "border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-950/20 hover:text-primary-600"
@@ -85,7 +85,7 @@ export function Pagination({
             return (
               <span
                 key={`ellipsis-${index}`}
-                className="flex h-9 w-9 items-center justify-center text-neutral-400"
+                className="flex h-10 w-10 items-center justify-center text-neutral-400"
               >
                 ...
               </span>
@@ -100,7 +100,7 @@ export function Pagination({
               key={pageNumber}
               onClick={() => onPageChange(pageNumber)}
               className={cn(
-                "flex h-9 w-9 items-center justify-center rounded-sm border text-sm font-medium transition-all",
+                "flex h-10 w-10 items-center justify-center rounded-sm border text-sm font-medium transition-all",
                 isActive
                   ? "border-primary-500 bg-primary-500 text-white shadow-sm"
                   : "border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-950/20 hover:text-primary-600"
@@ -119,7 +119,7 @@ export function Pagination({
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-sm border transition-all",
+          "flex h-10 w-10 items-center justify-center rounded-sm border transition-all",
           currentPage === totalPages
             ? "cursor-not-allowed border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 text-neutral-300 dark:text-neutral-600"
             : "border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-950/20 hover:text-primary-600"

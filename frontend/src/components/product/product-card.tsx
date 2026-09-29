@@ -148,7 +148,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
               toggleFavorite();
             }}
             className={cn(
-              "absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300",
+              "absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 sm:right-2.5 sm:top-2.5",
               isFavorite
                 ? "bg-primary-500 text-white shadow-sm"
                 : "bg-white/80 text-neutral-500 backdrop-blur-sm hover:bg-white hover:text-primary-500"

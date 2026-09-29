@@ -24,7 +24,7 @@ export function MobileBottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-200 bg-white/95 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/95 lg:hidden">
-      <div className="flex items-center justify-around px-1 py-1">
+      <div className="flex items-center justify-around px-2 py-1.5">
         {navItems.map((item) => {
           const isActive =
             item.href === "/"
@@ -37,7 +37,7 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "relative flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium transition-colors",
+                "relative flex flex-1 flex-col items-center gap-0.5 rounded-lg py-2 text-[10px] font-medium transition-colors min-h-[44px] justify-center",
                 isActive
                   ? "text-primary-600 dark:text-primary-400"
                   : "text-neutral-500 dark:text-neutral-400"

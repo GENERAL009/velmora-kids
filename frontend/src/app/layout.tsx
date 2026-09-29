@@ -57,10 +57,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </head>
       <body className="min-h-screen bg-white font-sans antialiased dark:bg-neutral-950 dark:text-neutral-100 transition-colors duration-300">
         <QueryProvider>
           <ThemeHydration />
-          <div className="pb-14 lg:pb-0">
+          <div className="pb-16 lg:pb-0">
             {children}
           </div>
           <MobileBottomNav />

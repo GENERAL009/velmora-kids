@@ -181,7 +181,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-9 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                className="absolute right-1 top-[30px] flex h-10 w-10 items-center justify-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -276,7 +276,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-9 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                className="absolute right-1 top-[30px] flex h-10 w-10 items-center justify-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
                 tabIndex={-1}
               >
                 {showConfirmPassword ? (

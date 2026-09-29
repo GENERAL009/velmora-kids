@@ -374,7 +374,7 @@ export default function ProductDetailPage() {
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-50 dark:bg-secondary-950/30 sm:h-10 sm:w-10">
                     <item.icon className="h-4 w-4 text-secondary-600 sm:h-5 sm:w-5" />
                   </div>
-                  <span className="text-[10px] font-medium leading-tight text-neutral-700 dark:text-neutral-300 sm:text-xs">
+                  <span className="text-xs font-medium leading-tight text-neutral-700 dark:text-neutral-300">
                     {item.label}
                   </span>
                 </div>

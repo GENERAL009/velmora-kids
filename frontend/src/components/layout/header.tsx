@@ -79,7 +79,7 @@ export function Header() {
             <div className="hidden lg:block" />
 
             {/* Right actions */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               {/* Search */}
               <Link
                 href="/catalog"

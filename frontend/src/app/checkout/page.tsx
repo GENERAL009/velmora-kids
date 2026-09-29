@@ -377,7 +377,7 @@ export default function CheckoutPage() {
                                       e.preventDefault();
                                       copyCard();
                                     }}
-                                    className="flex h-8 flex-shrink-0 items-center gap-1.5 self-start rounded-md bg-blue-100 px-3 text-xs font-medium text-blue-700 hover:bg-blue-200 transition-colors"
+                                    className="flex h-10 flex-shrink-0 items-center gap-1.5 self-start rounded-md bg-blue-100 px-3 text-xs font-medium text-blue-700 hover:bg-blue-200 transition-colors"
                                   >
                                     <Copy className="h-3 w-3" />
                                     {copied ? "Скопировано!" : "Копировать"}
@@ -447,7 +447,7 @@ export default function CheckoutPage() {
                                         e.stopPropagation();
                                         setFile(null);
                                       }}
-                                      className="h-7 w-7 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-red-500 dark:hover:bg-neutral-700 transition-colors"
+                                      className="h-9 w-9 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-red-500 dark:hover:bg-neutral-700 transition-colors"
                                       title="Удалить файл"
                                     >
                                       ✕
