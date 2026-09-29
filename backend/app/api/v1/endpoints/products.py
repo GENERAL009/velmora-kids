@@ -312,6 +312,16 @@ async def delete_category(
     cat = result.scalar_one_or_none()
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
+    product_count = (await db.execute(
+        select(Product).where(Product.category_id == category_id).limit(1)
+    )).scalar_one_or_none()
+    if product_count:
+        raise HTTPException(status_code=400, detail="Kategoriyada mahsulotlar bor, avval ularni boshqa kategoriyaga o'tkazing")
+    child_count = (await db.execute(
+        select(Category).where(Category.parent_id == category_id).limit(1)
+    )).scalar_one_or_none()
+    if child_count:
+        raise HTTPException(status_code=400, detail="Kategoriyada sub-kategoriyalar bor, avval ularni o'chiring")
     await db.delete(cat)
     await db.flush()
     await cache_delete("categories:tree")
@@ -371,6 +381,11 @@ async def delete_brand(
     brand = result.scalar_one_or_none()
     if not brand:
         raise HTTPException(status_code=404, detail="Brand not found")
+    product_count = (await db.execute(
+        select(Product).where(Product.brand_id == brand_id).limit(1)
+    )).scalar_one_or_none()
+    if product_count:
+        raise HTTPException(status_code=400, detail="Brendda mahsulotlar bor, avval ularni boshqa brendga o'tkazing")
     await db.delete(brand)
     await db.flush()
     await cache_delete("brands:all")

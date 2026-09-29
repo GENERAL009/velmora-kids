@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -65,15 +65,34 @@ function CategoryItem({
 export function CategoryStrip({ gender }: CategoryStripProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { data: categories = [] } = useCategories();
+  const [desktopPage, setDesktopPage] = useState(0);
 
   const activeCategories = categories.filter((c) => c.is_active);
+
+  const ITEMS_PER_PAGE = 6;
+  const totalPages = Math.ceil(activeCategories.length / ITEMS_PER_PAGE);
+  const currentPageItems = activeCategories.slice(
+    desktopPage * ITEMS_PER_PAGE,
+    (desktopPage + 1) * ITEMS_PER_PAGE
+  );
+  const topRow = currentPageItems.slice(0, 3);
+  const bottomRow = currentPageItems.slice(3, 6);
+
+  const goDesktop = useCallback(
+    (dir: "prev" | "next") => {
+      setDesktopPage((p) => {
+        if (dir === "next") return p < totalPages - 1 ? p + 1 : 0;
+        return p > 0 ? p - 1 : totalPages - 1;
+      });
+    },
+    [totalPages]
+  );
 
   const scroll = (dir: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = el.offsetWidth * 0.6;
     el.scrollBy({
-      left: dir === "left" ? -amount : amount,
+      left: dir === "left" ? -200 : 200,
       behavior: "smooth",
     });
   };
@@ -82,27 +101,61 @@ export function CategoryStrip({ gender }: CategoryStripProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-      {/* Desktop: 3x2 grid in a card */}
+      {/* Desktop: 3x2 grid in a card with carousel */}
       <div className="hidden lg:block">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900">
-          <div className="grid grid-cols-6 gap-y-5 gap-x-4 place-items-center">
-            {activeCategories.slice(0, 6).map((cat, idx) => (
+        <div className="relative rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900">
+          {totalPages > 1 && (
+            <>
+              <button
+                onClick={() => goDesktop("prev")}
+                className="absolute -left-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:shadow-lg dark:bg-neutral-800"
+              >
+                <ChevronLeft className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
+              </button>
+              <button
+                onClick={() => goDesktop("next")}
+                className="absolute -right-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:shadow-lg dark:bg-neutral-800"
+              >
+                <ChevronRight className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
+              </button>
+            </>
+          )}
+
+          <div className="grid grid-cols-3 gap-y-5 gap-x-4 place-items-center">
+            {topRow.map((cat, idx) => (
               <CategoryItem
                 key={cat.id}
                 cat={cat}
                 gender={gender}
-                colorIdx={idx}
+                colorIdx={desktopPage * ITEMS_PER_PAGE + idx}
               />
             ))}
           </div>
-          {activeCategories.length > 6 && (
-            <div className="mt-4 flex gap-4 overflow-x-auto pt-4 border-t border-neutral-100 dark:border-neutral-800 no-scrollbar justify-center">
-              {activeCategories.slice(6).map((cat, idx) => (
+          {bottomRow.length > 0 && (
+            <div className="mt-5 grid grid-cols-3 gap-y-5 gap-x-4 place-items-center">
+              {bottomRow.map((cat, idx) => (
                 <CategoryItem
                   key={cat.id}
                   cat={cat}
                   gender={gender}
-                  colorIdx={idx + 6}
+                  colorIdx={desktopPage * ITEMS_PER_PAGE + 3 + idx}
+                />
+              ))}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-center gap-1.5">
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setDesktopPage(i)}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all",
+                    i === desktopPage
+                      ? "w-5 bg-primary-500"
+                      : "w-1.5 bg-neutral-300 dark:bg-neutral-600"
+                  )}
                 />
               ))}
             </div>
