@@ -67,9 +67,7 @@ export default function CategoriesPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await api.post("/categories/upload-image", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post("/categories/upload-image", formData);
       setForm((f) => ({ ...f, image: res.data.url }));
     } catch {
       toast.error("Rasm yuklanmadi");

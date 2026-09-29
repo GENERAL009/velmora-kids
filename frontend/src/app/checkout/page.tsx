@@ -156,12 +156,7 @@ export default function CheckoutPage() {
         uploadFormData.append("file", file);
         await api.post(
           `/payments/${order.id}/upload-receipt`,
-          uploadFormData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          uploadFormData
         );
       }
 

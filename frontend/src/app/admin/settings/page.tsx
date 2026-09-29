@@ -151,9 +151,7 @@ function FileUploadCard({
       const formData = new FormData();
       formData.append("field", field);
       formData.append("file", file);
-      const res = await apiPost<{ field: string; url: string }>("/settings/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await apiPost<{ field: string; url: string }>("/settings/upload", formData);
       onUploaded(field, res.url);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Ошибка загрузки";

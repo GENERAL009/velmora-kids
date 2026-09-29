@@ -64,9 +64,7 @@ export default function BannersPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await api.post("/banners/upload-image", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post("/banners/upload-image", formData);
       setForm((prev) => ({ ...prev, image: res.data.url }));
     } catch (err: any) {
       setError(err?.response?.data?.detail || "Ошибка загрузки изображения");
