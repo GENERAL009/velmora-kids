@@ -17,12 +17,15 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor: attach JWT access token
+// Request interceptor: attach JWT access token + fix FormData Content-Type
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = Cookies.get("access_token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
     return config;
   },
