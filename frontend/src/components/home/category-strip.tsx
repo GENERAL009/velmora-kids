@@ -22,6 +22,46 @@ interface CategoryStripProps {
   gender: "girls" | "boys";
 }
 
+function CategoryItem({
+  cat,
+  gender,
+  colorIdx,
+}: {
+  cat: { id: string; name: string; image?: string };
+  gender: string;
+  colorIdx: number;
+}) {
+  return (
+    <Link
+      href={`/catalog?category_id=${cat.id}&gender=${gender}`}
+      className="flex flex-col items-center gap-2"
+    >
+      <div
+        className={cn(
+          "flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br transition-transform hover:scale-105 sm:h-[72px] sm:w-[72px]",
+          CATEGORY_COLORS[colorIdx % CATEGORY_COLORS.length]
+        )}
+      >
+        {cat.image ? (
+          <Image
+            src={cat.image}
+            alt={cat.name}
+            width={48}
+            height={48}
+            className="h-10 w-10 object-contain sm:h-11 sm:w-11"
+            unoptimized
+          />
+        ) : (
+          <span className="text-2xl sm:text-3xl">{cat.name.slice(0, 1)}</span>
+        )}
+      </div>
+      <span className="max-w-[76px] text-center text-[11px] font-medium leading-tight text-neutral-600 dark:text-neutral-400 sm:max-w-[88px] sm:text-xs line-clamp-2">
+        {cat.name}
+      </span>
+    </Link>
+  );
+}
+
 export function CategoryStrip({ gender }: CategoryStripProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { data: categories = [] } = useCategories();
@@ -32,14 +72,46 @@ export function CategoryStrip({ gender }: CategoryStripProps) {
     const el = scrollRef.current;
     if (!el) return;
     const amount = el.offsetWidth * 0.6;
-    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+    el.scrollBy({
+      left: dir === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
   };
 
   if (activeCategories.length === 0) return null;
 
   return (
-    <div className="relative mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-      <div className="relative">
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      {/* Desktop: 3x2 grid in a card */}
+      <div className="hidden lg:block">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900">
+          <div className="grid grid-cols-6 gap-y-5 gap-x-4 place-items-center">
+            {activeCategories.slice(0, 6).map((cat, idx) => (
+              <CategoryItem
+                key={cat.id}
+                cat={cat}
+                gender={gender}
+                colorIdx={idx}
+              />
+            ))}
+          </div>
+          {activeCategories.length > 6 && (
+            <div className="mt-4 flex gap-4 overflow-x-auto pt-4 border-t border-neutral-100 dark:border-neutral-800 no-scrollbar justify-center">
+              {activeCategories.slice(6).map((cat, idx) => (
+                <CategoryItem
+                  key={cat.id}
+                  cat={cat}
+                  gender={gender}
+                  colorIdx={idx + 6}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile/Tablet: horizontal scroll */}
+      <div className="relative lg:hidden">
         <button
           onClick={() => scroll("left")}
           className="absolute -left-2 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:shadow-lg dark:bg-neutral-800 sm:flex h-8 w-8"
@@ -49,39 +121,12 @@ export function CategoryStrip({ gender }: CategoryStripProps) {
 
         <div
           ref={scrollRef}
-          className="no-scrollbar flex gap-3 overflow-x-auto scroll-smooth sm:gap-4"
+          className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth"
         >
           {activeCategories.map((cat, idx) => (
-            <Link
-              key={cat.id}
-              href={`/catalog?category_id=${cat.id}&gender=${gender}`}
-              className="flex flex-shrink-0 flex-col items-center gap-2"
-            >
-              <div
-                className={cn(
-                  "flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br transition-transform hover:scale-105 sm:h-20 sm:w-20",
-                  CATEGORY_COLORS[idx % CATEGORY_COLORS.length]
-                )}
-              >
-                {cat.image ? (
-                  <Image
-                    src={cat.image}
-                    alt={cat.name}
-                    width={48}
-                    height={48}
-                    className="h-10 w-10 object-contain sm:h-12 sm:w-12"
-                    unoptimized
-                  />
-                ) : (
-                  <span className="text-2xl sm:text-3xl">
-                    {cat.name.slice(0, 1)}
-                  </span>
-                )}
-              </div>
-              <span className="max-w-[80px] text-center text-[11px] font-medium leading-tight text-neutral-600 dark:text-neutral-400 sm:max-w-[96px] sm:text-xs line-clamp-2">
-                {cat.name}
-              </span>
-            </Link>
+            <div key={cat.id} className="flex-shrink-0">
+              <CategoryItem cat={cat} gender={gender} colorIdx={idx} />
+            </div>
           ))}
         </div>
 

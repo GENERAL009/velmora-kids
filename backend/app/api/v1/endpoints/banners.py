@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_db, RoleChecker
+from app.core.cache import cache_get, cache_set, cache_delete_pattern
 from app.core.config import settings
 from app.models.content import Banner
 from app.models.user import User, UserRole
@@ -18,11 +19,18 @@ router = APIRouter(prefix="/banners", tags=["Banners"])
 
 @router.get("", response_model=list[BannerResponse])
 async def list_banners(db: Annotated[AsyncSession, Depends(get_db)], position: str | None = None):
+    cache_key = f"banners:{position or 'all'}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
     query = select(Banner).where(Banner.is_active == True).order_by(Banner.sort_order)
     if position:
         query = query.where(Banner.position == position)
     result = await db.execute(query)
-    return list(result.scalars().all())
+    banners = list(result.scalars().all())
+    serialized = [BannerResponse.model_validate(b).model_dump(mode="json") for b in banners]
+    await cache_set(cache_key, serialized, ttl=300)
+    return serialized
 
 
 @router.get("/all", response_model=list[BannerResponse])
@@ -44,6 +52,7 @@ async def create_banner(
     db.add(banner)
     await db.flush()
     await db.refresh(banner)
+    await cache_delete_pattern("banners:*")
     return banner
 
 
@@ -85,6 +94,7 @@ async def update_banner(
         setattr(banner, key, value)
     await db.flush()
     await db.refresh(banner)
+    await cache_delete_pattern("banners:*")
     return banner
 
 
@@ -100,4 +110,5 @@ async def delete_banner(
         raise HTTPException(status_code=404, detail="Banner not found")
     await db.delete(banner)
     await db.flush()
+    await cache_delete_pattern("banners:*")
     return {"message": "Banner deleted"}

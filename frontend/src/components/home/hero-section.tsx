@@ -10,11 +10,18 @@ import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { apiGet } from "@/lib/api";
 import { useTranslation } from "@/hooks/use-translation";
+import { useThemeStore } from "@/store/theme";
 import type { Banner } from "@/types";
 
 interface SiteSettings {
   hero_video_url?: string;
+  hero_video_url_dark?: string;
   hero_video_poster?: string;
+  hero_video_poster_dark?: string;
+  hero_girls_image_light?: string;
+  hero_girls_image_dark?: string;
+  hero_boys_image_light?: string;
+  hero_boys_image_dark?: string;
 }
 
 type GenderChoice = "girls" | "boys" | null;
@@ -31,14 +38,26 @@ export const useHeroStore = create<HeroStoreState>((set) => ({
 
 function GenderSelector({ onSelect }: { onSelect: (g: GenderChoice) => void }) {
   const t = useTranslation();
+  const isDark = useThemeStore((s) => s.isDark);
   const { data: siteSettings } = useQuery({
     queryKey: ["site-settings"],
     queryFn: () => apiGet<SiteSettings>("/settings/site"),
     staleTime: 5 * 60 * 1000,
   });
 
-  const videoUrl = siteSettings?.hero_video_url;
-  const videoPoster = siteSettings?.hero_video_poster;
+  const videoUrl = isDark
+    ? (siteSettings?.hero_video_url_dark || siteSettings?.hero_video_url)
+    : siteSettings?.hero_video_url;
+  const videoPoster = isDark
+    ? (siteSettings?.hero_video_poster_dark || siteSettings?.hero_video_poster)
+    : siteSettings?.hero_video_poster;
+
+  const girlsImage = isDark
+    ? (siteSettings?.hero_girls_image_dark || siteSettings?.hero_girls_image_light)
+    : siteSettings?.hero_girls_image_light;
+  const boysImage = isDark
+    ? (siteSettings?.hero_boys_image_dark || siteSettings?.hero_boys_image_light)
+    : siteSettings?.hero_boys_image_light;
 
   return (
     <motion.div
@@ -85,13 +104,32 @@ function GenderSelector({ onSelect }: { onSelect: (g: GenderChoice) => void }) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.35 }}
           onClick={() => onSelect("girls")}
-          className="group relative overflow-hidden rounded-2xl border-2 border-pink-200 bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 px-8 py-6 shadow-lg transition-shadow hover:shadow-xl dark:border-pink-800 dark:from-pink-950/40 dark:via-rose-950/30 dark:to-fuchsia-950/20 sm:px-12 sm:py-10"
+          className="group relative overflow-hidden rounded-2xl border-2 border-pink-200 bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 shadow-lg transition-shadow hover:shadow-xl dark:border-pink-800 dark:from-pink-950/40 dark:via-rose-950/30 dark:to-fuchsia-950/20"
         >
           <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-pink-200/40 blur-2xl transition-all group-hover:bg-pink-300/50 dark:bg-pink-700/20" />
-          <span className="relative text-4xl sm:text-5xl">👧</span>
-          <p className="relative mt-2 text-base font-semibold text-pink-700 dark:text-pink-300 sm:mt-3 sm:text-lg">
-            {t.hero.forGirls}
-          </p>
+          {girlsImage ? (
+            <div className="relative h-40 w-40 sm:h-52 sm:w-52">
+              <Image
+                src={girlsImage}
+                alt={t.hero.forGirls}
+                fill
+                className="object-cover rounded-2xl"
+                unoptimized
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent rounded-b-2xl p-3">
+                <p className="text-sm font-semibold text-white sm:text-base">
+                  {t.hero.forGirls}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="px-8 py-6 sm:px-12 sm:py-10">
+              <span className="relative text-4xl sm:text-5xl">👧</span>
+              <p className="relative mt-2 text-base font-semibold text-pink-700 dark:text-pink-300 sm:mt-3 sm:text-lg">
+                {t.hero.forGirls}
+              </p>
+            </div>
+          )}
         </motion.button>
 
         <motion.button
@@ -101,13 +139,32 @@ function GenderSelector({ onSelect }: { onSelect: (g: GenderChoice) => void }) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.35 }}
           onClick={() => onSelect("boys")}
-          className="group relative overflow-hidden rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-50 px-8 py-6 shadow-lg transition-shadow hover:shadow-xl dark:border-blue-800 dark:from-blue-950/40 dark:via-sky-950/30 dark:to-indigo-950/20 sm:px-12 sm:py-10"
+          className="group relative overflow-hidden rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-50 shadow-lg transition-shadow hover:shadow-xl dark:border-blue-800 dark:from-blue-950/40 dark:via-sky-950/30 dark:to-indigo-950/20"
         >
           <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-blue-200/40 blur-2xl transition-all group-hover:bg-blue-300/50 dark:bg-blue-700/20" />
-          <span className="relative text-4xl sm:text-5xl">👦</span>
-          <p className="relative mt-2 text-base font-semibold text-blue-700 dark:text-blue-300 sm:mt-3 sm:text-lg">
-            {t.hero.forBoys}
-          </p>
+          {boysImage ? (
+            <div className="relative h-40 w-40 sm:h-52 sm:w-52">
+              <Image
+                src={boysImage}
+                alt={t.hero.forBoys}
+                fill
+                className="object-cover rounded-2xl"
+                unoptimized
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent rounded-b-2xl p-3">
+                <p className="text-sm font-semibold text-white sm:text-base">
+                  {t.hero.forBoys}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="px-8 py-6 sm:px-12 sm:py-10">
+              <span className="relative text-4xl sm:text-5xl">👦</span>
+              <p className="relative mt-2 text-base font-semibold text-blue-700 dark:text-blue-300 sm:mt-3 sm:text-lg">
+                {t.hero.forBoys}
+              </p>
+            </div>
+          )}
         </motion.button>
       </div>
     </motion.div>

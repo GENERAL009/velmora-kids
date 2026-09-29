@@ -44,6 +44,9 @@ async def lifespan(app: FastAPI):
     await verify_bot_and_setup_webhook()
     yield
     await async_engine.dispose()
+    from app.core.cache import _redis as _redis_conn
+    if _redis_conn:
+        await _redis_conn.close()
 
 
 app = FastAPI(

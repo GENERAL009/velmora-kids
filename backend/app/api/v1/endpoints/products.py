@@ -1,3 +1,4 @@
+import hashlib
 import os
 import uuid as uuid_mod
 from typing import Annotated
@@ -8,12 +9,14 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_active_user, get_db, RoleChecker
+from app.core.cache import cache_get, cache_set, cache_delete, cache_delete_pattern
 from app.core.config import settings
 from app.models.user import User, UserRole
 from app.models.product import Product, ProductImage
 from app.services import product_service
 from app.schemas.product import (
-    CategoryCreate, CategoryResponse, BrandCreate, BrandResponse,
+    CategoryCreate, CategoryUpdate, CategoryResponse,
+    BrandCreate, BrandUpdate, BrandResponse,
     ProductCreate, ProductResponse, PaginatedProducts, ProductList,
     ColorCreate, ColorResponse, ProductImageResponse,
 )
@@ -39,6 +42,16 @@ async def list_products(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
+    filter_key = hashlib.md5(
+        f"{category_id}:{brand_id}:{collection_id}:{gender}:{min_price}:{max_price}"
+        f":{is_on_sale}:{is_featured}:{is_new}:{is_bestseller}:{search}:{sort_by}"
+        f":{page}:{page_size}".encode()
+    ).hexdigest()
+    cache_key = f"products:{filter_key}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
     class Filters:
         pass
     f = Filters()
@@ -56,7 +69,10 @@ async def list_products(
     f.sort_by = sort_by
     f.page = page
     f.page_size = page_size
-    return await product_service.get_products(db, f)
+    result = await product_service.get_products(db, f)
+    serialized = PaginatedProducts.model_validate(result).model_dump(mode="json")
+    await cache_set(cache_key, serialized, ttl=120)
+    return serialized
 
 
 @router.get("/products/search", response_model=list[ProductList])
@@ -104,7 +120,9 @@ async def create_product(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
 ):
-    return await product_service.create_product(db, data)
+    result = await product_service.create_product(db, data)
+    await cache_delete_pattern("products:*")
+    return result
 
 
 @router.put("/products/{product_id}", response_model=ProductResponse)
@@ -117,6 +135,7 @@ async def update_product(
     product = await product_service.update_product(db, product_id, data)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    await cache_delete_pattern("products:*")
     return product
 
 
@@ -132,6 +151,7 @@ async def delete_product(
         raise HTTPException(status_code=404, detail="Product not found")
     product.status = "archived"
     await db.flush()
+    await cache_delete_pattern("products:*")
 
 
 @router.post("/products/{product_id}/images", response_model=ProductImageResponse)
@@ -233,7 +253,13 @@ async def set_primary_image(
 
 @router.get("/categories", response_model=list[CategoryResponse])
 async def list_categories(db: Annotated[AsyncSession, Depends(get_db)]):
-    return await product_service.get_categories_tree(db)
+    cached = await cache_get("categories:tree")
+    if cached:
+        return cached
+    cats = await product_service.get_categories_tree(db)
+    serialized = [CategoryResponse.model_validate(c).model_dump(mode="json") for c in cats]
+    await cache_set("categories:tree", serialized, ttl=300)
+    return serialized
 
 
 @router.get("/categories/{slug}", response_model=CategoryResponse)
@@ -250,12 +276,57 @@ async def create_category(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
 ):
-    return await product_service.create_category(db, data)
+    result = await product_service.create_category(db, data)
+    await cache_delete("categories:tree")
+    return result
+
+
+@router.put("/categories/{category_id}", response_model=CategoryResponse)
+async def update_category(
+    category_id: UUID,
+    data: CategoryUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+):
+    from app.models.product import Category
+    result = await db.execute(select(Category).where(Category.id == category_id))
+    cat = result.scalar_one_or_none()
+    if not cat:
+        raise HTTPException(status_code=404, detail="Category not found")
+    for key, value in data.model_dump(exclude_none=True).items():
+        setattr(cat, key, value)
+    await db.flush()
+    await db.refresh(cat)
+    await cache_delete("categories:tree")
+    return cat
+
+
+@router.delete("/categories/{category_id}")
+async def delete_category(
+    category_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+):
+    from app.models.product import Category
+    result = await db.execute(select(Category).where(Category.id == category_id))
+    cat = result.scalar_one_or_none()
+    if not cat:
+        raise HTTPException(status_code=404, detail="Category not found")
+    await db.delete(cat)
+    await db.flush()
+    await cache_delete("categories:tree")
+    return {"message": "Category deleted"}
 
 
 @router.get("/brands", response_model=list[BrandResponse])
 async def list_brands(db: Annotated[AsyncSession, Depends(get_db)]):
-    return await product_service.get_brands(db)
+    cached = await cache_get("brands:all")
+    if cached:
+        return cached
+    brands = await product_service.get_brands(db)
+    serialized = [BrandResponse.model_validate(b).model_dump(mode="json") for b in brands]
+    await cache_set("brands:all", serialized, ttl=300)
+    return serialized
 
 
 @router.post("/brands", status_code=status.HTTP_201_CREATED, response_model=BrandResponse)
@@ -264,7 +335,46 @@ async def create_brand(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
 ):
-    return await product_service.create_brand(db, data)
+    result = await product_service.create_brand(db, data)
+    await cache_delete("brands:all")
+    return result
+
+
+@router.put("/brands/{brand_id}", response_model=BrandResponse)
+async def update_brand(
+    brand_id: UUID,
+    data: BrandUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+):
+    from app.models.product import Brand
+    result = await db.execute(select(Brand).where(Brand.id == brand_id))
+    brand = result.scalar_one_or_none()
+    if not brand:
+        raise HTTPException(status_code=404, detail="Brand not found")
+    for key, value in data.model_dump(exclude_none=True).items():
+        setattr(brand, key, value)
+    await db.flush()
+    await db.refresh(brand)
+    await cache_delete("brands:all")
+    return brand
+
+
+@router.delete("/brands/{brand_id}")
+async def delete_brand(
+    brand_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+):
+    from app.models.product import Brand
+    result = await db.execute(select(Brand).where(Brand.id == brand_id))
+    brand = result.scalar_one_or_none()
+    if not brand:
+        raise HTTPException(status_code=404, detail="Brand not found")
+    await db.delete(brand)
+    await db.flush()
+    await cache_delete("brands:all")
+    return {"message": "Brand deleted"}
 
 
 @router.get("/colors", response_model=list[ColorResponse])

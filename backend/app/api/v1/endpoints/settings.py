@@ -26,7 +26,13 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "address": "Ташкент, Узбекистан",
     "working_hours": "Пн-Пт: 09:00 - 18:00",
     "hero_video_url": "",
+    "hero_video_url_dark": "",
     "hero_video_poster": "",
+    "hero_video_poster_dark": "",
+    "hero_girls_image_light": "",
+    "hero_girls_image_dark": "",
+    "hero_boys_image_light": "",
+    "hero_boys_image_dark": "",
     "logo_header": "",
     "logo_footer": "",
     "logo_favicon": "",
@@ -68,7 +74,13 @@ class SiteSettingsUpdate(BaseModel):
     address: str | None = None
     working_hours: str | None = None
     hero_video_url: str | None = None
+    hero_video_url_dark: str | None = None
     hero_video_poster: str | None = None
+    hero_video_poster_dark: str | None = None
+    hero_girls_image_light: str | None = None
+    hero_girls_image_dark: str | None = None
+    hero_boys_image_light: str | None = None
+    hero_boys_image_dark: str | None = None
     logo_header: str | None = None
     logo_footer: str | None = None
     logo_favicon: str | None = None
@@ -106,7 +118,10 @@ async def update_site_settings(
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/svg+xml", "image/x-icon", "image/gif"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm"}
 UPLOAD_FIELDS = {
-    "hero_video_url", "hero_video_poster",
+    "hero_video_url", "hero_video_url_dark",
+    "hero_video_poster", "hero_video_poster_dark",
+    "hero_girls_image_light", "hero_girls_image_dark",
+    "hero_boys_image_light", "hero_boys_image_dark",
     "logo_header", "logo_footer", "logo_favicon",
 }
 MAX_VIDEO_SIZE = 100 * 1024 * 1024  # 100MB
@@ -122,7 +137,7 @@ async def upload_setting_file(
     if field not in UPLOAD_FIELDS:
         raise HTTPException(400, f"Invalid field: {field}. Allowed: {', '.join(sorted(UPLOAD_FIELDS))}")
 
-    is_video = field == "hero_video_url"
+    is_video = field in ("hero_video_url", "hero_video_url_dark")
     allowed = ALLOWED_VIDEO_TYPES if is_video else ALLOWED_IMAGE_TYPES
     max_size = MAX_VIDEO_SIZE if is_video else MAX_IMAGE_SIZE
 
