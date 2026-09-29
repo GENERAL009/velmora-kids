@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiPost, apiPut, apiDelete } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { cn, formatDate } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 function generateSlug(name: string): string {
   const map: Record<string, string> = {
@@ -76,7 +77,14 @@ export default function BrandsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiDelete(`/brands/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["brands"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["brands"] });
+      toast.success("Brend o'chirildi");
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.detail || "Brendni o'chirib bo'lmadi";
+      toast.error(msg);
+    },
   });
 
   const handleSubmit = () => {

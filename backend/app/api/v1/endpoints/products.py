@@ -6,6 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_active_user, get_db, RoleChecker
@@ -281,6 +282,29 @@ async def create_category(
     return result
 
 
+@router.post("/categories/upload-image")
+async def upload_category_image(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+    file: UploadFile = File(...),
+):
+    allowed = {"image/jpeg", "image/png", "image/webp", "image/avif"}
+    if file.content_type not in allowed:
+        raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP, AVIF images allowed")
+
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
+    filename = f"{uuid_mod.uuid4().hex}.{ext}"
+    cat_dir = os.path.join(settings.UPLOAD_DIR, "categories")
+    os.makedirs(cat_dir, exist_ok=True)
+
+    filepath = os.path.join(cat_dir, filename)
+    content = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(content)
+
+    return {"url": f"/uploads/categories/{filename}"}
+
+
 @router.put("/categories/{category_id}", response_model=CategoryResponse)
 async def update_category(
     category_id: UUID,
@@ -322,8 +346,12 @@ async def delete_category(
     )).scalar_one_or_none()
     if child_count:
         raise HTTPException(status_code=400, detail="Kategoriyada sub-kategoriyalar bor, avval ularni o'chiring")
-    await db.delete(cat)
-    await db.flush()
+    try:
+        await db.delete(cat)
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Kategoriyani o'chirib bo'lmadi, bog'langan ma'lumotlar mavjud")
     await cache_delete("categories:tree")
     return {"message": "Category deleted"}
 
@@ -386,8 +414,12 @@ async def delete_brand(
     )).scalar_one_or_none()
     if product_count:
         raise HTTPException(status_code=400, detail="Brendda mahsulotlar bor, avval ularni boshqa brendga o'tkazing")
-    await db.delete(brand)
-    await db.flush()
+    try:
+        await db.delete(brand)
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Brendni o'chirib bo'lmadi, bog'langan ma'lumotlar mavjud")
     await cache_delete("brands:all")
     return {"message": "Brand deleted"}
 
