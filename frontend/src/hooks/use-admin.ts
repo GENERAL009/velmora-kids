@@ -389,6 +389,36 @@ export function useAdminReviews(params: { is_approved?: boolean; page?: number; 
   });
 }
 
+export function useConfirmPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => apiPatch(`/orders/${orderId}/confirm-payment`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+    },
+  });
+}
+
+export function useSuspiciousPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => apiPatch(`/orders/${orderId}/suspicious-payment`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+    },
+  });
+}
+
+export function useRejectPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => apiPatch(`/orders/${orderId}/reject-payment`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+    },
+  });
+}
+
 export function useApproveReview() {
   const queryClient = useQueryClient();
   return useMutation({

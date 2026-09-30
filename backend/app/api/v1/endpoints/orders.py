@@ -96,13 +96,152 @@ async def confirm_payment(
     await db.flush()
     await db.refresh(order)
 
-    from app.services.telegram_service import send_telegram_message
+    from app.services.telegram_service import send_telegram_message, _send_request
+    from app.core.config import settings
     import asyncio
+    
+    admin_name = f"{current_user.first_name} {current_user.last_name}"
+    
+    # Update admin verification messages if they exist
+    for payment in order.payments:
+        if payment.telegram_message_id:
+            for aid in settings.TELEGRAM_ADMIN_IDS:
+                asyncio.create_task(_send_request("editMessageText", {
+                    "chat_id": str(aid),
+                    "message_id": payment.telegram_message_id,
+                    "text": (
+                        f"✅ <b>ОПЛАТА ПОДТВЕРЖДЕНА (через панель)</b>\n\n"
+                        f"🛒 Заказ: <b>#{order.order_number}</b>\n"
+                        f"💰 Сумма: <b>{payment.amount:,.0f} сум</b>\n"
+                        f"👨‍💼 Подтвердил: {admin_name}\n"
+                        f"🕐 {datetime.now(timezone.utc).strftime('%d.%m.%Y %H:%M')}"
+                    ),
+                    "parse_mode": "HTML",
+                }))
+
     asyncio.create_task(send_telegram_message(
-        f"✅ <b>Оплата подтверждена</b>\n\n"
-        f"Заказ: <b>#{order.order_number}</b>\n"
-        f"Сумма: <b>{order.total:,.0f} сум</b>\n"
-        f"Подтвердил: {current_user.first_name} {current_user.last_name}"
+        f"✅ <b>To'lov tasdiqlandi</b>\n\n"
+        f"Buyurtma: <b>#{order.order_number}</b>\n"
+        f"Summa: <b>{order.total:,.0f} so'm</b>\n"
+        f"Tasdiqladi: {admin_name}"
+    ))
+
+    return order
+
+
+@router.patch("/{order_id}/suspicious-payment", response_model=OrderResponse)
+async def suspicious_payment(
+    order_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR, UserRole.SELLER)),
+):
+    from sqlalchemy import select
+    from app.models.order import Order, Payment, PaymentStatus, TransactionStatus
+    from sqlalchemy.orm import selectinload
+
+    result = await db.execute(
+        select(Order).where(Order.id == order_id).options(selectinload(Order.payments))
+    )
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Buyurtma topilmadi")
+    if order.payment_status == PaymentStatus.PAID:
+        raise HTTPException(status_code=400, detail="To'lov allaqachon tasdiqlangan")
+
+    for payment in order.payments:
+        if payment.status == TransactionStatus.PENDING:
+            payment.status = TransactionStatus.SUSPICIOUS
+
+    await db.flush()
+    await db.refresh(order)
+
+    from app.services.telegram_service import send_telegram_message, _send_request
+    from app.core.config import settings
+    import asyncio
+    
+    admin_name = f"{current_user.first_name} {current_user.last_name}"
+    
+    for payment in order.payments:
+        if payment.telegram_message_id:
+            for aid in settings.TELEGRAM_ADMIN_IDS:
+                asyncio.create_task(_send_request("editMessageText", {
+                    "chat_id": str(aid),
+                    "message_id": payment.telegram_message_id,
+                    "text": (
+                        f"⚠️ <b>ПОДОЗРИТЕЛЬНЫЙ ЧЕК (через панель)</b>\n\n"
+                        f"🛒 Заказ: <b>#{order.order_number}</b>\n"
+                        f"💰 Сумма: <b>{payment.amount:,.0f} сум</b>\n"
+                        f"👨‍💼 Отметил: {admin_name}\n\n"
+                        f"<i>Ожидает решения</i>"
+                    ),
+                    "parse_mode": "HTML",
+                }))
+
+    asyncio.create_task(send_telegram_message(
+        f"⚠️ <b>To'lov shubhali deb belgilandi</b>\n\n"
+        f"Buyurtma: <b>#{order.order_number}</b>\n"
+        f"Summa: <b>{order.total:,.0f} so'm</b>\n"
+        f"Belgiladi: {admin_name}"
+    ))
+
+    return order
+
+
+@router.patch("/{order_id}/reject-payment", response_model=OrderResponse)
+async def reject_payment(
+    order_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR, UserRole.SELLER)),
+):
+    from sqlalchemy import select
+    from datetime import datetime, timezone
+    from app.models.order import Order, Payment, PaymentStatus, TransactionStatus
+    from sqlalchemy.orm import selectinload
+
+    result = await db.execute(
+        select(Order).where(Order.id == order_id).options(selectinload(Order.payments))
+    )
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Buyurtma topilmadi")
+    if order.payment_status == PaymentStatus.PAID:
+        raise HTTPException(status_code=400, detail="To'lov allaqachon tasdiqlangan")
+
+    order.payment_status = PaymentStatus.FAILED
+
+    for payment in order.payments:
+        if payment.status not in (TransactionStatus.COMPLETED,):
+            payment.status = TransactionStatus.FAILED
+
+    await db.flush()
+    await db.refresh(order)
+
+    from app.services.telegram_service import send_telegram_message, _send_request
+    from app.core.config import settings
+    import asyncio
+    
+    admin_name = f"{current_user.first_name} {current_user.last_name}"
+
+    for payment in order.payments:
+        if payment.telegram_message_id:
+            for aid in settings.TELEGRAM_ADMIN_IDS:
+                asyncio.create_task(_send_request("editMessageText", {
+                    "chat_id": str(aid),
+                    "message_id": payment.telegram_message_id,
+                    "text": (
+                        f"❌ <b>ОПЛАТА ОТКЛОНЕНА (через панель)</b>\n\n"
+                        f"🛒 Заказ: <b>#{order.order_number}</b>\n"
+                        f"💰 Сумма: <b>{payment.amount:,.0f} сум</b>\n"
+                        f"👨‍💼 Отклонил: {admin_name}"
+                    ),
+                    "parse_mode": "HTML",
+                }))
+
+    asyncio.create_task(send_telegram_message(
+        f"❌ <b>To'lov rad etildi</b>\n\n"
+        f"Buyurtma: <b>#{order.order_number}</b>\n"
+        f"Summa: <b>{order.total:,.0f} so'm</b>\n"
+        f"Rad etdi: {admin_name}"
     ))
 
     return order

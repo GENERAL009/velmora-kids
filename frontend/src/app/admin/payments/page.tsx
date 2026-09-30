@@ -3,10 +3,16 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState } from "react";
-import { Search, CreditCard } from "lucide-react";
+import { Search, CreditCard, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { DataTable, Column } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
-import { useAdminOrders, type AdminOrder } from "@/hooks/use-admin";
+import {
+  useAdminOrders,
+  useConfirmPayment,
+  useSuspiciousPayment,
+  useRejectPayment,
+  type AdminOrder,
+} from "@/hooks/use-admin";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +45,10 @@ export default function PaymentsPage() {
     payment_status: statusFilter !== "all" ? statusFilter : undefined,
     search: searchQuery || undefined,
   });
+
+  const confirmMutation = useConfirmPayment();
+  const suspiciousMutation = useSuspiciousPayment();
+  const rejectMutation = useRejectPayment();
 
   const orders = data?.items ?? [];
   const totalPages = data?.pages ?? 1;
@@ -97,6 +107,52 @@ export default function PaymentsPage() {
       label: "Sana",
       sortable: true,
       render: (order) => <span className="text-neutral-500">{formatDate(order.created_at)}</span>,
+    },
+    {
+      key: "actions",
+      label: "Amallar",
+      render: (order) => {
+        if (order.payment_status === "paid" || order.payment_status === "refunded") return null;
+
+        const isLoading =
+          confirmMutation.isPending || suspiciousMutation.isPending || rejectMutation.isPending;
+
+        return (
+          <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+            {order.payment_status !== "failed" && (
+              <>
+                <button
+                  onClick={() => confirmMutation.mutate(order.id)}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2.5 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40"
+                  title="Tasdiqlash"
+                >
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Tasdiqlash</span>
+                </button>
+                <button
+                  onClick={() => suspiciousMutation.mutate(order.id)}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40"
+                  title="Shubhali"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Shubhali</span>
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => rejectMutation.mutate(order.id)}
+              disabled={isLoading}
+              className="inline-flex items-center gap-1 rounded-md bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+              title="Rad etish"
+            >
+              <XCircle className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Rad etish</span>
+            </button>
+          </div>
+        );
+      },
     },
   ];
 

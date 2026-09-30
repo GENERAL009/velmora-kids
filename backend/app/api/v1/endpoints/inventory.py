@@ -101,7 +101,11 @@ async def pos_sale(
         result = await db.execute(
             select(ProductVariant)
             .where(ProductVariant.id == item.variant_id)
-            .options(selectinload(ProductVariant.product), selectinload(ProductVariant.color))
+            .options(
+                selectinload(ProductVariant.product), 
+                selectinload(ProductVariant.color),
+                selectinload(ProductVariant.size)
+            )
             .with_for_update()
         )
         variant = result.scalar_one_or_none()
@@ -113,7 +117,7 @@ async def pos_sale(
             from fastapi import HTTPException
             raise HTTPException(
                 status_code=400,
-                detail=f"{variant.product.name} ({variant.color.name}): в наличии {variant.stock}, запрошено {item.quantity}"
+                detail=f"{variant.product.name} ({variant.color.name}): mavjud {variant.stock}, so'ralgan {item.quantity}"
             )
 
         price = float(variant.product.selling_price) + float(variant.additional_price)
@@ -130,8 +134,8 @@ async def pos_sale(
     order = Order(
         order_number=order_number,
         customer_id=current_user.id,
-        customer_first_name=data.customer_name or "Покупатель",
-        customer_last_name="(Касса)",
+        customer_first_name=data.customer_name or "Xaridor",
+        customer_last_name="(Kassa)",
         customer_phone=data.customer_phone or "",
         status=OrderStatus.DELIVERED,
         payment_status=PaymentStatus.PAID,
@@ -151,10 +155,10 @@ async def pos_sale(
         v = oi["variant"]
         db_item = OrderItem(
             order_id=order.id,
-            product_id=v.product_id,
             product_variant_id=v.id,
             product_name=v.product.name,
             product_sku=v.product.sku,
+            size_name=v.size.name if v.size else "",
             color_name=v.color.name if v.color else "",
             quantity=oi["quantity"],
             unit_price=oi["unit_price"],

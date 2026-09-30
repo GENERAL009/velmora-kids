@@ -99,7 +99,7 @@ async def adjust_stock(db: AsyncSession, variant_id: uuid.UUID, new_quantity: in
         quantity=diff,
         stock_before=before,
         stock_after=new_quantity,
-        note=note or f"Корректировка: {before} → {new_quantity}",
+        note=note or f"Tuzatish: {before} → {new_quantity}",
         created_by=user_id,
     )
     db.add(log)

@@ -208,28 +208,56 @@ async def update_product(db: AsyncSession, product_id: UUID, data) -> Product:
         return None
 
     update_data = data.model_dump(exclude_unset=True)
+    
+    if 'slug' in update_data and update_data['slug']:
+        slug = update_data['slug']
+        existing = await db.execute(select(Product).where(Product.slug == slug, Product.id != product_id))
+        if existing.scalar_one_or_none():
+            slug = f"{slug}-{uuid_mod.uuid4().hex[:6]}"
+        update_data['slug'] = slug
+
     for field, value in update_data.items():
         if field not in ('variants', 'images'):
             setattr(product, field, value)
 
-    if 'variants' in update_data and update_data['variants']:
+    if 'variants' in update_data:
         existing = await db.execute(
             select(ProductVariant).where(ProductVariant.product_id == product_id)
         )
-        for old_v in existing.scalars().all():
-            await db.delete(old_v)
-        await db.flush()
+        existing_variants = existing.scalars().all()
+        existing_by_color = {v.color_id: v for v in existing_variants}
 
+        incoming_color_ids = set()
         for v in data.variants:
-            variant = ProductVariant(
-                product_id=product_id,
-                color_id=v.color_id,
-                sku=v.sku or f"{product.sku}-{uuid_mod.uuid4().hex[:4].upper()}",
-                barcode=v.barcode,
-                additional_price=v.additional_price or 0,
-                stock=10,
-            )
-            db.add(variant)
+            incoming_color_ids.add(v.color_id)
+            if v.color_id in existing_by_color:
+                ev = existing_by_color[v.color_id]
+                ev.sku = v.sku or ev.sku
+                ev.barcode = v.barcode
+                ev.additional_price = v.additional_price or 0
+            else:
+                variant = ProductVariant(
+                    product_id=product_id,
+                    color_id=v.color_id,
+                    sku=v.sku or f"{product.sku}-{uuid_mod.uuid4().hex[:4].upper()}",
+                    barcode=v.barcode,
+                    additional_price=v.additional_price or 0,
+                    stock=10,
+                )
+                db.add(variant)
+
+        for color_id, ev in existing_by_color.items():
+            if color_id not in incoming_color_ids:
+                from app.models.order import OrderItem
+                ref_count = await db.execute(
+                    select(func.count()).select_from(OrderItem).where(
+                        OrderItem.product_variant_id == ev.id
+                    )
+                )
+                if ref_count.scalar() > 0:
+                    ev.is_active = False
+                else:
+                    await db.delete(ev)
 
     await db.flush()
 
