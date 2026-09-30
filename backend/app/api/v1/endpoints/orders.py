@@ -93,6 +93,21 @@ async def confirm_payment(
         if payment.status != TransactionStatus.COMPLETED:
             payment.status = TransactionStatus.COMPLETED
 
+    # Decrease stock for all order items now that payment is confirmed
+    from app.models.order import OrderItem
+    from app.services import inventory_service
+    from app.models.inventory import StockMovementType
+
+    items_result = await db.execute(
+        select(OrderItem).where(OrderItem.order_id == order.id)
+    )
+    for oi in items_result.scalars().all():
+        if oi.product_variant_id:
+            await inventory_service.decrease_stock_for_sale(
+                db, oi.product_variant_id, oi.quantity, current_user.id,
+                StockMovementType.SALE, order.id,
+            )
+
     await db.flush()
     await db.refresh(order)
 

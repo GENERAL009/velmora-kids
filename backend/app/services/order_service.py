@@ -89,7 +89,7 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
     db.add(order)
     await db.flush()
 
-    # Create order items and decrement stock
+    # Create order items (stock is NOT decreased here — only when payment is confirmed)
     for item in order_items:
         oi = OrderItem(
             order_id=order.id,
@@ -104,11 +104,6 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
             total=item["total"],
         )
         db.add(oi)
-
-        await inventory_service.decrease_stock_for_sale(
-            db, item["variant"].id, item["quantity"], customer_id,
-            StockMovementType.SALE, order.id,
-        )
 
     # Create payment record
     payment = Payment(

@@ -210,6 +210,19 @@ async def _approve_payment(payment_id: str, admin_name: str, callback_id: str, c
                 order.payment_status = PaymentStatus.PAID
                 order.paid_at = datetime.now(timezone.utc)
 
+            # Decrease stock for all order items now that payment is confirmed
+            if order:
+                from app.services import inventory_service
+                from app.models.inventory import StockMovementType
+
+                for oi in order.items:
+                    if oi.product_variant_id:
+                        await inventory_service.decrease_stock_for_sale(
+                            db, oi.product_variant_id, oi.quantity,
+                            order.customer_id,
+                            StockMovementType.SALE, order.id,
+                        )
+
             # Create notification for customer
             if order:
                 notif = Notification(
