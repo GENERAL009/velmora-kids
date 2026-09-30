@@ -81,6 +81,19 @@ async def register(
     )
     db.add(user)
     await db.flush()
+
+    if user_in.city and user_in.address:
+        from app.models.crm import CustomerAddress
+        addr = CustomerAddress(
+            user_id=user.id,
+            label="Дом",
+            city=user_in.city,
+            address=user_in.address,
+            is_default=True
+        )
+        db.add(addr)
+        await db.flush()
+
     await db.refresh(user)
 
     token_data = {"sub": str(user.id)}

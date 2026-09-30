@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/hooks/use-translation";
 import toast from "react-hot-toast";
+import { LocationPicker } from "@/components/ui/location-picker";
 
 const registerSchema = z
   .object({
@@ -44,6 +45,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
 
   const {
     register,
@@ -75,6 +78,8 @@ export default function RegisterPage() {
         first_name: data.first_name,
         last_name: data.last_name,
         phone: data.phone,
+        city,
+        address,
       });
 
       const deferred = getDeferredAction();
@@ -285,6 +290,16 @@ export default function RegisterPage() {
                   <Eye className="h-4 w-4" />
                 )}
               </button>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Адрес доставки (необязательно)</p>
+              <LocationPicker 
+                onAddressChange={(newAddress, newCity) => {
+                  setAddress(newAddress);
+                  setCity(newCity);
+                }} 
+              />
             </div>
 
             {/* Terms Agreement */}

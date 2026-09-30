@@ -17,6 +17,7 @@ import { formatPrice } from "@/lib/utils";
 import api, { apiGet, apiPost } from "@/lib/api";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { LocationPicker } from "@/components/ui/location-picker";
 
 interface SiteSettings {
   payment_card_number?: string;
@@ -93,6 +94,7 @@ export default function CheckoutPage() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -280,7 +282,20 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                        Адрес доставки
+                        Локация на карте
+                      </label>
+                      <LocationPicker 
+                        initialAddress={user?.address || ""}
+                        onAddressChange={(address, city) => {
+                          setValue("address", address, { shouldValidate: true });
+                          setValue("city", city, { shouldValidate: true });
+                        }} 
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 mt-4 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                        Адрес доставки (ориентир, подъезд)
                       </label>
                       <textarea
                         {...register("address")}
@@ -505,6 +520,7 @@ export default function CheckoutPage() {
                                 src={item.product.images[0].file_path}
                                 alt={item.product.name}
                                 fill
+                                unoptimized
                                 className="object-cover"
                               />
                             ) : (
