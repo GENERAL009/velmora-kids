@@ -118,6 +118,7 @@ export default function CartPage() {
                               src={item.product.images[0].file_path}
                               alt={item.product.name}
                               fill
+                              unoptimized
                               className="object-cover"
                             />
                           ) : (
