@@ -11,20 +11,20 @@ import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 const PAYMENT_STATUSES = [
-  { value: "all", label: "Все" },
-  { value: "pending", label: "Ожидание" },
-  { value: "paid", label: "Оплачен" },
-  { value: "failed", label: "Ошибка" },
-  { value: "refunded", label: "Возврат" },
+  { value: "all", label: "Barchasi" },
+  { value: "pending", label: "Kutilmoqda" },
+  { value: "paid", label: "To'langan" },
+  { value: "failed", label: "Xatolik" },
+  { value: "refunded", label: "Qaytarilgan" },
 ];
 
 const PAYMENT_METHODS: Record<string, string> = {
-  cash: "Наличные",
-  card_transfer: "Карта перевод",
-  bank_transfer: "Банк перевод",
+  cash: "Naqd",
+  card_transfer: "Karta o'tkazma",
+  bank_transfer: "Bank o'tkazma",
   payme: "Payme",
   click: "Click",
-  card: "Карта",
+  card: "Karta",
 };
 
 export default function PaymentsPage() {
@@ -46,7 +46,7 @@ export default function PaymentsPage() {
   const columns: Column<AdminOrder>[] = [
     {
       key: "order_number",
-      label: "Заказ",
+      label: "Buyurtma",
       sortable: true,
       render: (order) => (
         <span className="font-medium text-primary-600 dark:text-primary-400">{order.order_number}</span>
@@ -54,7 +54,7 @@ export default function PaymentsPage() {
     },
     {
       key: "customer",
-      label: "Покупатель",
+      label: "Xaridor",
       render: (order) => (
         <div>
           <p className="font-medium">{order.customer_first_name} {order.customer_last_name}</p>
@@ -66,15 +66,15 @@ export default function PaymentsPage() {
     },
     {
       key: "total",
-      label: "Сумма",
+      label: "Summa",
       sortable: true,
       render: (order) => (
-        <span className="font-semibold">{Number(order.total).toLocaleString("ru-RU")} сум</span>
+        <span className="font-semibold">{Number(order.total).toLocaleString("uz-UZ")} so'm</span>
       ),
     },
     {
       key: "payment_method",
-      label: "Способ оплаты",
+      label: "To'lov usuli",
       render: (order) => (
         <div className="flex items-center gap-2">
           <CreditCard className="h-4 w-4 text-neutral-400" />
@@ -84,17 +84,17 @@ export default function PaymentsPage() {
     },
     {
       key: "payment_status",
-      label: "Статус оплаты",
+      label: "To'lov holati",
       render: (order) => <StatusBadge status={order.payment_status} />,
     },
     {
       key: "status",
-      label: "Статус заказа",
+      label: "Buyurtma holati",
       render: (order) => <StatusBadge status={order.status} />,
     },
     {
       key: "created_at",
-      label: "Дата",
+      label: "Sana",
       sortable: true,
       render: (order) => <span className="text-neutral-500">{formatDate(order.created_at)}</span>,
     },
@@ -103,8 +103,8 @@ export default function PaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Платежи</h1>
-        <p className="mt-1 text-sm text-neutral-500">Управление платежами и оплатами заказов</p>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">To'lovlar</h1>
+        <p className="mt-1 text-sm text-neutral-500">Buyurtma to'lovlarini boshqarish</p>
       </div>
 
       {/* Filters */}
@@ -130,7 +130,7 @@ export default function PaymentsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
           <input
             type="search"
-            placeholder="Поиск по номеру..."
+            placeholder="Raqam bo'yicha qidirish..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-10 pr-4 text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
@@ -143,7 +143,7 @@ export default function PaymentsPage() {
         data={orders}
         keyExtractor={(o) => o.id}
         isLoading={isLoading}
-        emptyMessage="Нет платежей"
+        emptyMessage="To'lovlar topilmadi"
       />
 
       {/* Pagination */}
@@ -154,7 +154,7 @@ export default function PaymentsPage() {
             disabled={currentPage === 1}
             className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm disabled:opacity-50 dark:border-neutral-700"
           >
-            Назад
+            Orqaga
           </button>
           <span className="text-sm text-neutral-500">
             {currentPage} / {totalPages}
@@ -164,7 +164,7 @@ export default function PaymentsPage() {
             disabled={currentPage === totalPages}
             className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm disabled:opacity-50 dark:border-neutral-700"
           >
-            Далее
+            Oldinga
           </button>
         </div>
       )}

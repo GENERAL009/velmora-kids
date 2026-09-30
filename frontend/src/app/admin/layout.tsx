@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!authChecked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-950">
-        <div className="animate-pulse text-neutral-400">Загрузка...</div>
+        <div className="animate-pulse text-neutral-400">Yuklanmoqda...</div>
       </div>
     );
   }
@@ -114,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
                 <input
                   type="search"
-                  placeholder="Поиск..."
+                  placeholder="Qidirish..."
                   className="w-full pl-10 pr-4 py-2 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-neutral-900 dark:text-white placeholder-neutral-500"
                 />
               </div>
@@ -158,20 +158,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-800 rounded-lg shadow-elevated border border-neutral-200 dark:border-neutral-700 py-2 z-20">
                       <div className="px-4 py-2 border-b border-neutral-200 dark:border-neutral-700">
                         <p className="text-sm font-medium text-neutral-900 dark:text-white">{user?.first_name} {user?.last_name}</p>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400">{user?.role === "super_admin" ? "Суперадмин" : user?.role === "director" ? "Директор" : user?.role}</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">{user?.role === "super_admin" ? "Super admin" : user?.role === "director" ? "Direktor" : user?.role === "seller" ? "Sotuvchi" : user?.role === "call_center" ? "Call markaz" : user?.role}</p>
                       </div>
                       <button className="w-full px-4 py-2 text-left text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-                        Профиль
+                        Profil
                       </button>
                       <button className="w-full px-4 py-2 text-left text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-                        Настройки
+                        Sozlamalar
                       </button>
                       <div className="border-t border-neutral-200 dark:border-neutral-700 mt-2 pt-2">
                         <button
                           onClick={() => { logout(); router.replace("/auth/login"); }}
                           className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-neutral-50 dark:hover:bg-neutral-700"
                         >
-                          Выйти
+                          Chiqish
                         </button>
                       </div>
                     </div>

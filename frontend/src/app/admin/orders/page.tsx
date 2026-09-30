@@ -24,11 +24,11 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  confirmed: "Подтвердить",
-  processing: "В обработку",
-  shipped: "Отправить",
-  delivered: "Доставлен",
-  cancelled: "Отменить",
+  confirmed: "Tasdiqlash",
+  processing: "Jarayonga",
+  shipped: "Jo'natish",
+  delivered: "Yetkazildi",
+  cancelled: "Bekor qilish",
 };
 
 /** Inline dropdown for quick status change per row */
@@ -71,7 +71,7 @@ function StatusDropdown({
         className="text-xs h-7 px-2"
         rightIcon={<ChevronDown className="w-3 h-3" />}
       >
-        Действие
+        Amal
       </Button>
       {open && (
         <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg min-w-[140px] py-1">
@@ -132,7 +132,7 @@ export default function OrdersPage() {
   const columns: Column<AdminOrder>[] = [
     {
       key: "order_number",
-      label: "Номер",
+      label: "Raqam",
       sortable: true,
       render: (order) => (
         <Link
@@ -145,7 +145,7 @@ export default function OrdersPage() {
     },
     {
       key: "customer",
-      label: "Клиент",
+      label: "Mijoz",
       sortable: true,
       render: (order) => (
         <div>
@@ -162,7 +162,7 @@ export default function OrdersPage() {
     },
     {
       key: "created_at",
-      label: "Дата",
+      label: "Sana",
       sortable: true,
       render: (order) => (
         <div className="text-sm">
@@ -178,19 +178,19 @@ export default function OrdersPage() {
     },
     {
       key: "status",
-      label: "Статус",
+      label: "Holat",
       sortable: true,
       render: (order) => <StatusBadge status={order.status} />,
     },
     {
       key: "payment_status",
-      label: "Оплата",
+      label: "To'lov",
       sortable: true,
       render: (order) => <StatusBadge status={order.payment_status} />,
     },
     {
       key: "total",
-      label: "Сумма",
+      label: "Summa",
       sortable: true,
       className: "text-right",
       render: (order) => (
@@ -215,13 +215,13 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Заказы</h1>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Buyurtmalar</h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-            Управление заказами и их статусами
+            Buyurtmalar va ularning holatlarini boshqarish
           </p>
         </div>
         <Button variant="default" leftIcon={<Plus className="w-4 h-4" />}>
-          Создать заказ
+          Buyurtma yaratish
         </Button>
       </div>
 
@@ -232,7 +232,7 @@ export default function OrdersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
             <input
               type="search"
-              placeholder="Поиск по номеру, клиенту или телефону..."
+              placeholder="Raqam, mijoz yoki telefon bo'yicha qidirish..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -251,13 +251,13 @@ export default function OrdersPage() {
               }}
               className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
             >
-              <option value="all">Все статусы</option>
-              <option value="new">Новые</option>
-              <option value="confirmed">Подтверждённые</option>
-              <option value="processing">В обработке</option>
-              <option value="shipped">Отправленные</option>
-              <option value="delivered">Доставленные</option>
-              <option value="cancelled">Отменённые</option>
+              <option value="all">Barcha holatlar</option>
+              <option value="new">Yangi</option>
+              <option value="confirmed">Tasdiqlangan</option>
+              <option value="processing">Jarayonda</option>
+              <option value="shipped">Jo'natilgan</option>
+              <option value="delivered">Yetkazilgan</option>
+              <option value="cancelled">Bekor qilingan</option>
             </select>
           </div>
 
@@ -270,11 +270,11 @@ export default function OrdersPage() {
               }}
               className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
             >
-              <option value="all">Все платежи</option>
-              <option value="paid">Оплачено</option>
-              <option value="unpaid">Не оплачено</option>
-              <option value="partial">Частично</option>
-              <option value="refunded">Возврат</option>
+              <option value="all">Barcha to'lovlar</option>
+              <option value="paid">To'langan</option>
+              <option value="unpaid">To'lanmagan</option>
+              <option value="partial">Qisman</option>
+              <option value="refunded">Qaytarilgan</option>
             </select>
           </div>
         </div>
@@ -282,13 +282,13 @@ export default function OrdersPage() {
         {selectedOrders.size > 0 && (
           <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700 flex items-center gap-3">
             <span className="text-sm text-neutral-600 dark:text-neutral-400">
-              Выбрано: {selectedOrders.size}
+              Tanlangan: {selectedOrders.size}
             </span>
             <Button size="sm" variant="outline">
-              Экспорт выбранных
+              Tanlanganlarni eksport
             </Button>
             <Button size="sm" variant="outline">
-              Изменить статус
+              Holatni o'zgartirish
             </Button>
           </div>
         )}
@@ -297,12 +297,12 @@ export default function OrdersPage() {
       {/* Results count & Export */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          {isLoading ? "Загрузка..." : (
-            <>Найдено заказов: <span className="font-semibold">{totalOrders}</span></>
+          {isLoading ? "Yuklanmoqda..." : (
+            <>Topilgan buyurtmalar: <span className="font-semibold">{totalOrders}</span></>
           )}
         </p>
         <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />}>
-          Экспорт
+          Eksport
         </Button>
       </div>
 
@@ -314,15 +314,15 @@ export default function OrdersPage() {
         showCheckbox
         selectedItems={selectedOrders}
         onSelectionChange={setSelectedOrders}
-        emptyMessage={isLoading ? "Загрузка..." : "Заказы не найдены"}
+        emptyMessage={isLoading ? "Yuklanmoqda..." : "Buyurtmalar topilmadi"}
       />
 
       {/* Pagination */}
       <div className="flex items-center justify-between bg-white dark:bg-neutral-800 rounded-lg p-4 shadow-soft border border-neutral-200 dark:border-neutral-700">
         <div className="text-sm text-neutral-600 dark:text-neutral-400">
-          Страница <span className="font-medium">{currentPage}</span> из{" "}
+          Sahifa <span className="font-medium">{currentPage}</span> /{" "}
           <span className="font-medium">{totalPages}</span>
-          {" "}({totalOrders} заказов)
+          {" "}({totalOrders} buyurtma)
         </div>
         <div className="flex gap-2">
           <Button
@@ -331,7 +331,7 @@ export default function OrdersPage() {
             disabled={currentPage <= 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           >
-            Назад
+            Orqaga
           </Button>
           <Button
             variant="outline"
@@ -339,7 +339,7 @@ export default function OrdersPage() {
             disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
           >
-            Вперёд
+            Oldinga
           </Button>
         </div>
       </div>

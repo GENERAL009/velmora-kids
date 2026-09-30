@@ -61,7 +61,7 @@ export default function BrandsPage() {
       setShowModal(false);
       resetForm();
     },
-    onError: (err: any) => setError(err?.response?.data?.detail || "Ошибка при создании бренда"),
+    onError: (err: any) => setError(err?.response?.data?.detail || "Brend yaratishda xatolik"),
   });
 
   const updateMutation = useMutation({
@@ -72,7 +72,7 @@ export default function BrandsPage() {
       setShowModal(false);
       resetForm();
     },
-    onError: (err: any) => setError(err?.response?.data?.detail || "Ошибка при обновлении"),
+    onError: (err: any) => setError(err?.response?.data?.detail || "Yangilashda xatolik"),
   });
 
   const deleteMutation = useMutation({
@@ -88,7 +88,7 @@ export default function BrandsPage() {
   });
 
   const handleSubmit = () => {
-    if (!form.name || !form.slug) { setError("Название и slug обязательны"); return; }
+    if (!form.name || !form.slug) { setError("Nom va slug majburiy"); return; }
     const payload = {
       name: form.name,
       slug: form.slug,
@@ -104,7 +104,7 @@ export default function BrandsPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Удалить бренд?")) deleteMutation.mutate(id);
+    if (confirm("Brendni o'chirmoqchimisiz?")) deleteMutation.mutate(id);
   };
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
@@ -113,11 +113,11 @@ export default function BrandsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Бренды</h1>
-          <p className="mt-1 text-sm text-neutral-500">{brands.length} брендов</p>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Brendlar</h1>
+          <p className="mt-1 text-sm text-neutral-500">{brands.length} ta brend</p>
         </div>
         <Button variant="default" leftIcon={<Plus className="w-4 h-4" />} onClick={openCreate}>
-          Добавить бренд
+          Brend qo'shish
         </Button>
       </div>
 
@@ -125,12 +125,12 @@ export default function BrandsPage() {
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Бренд</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Brend</th>
               <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Slug</th>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Описание</th>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Статус</th>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Добавлен</th>
-              <th className="px-4 py-3 text-right font-medium text-neutral-600 dark:text-neutral-300">Действия</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Tavsif</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Holat</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Qo'shilgan</th>
+              <th className="px-4 py-3 text-right font-medium text-neutral-600 dark:text-neutral-300">Amallar</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -151,7 +151,7 @@ export default function BrandsPage() {
                 <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400 max-w-xs truncate">{brand.description || "—"}</td>
                 <td className="px-4 py-3">
                   <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", brand.is_active ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400")}>
-                    {brand.is_active ? "Активен" : "Скрыт"}
+                    {brand.is_active ? "Faol" : "Yashirin"}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-neutral-500">{formatDate(brand.created_at)}</td>
@@ -168,7 +168,7 @@ export default function BrandsPage() {
               </tr>
             ))}
             {!isLoading && brands.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-neutral-500">Бренды не найдены</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-neutral-500">Brendlar topilmadi</td></tr>
             )}
           </tbody>
         </table>
@@ -179,14 +179,14 @@ export default function BrandsPage() {
           <div className="w-full max-w-md bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-elevated mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
-                {editingBrand ? "Изменить бренд" : "Новый бренд"}
+                {editingBrand ? "Brendni tahrirlash" : "Yangi brend"}
               </h2>
               <button onClick={() => { setShowModal(false); resetForm(); }} className="p-1 text-neutral-400 hover:text-neutral-600"><X className="w-5 h-5" /></button>
             </div>
             {error && <div className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Название *</label>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Nomi *</label>
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value, slug: editingBrand ? form.slug : generateSlug(e.target.value) })} className="w-full px-3 py-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white" placeholder="Nike Kids" />
               </div>
               <div>
@@ -194,7 +194,7 @@ export default function BrandsPage() {
                 <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full px-3 py-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm font-mono text-neutral-900 dark:text-white" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Описание</label>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Tavsif</label>
                 <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className="w-full px-3 py-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white resize-none" />
               </div>
               <div>
@@ -203,13 +203,13 @@ export default function BrandsPage() {
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Активен</span>
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">Faol</span>
               </label>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <Button variant="outline" onClick={() => { setShowModal(false); resetForm(); }}>Отмена</Button>
+              <Button variant="outline" onClick={() => { setShowModal(false); resetForm(); }}>Bekor qilish</Button>
               <Button variant="default" onClick={handleSubmit} disabled={isSaving}>
-                {isSaving ? "Сохранение..." : editingBrand ? "Сохранить" : "Создать"}
+                {isSaving ? "Saqlanmoqda..." : editingBrand ? "Saqlash" : "Yaratish"}
               </Button>
             </div>
           </div>

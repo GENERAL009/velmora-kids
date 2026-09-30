@@ -25,11 +25,11 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
 
 /** Human-readable action labels for each target status */
 const ACTION_LABELS: Record<string, string> = {
-  confirmed: "Подтвердить",
-  processing: "Собрать",
-  shipped: "Отправить",
-  delivered: "Доставлен",
-  cancelled: "Отменить",
+  confirmed: "Tasdiqlash",
+  processing: "Yig'ish",
+  shipped: "Jo'natish",
+  delivered: "Yetkazildi",
+  cancelled: "Bekor qilish",
 };
 
 function ConfirmPaymentButton({ orderId, orderNumber }: { orderId: string; orderNumber: string }) {
@@ -48,22 +48,22 @@ function ConfirmPaymentButton({ orderId, orderNumber }: { orderId: string; order
   return (
     <>
       <Button variant="default" size="sm" className="w-full mt-2 bg-green-600 hover:bg-green-700" onClick={() => setShowConfirm(true)}>
-        <Check className="w-4 h-4 mr-1" /> Подтвердить оплату
+        <Check className="w-4 h-4 mr-1" /> To'lovni tasdiqlash
       </Button>
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowConfirm(false)}>
           <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-xl border max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">Подтвердить оплату?</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">To'lovni tasdiqlaysizmi?</h3>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-              Заказ <b>{orderNumber}</b> будет отмечен как оплаченный. Уведомление будет отправлено в Telegram.
+              Buyurtma <b>{orderNumber}</b> to'langan deb belgilanadi. Telegramga bildirishnoma yuboriladi.
             </p>
             <div className="flex justify-end gap-3">
-              <Button variant="ghost" size="sm" onClick={() => setShowConfirm(false)}>Отмена</Button>
+              <Button variant="ghost" size="sm" onClick={() => setShowConfirm(false)}>Bekor qilish</Button>
               <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700" isLoading={confirmMutation.isPending} onClick={() => confirmMutation.mutate()}>
-                Подтвердить
+                Tasdiqlash
               </Button>
             </div>
-            {confirmMutation.isError && <p className="mt-2 text-sm text-red-500">Ошибка. Попробуйте снова.</p>}
+            {confirmMutation.isError && <p className="mt-2 text-sm text-red-500">Xatolik. Qayta urinib ko'ring.</p>}
           </div>
         </div>
       )}
@@ -100,12 +100,12 @@ export default function OrderDetailPage() {
   }, [confirmAction, updateStatusMutation]);
 
   const statusLabels: Record<string, string> = {
-    new: "Новый",
-    confirmed: "Подтверждён",
-    processing: "В обработке",
-    shipped: "Отправлен",
-    delivered: "Доставлен",
-    cancelled: "Отменён",
+    new: "Yangi",
+    confirmed: "Tasdiqlangan",
+    processing: "Jarayonda",
+    shipped: "Jo'natilgan",
+    delivered: "Yetkazilgan",
+    cancelled: "Bekor qilingan",
   };
 
   if (isLoading) {
@@ -138,7 +138,7 @@ export default function OrderDetailPage() {
             </Button>
           </Link>
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-            Заказ не найден
+            Buyurtma topilmadi
           </h1>
         </div>
       </div>
@@ -169,11 +169,11 @@ export default function OrderDetailPage() {
         </Link>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-            Заказ {order.order_number}
+            Buyurtma {order.order_number}
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-            {formatDate(order.created_at)} в{" "}
-            {new Date(order.created_at).toLocaleTimeString("ru-RU", {
+            {formatDate(order.created_at)},{" "}
+            {new Date(order.created_at).toLocaleTimeString("uz-UZ", {
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -188,7 +188,7 @@ export default function OrderDetailPage() {
       {/* Timeline */}
       <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-          Статус заказа
+          Buyurtma holati
         </h2>
         <div className="flex items-center justify-between relative">
           <div className="absolute top-5 left-0 right-0 h-1 bg-neutral-200 dark:bg-neutral-700">
@@ -223,7 +223,7 @@ export default function OrderDetailPage() {
                 </p>
                 {step.date && (
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                    {new Date(step.date).toLocaleTimeString("ru-RU", {
+                    {new Date(step.date).toLocaleTimeString("uz-UZ", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
@@ -243,7 +243,7 @@ export default function OrderDetailPage() {
             <div className="p-6 border-b border-neutral-200 dark:border-neutral-700">
               <h2 className="text-lg font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
                 <Package className="w-5 h-5" />
-                Товары в заказе
+                Buyurtmadagi mahsulotlar
               </h2>
             </div>
             <div className="p-6">
@@ -264,7 +264,7 @@ export default function OrderDetailPage() {
                         {item.product_sku}
                       </p>
                       <div className="flex gap-4 text-sm text-neutral-600 dark:text-neutral-400">
-                        <span>Цвет: {item.color_name}</span>
+                        <span>Rang: {item.color_name}</span>
                       </div>
                     </div>
                     <div className="text-right">
@@ -282,21 +282,21 @@ export default function OrderDetailPage() {
               {/* Order Total */}
               <div className="mt-6 pt-6 border-t border-neutral-200 dark:border-neutral-700 space-y-2">
                 <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
-                  <span>Подытог:</span>
+                  <span>Oraliq jami:</span>
                   <span>{formatPrice(order.subtotal)}</span>
                 </div>
                 {order.discount_amount > 0 && (
                   <div className="flex justify-between text-green-600 dark:text-green-400">
-                    <span>Скидка:</span>
+                    <span>Chegirma:</span>
                     <span>-{formatPrice(order.discount_amount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
-                  <span>Доставка:</span>
+                  <span>Yetkazish:</span>
                   <span>{formatPrice(order.delivery_fee)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-200 dark:border-neutral-700">
-                  <span>Итого:</span>
+                  <span>Jami:</span>
                   <span>{formatPrice(order.total)}</span>
                 </div>
               </div>
@@ -306,14 +306,14 @@ export default function OrderDetailPage() {
           {/* Actions */}
           <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-              Действия
+              Amallar
             </h2>
             {(() => {
               const transitions = STATUS_TRANSITIONS[order.status] ?? [];
               if (transitions.length === 0) {
                 return (
                   <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Нет доступных действий для текущего статуса.
+                    Joriy holat uchun amallar mavjud emas.
                   </p>
                 );
               }
@@ -336,7 +336,7 @@ export default function OrderDetailPage() {
 
             {updateStatusMutation.isError && (
               <p className="mt-3 text-sm text-red-600 dark:text-red-400">
-                Ошибка при изменении статуса. Попробуйте ещё раз.
+                Holatni o'zgartirishda xatolik. Qayta urinib ko'ring.
               </p>
             )}
           </div>
@@ -351,12 +351,12 @@ export default function OrderDetailPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                      Подтвердите действие
+                      Amalni tasdiqlang
                     </h3>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
                       {confirmAction === "cancelled"
-                        ? `Вы уверены, что хотите отменить заказ ${order.order_number}? Это действие нельзя отменить.`
-                        : `Изменить статус заказа ${order.order_number} на "${statusLabels[confirmAction] ?? confirmAction}"?`}
+                        ? `Buyurtma ${order.order_number} ni bekor qilmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`
+                        : `Buyurtma ${order.order_number} holatini "${statusLabels[confirmAction] ?? confirmAction}" ga o'zgartirmoqchimisiz?`}
                     </p>
                   </div>
                 </div>
@@ -367,7 +367,7 @@ export default function OrderDetailPage() {
                     disabled={updateStatusMutation.isPending}
                     onClick={() => setConfirmAction(null)}
                   >
-                    Отмена
+                    Bekor qilish
                   </Button>
                   <Button
                     variant={confirmAction === "cancelled" ? "destructive" : "default"}
@@ -375,7 +375,7 @@ export default function OrderDetailPage() {
                     isLoading={updateStatusMutation.isPending}
                     onClick={confirmStatusChange}
                   >
-                    {ACTION_LABELS[confirmAction] ?? "Подтвердить"}
+                    {ACTION_LABELS[confirmAction] ?? "Tasdiqlash"}
                   </Button>
                 </div>
               </div>
@@ -386,7 +386,7 @@ export default function OrderDetailPage() {
           <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
-              Заметки
+              Izohlar
             </h2>
             {order.comment && (
               <div className="mb-4 p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
@@ -398,12 +398,12 @@ export default function OrderDetailPage() {
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Добавить заметку..."
+              placeholder="Izoh qo'shish..."
               rows={3}
               className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white resize-none"
             />
             <Button variant="outline" size="sm" className="mt-3">
-              Добавить заметку
+              Izoh qo'shish
             </Button>
           </div>
         </div>
@@ -414,17 +414,17 @@ export default function OrderDetailPage() {
           <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-2">
               <Phone className="w-5 h-5" />
-              Клиент
+              Mijoz
             </h2>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Имя</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Ism</p>
                 <p className="font-medium text-neutral-900 dark:text-white">
                   {order.customer_first_name} {order.customer_last_name}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Телефон</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Telefon</p>
                 <a
                   href={`tel:${order.customer_phone}`}
                   className="font-medium text-primary-600 dark:text-primary-400 hover:underline"
@@ -439,12 +439,12 @@ export default function OrderDetailPage() {
           <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-2">
               <MapPin className="w-5 h-5" />
-              Доставка
+              Yetkazish
             </h2>
             <div className="space-y-3">
               {order.delivery_method && (
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Метод</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Usul</p>
                   <p className="font-medium text-neutral-900 dark:text-white">
                     {order.delivery_method}
                   </p>
@@ -452,7 +452,7 @@ export default function OrderDetailPage() {
               )}
               {order.delivery_address && (
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Адрес</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Manzil</p>
                   <p className="text-sm text-neutral-900 dark:text-white">
                     {order.delivery_city && `${order.delivery_city}, `}
                     {order.delivery_address}
@@ -460,7 +460,7 @@ export default function OrderDetailPage() {
                 </div>
               )}
               <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Стоимость</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Narx</p>
                 <p className="font-medium text-neutral-900 dark:text-white">
                   {formatPrice(order.delivery_fee)}
                 </p>
@@ -472,21 +472,21 @@ export default function OrderDetailPage() {
           <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
-              Оплата
+              To'lov
             </h2>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Метод</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Usul</p>
                 <p className="font-medium text-neutral-900 dark:text-white">
-                  {{ cash: "Наличные", card_transfer: "Карта перевод", bank_transfer: "Банк перевод", payme: "Payme", click: "Click" }[order.payment_method] || order.payment_method}
+                  {{ cash: "Naqd", card_transfer: "Karta o'tkazma", bank_transfer: "Bank o'tkazma", payme: "Payme", click: "Click" }[order.payment_method] || order.payment_method}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Статус</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Holat</p>
                 <StatusBadge status={order.payment_status} />
               </div>
               <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Сумма</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Summa</p>
                 <p className="text-lg font-bold text-green-600 dark:text-green-400">
                   {formatPrice(order.total)}
                 </p>

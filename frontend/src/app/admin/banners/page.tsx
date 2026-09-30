@@ -67,7 +67,7 @@ export default function BannersPage() {
       const res = await api.post("/banners/upload-image", formData);
       setForm((prev) => ({ ...prev, image: res.data.url }));
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Ошибка загрузки изображения");
+      setError(err?.response?.data?.detail || "Rasm yuklashda xatolik");
     } finally {
       setUploading(false);
     }
@@ -81,7 +81,7 @@ export default function BannersPage() {
       setShowModal(false);
       resetForm();
     },
-    onError: (err: any) => setError(err?.response?.data?.detail || "Ошибка"),
+    onError: (err: any) => setError(err?.response?.data?.detail || "Xatolik"),
   });
 
   const updateMutation = useMutation({
@@ -93,7 +93,7 @@ export default function BannersPage() {
       setShowModal(false);
       resetForm();
     },
-    onError: (err: any) => setError(err?.response?.data?.detail || "Ошибка"),
+    onError: (err: any) => setError(err?.response?.data?.detail || "Xatolik"),
   });
 
   const deleteMutation = useMutation({
@@ -105,8 +105,8 @@ export default function BannersPage() {
   });
 
   const handleSubmit = () => {
-    if (!form.title) { setError("Название обязательно"); return; }
-    if (!form.image) { setError("Загрузите изображение"); return; }
+    if (!form.title) { setError("Sarlavha majburiy"); return; }
+    if (!form.image) { setError("Rasm yuklang"); return; }
 
     const payload = {
       title: form.title,
@@ -126,7 +126,7 @@ export default function BannersPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Удалить баннер?")) {
+    if (confirm("Bannerni o'chirmoqchimisiz?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -137,11 +137,11 @@ export default function BannersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Баннеры</h1>
-          <p className="mt-1 text-sm text-neutral-500">{banners.length} баннеров</p>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Bannerlar</h1>
+          <p className="mt-1 text-sm text-neutral-500">{banners.length} ta banner</p>
         </div>
         <Button variant="default" leftIcon={<Plus className="w-4 h-4" />} onClick={openCreate}>
-          Добавить баннер
+          Banner qo'shish
         </Button>
       </div>
 
@@ -183,7 +183,7 @@ export default function BannersPage() {
                   onClick={() => openEdit(banner)}
                   className="rounded-lg bg-white/90 px-2 py-1 text-xs font-medium text-neutral-700 shadow hover:bg-white"
                 >
-                  Изменить
+                  Tahrirlash
                 </button>
                 <button
                   onClick={() => handleDelete(banner.id)}
@@ -203,7 +203,7 @@ export default function BannersPage() {
                       : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                   )}
                 >
-                  {banner.is_active ? "Активен" : "Скрыт"}
+                  {banner.is_active ? "Faol" : "Yashirin"}
                 </span>
                 <span className="text-xs text-neutral-400">{banner.position}</span>
               </div>
@@ -215,9 +215,9 @@ export default function BannersPage() {
         {!isLoading && banners.length === 0 && (
           <div className="col-span-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-200 py-12 dark:border-neutral-700">
             <ImageIcon className="mb-3 h-12 w-12 text-neutral-300 dark:text-neutral-600" />
-            <p className="text-neutral-500">Баннеры не найдены</p>
+            <p className="text-neutral-500">Bannerlar topilmadi</p>
             <Button variant="outline" className="mt-4" onClick={openCreate}>
-              Добавить первый баннер
+              Birinchi bannerni qo'shish
             </Button>
           </div>
         )}
@@ -231,7 +231,7 @@ export default function BannersPage() {
           >
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
-                {editingBanner ? "Изменить баннер" : "Новый баннер"}
+                {editingBanner ? "Bannerni tahrirlash" : "Yangi banner"}
               </h2>
               <button
                 onClick={() => { setShowModal(false); resetForm(); }}
@@ -250,7 +250,7 @@ export default function BannersPage() {
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Изображение *
+                  Rasm *
                 </label>
                 <input
                   ref={fileInputRef}
@@ -266,7 +266,7 @@ export default function BannersPage() {
                       onClick={() => fileInputRef.current?.click()}
                       className="absolute bottom-2 right-2 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-medium text-neutral-700 shadow hover:bg-white"
                     >
-                      Заменить
+                      Almashtirish
                     </button>
                   </div>
                 ) : (
@@ -276,38 +276,38 @@ export default function BannersPage() {
                     className="flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 py-8 text-neutral-400 transition-colors hover:border-primary-400 hover:text-primary-500 dark:border-neutral-600"
                   >
                     <ImageIcon className="mb-2 h-8 w-8" />
-                    <span className="text-sm">{uploading ? "Загрузка..." : "Нажмите для загрузки"}</span>
+                    <span className="text-sm">{uploading ? "Yuklanmoqda..." : "Rasm yuklash uchun bosing"}</span>
                   </button>
                 )}
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Название *
+                  Sarlavha *
                 </label>
                 <input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   className="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
-                  placeholder="Осенняя коллекция"
+                  placeholder="Yangi kolleksiya"
                 />
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Подзаголовок
+                  Qo'shimcha matn
                 </label>
                 <input
                   value={form.subtitle}
                   onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
                   className="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
-                  placeholder="Скидки до 50%"
+                  placeholder="50% gacha chegirma"
                 />
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Ссылка
+                  Havola
                 </label>
                 <input
                   value={form.link}
@@ -320,22 +320,22 @@ export default function BannersPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Позиция
+                    Joylashuv
                   </label>
                   <select
                     value={form.position}
                     onChange={(e) => setForm({ ...form, position: e.target.value })}
                     className="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
                   >
-                    <option value="hero">Hero (главная)</option>
-                    <option value="category">Категория</option>
-                    <option value="promo">Промо</option>
-                    <option value="sidebar">Сайдбар</option>
+                    <option value="hero">Hero (asosiy)</option>
+                    <option value="category">Kategoriya</option>
+                    <option value="promo">Promo</option>
+                    <option value="sidebar">Yon panel</option>
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Порядок
+                    Tartib
                   </label>
                   <input
                     type="number"
@@ -353,16 +353,16 @@ export default function BannersPage() {
                   onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
                   className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Активен</span>
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">Faol</span>
               </label>
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
               <Button variant="outline" onClick={() => { setShowModal(false); resetForm(); }}>
-                Отмена
+                Bekor qilish
               </Button>
               <Button variant="default" onClick={handleSubmit} disabled={isSaving}>
-                {isSaving ? "Сохранение..." : editingBanner ? "Сохранить" : "Создать"}
+                {isSaving ? "Saqlanmoqda..." : editingBanner ? "Saqlash" : "Yaratish"}
               </Button>
             </div>
           </div>

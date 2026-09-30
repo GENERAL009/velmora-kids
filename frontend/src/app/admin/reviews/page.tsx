@@ -49,8 +49,8 @@ export default function ReviewsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Отзывы</h1>
-        <p className="mt-1 text-sm text-neutral-500">{reviews.length} отзывов</p>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Sharhlar</h1>
+        <p className="mt-1 text-sm text-neutral-500">{reviews.length} ta sharh</p>
       </div>
 
       <div className="flex gap-1">
@@ -60,7 +60,7 @@ export default function ReviewsPage() {
             onClick={() => setFilter(f)}
             className={cn("rounded-lg px-3 py-2 text-xs font-medium transition-colors", filter === f ? "bg-primary-500 text-white" : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300")}
           >
-            {f === "all" ? "Все" : f === "pending" ? "Ожидают" : "Одобренные"}
+            {f === "all" ? "Barchasi" : f === "pending" ? "Kutilmoqda" : "Tasdiqlangan"}
           </button>
         ))}
       </div>
@@ -78,7 +78,7 @@ export default function ReviewsPage() {
                 <div className="flex items-center gap-3">
                   <Stars count={review.rating} />
                   <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", review.is_approved ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400")}>
-                    {review.is_approved ? "Одобрен" : "Ожидает"}
+                    {review.is_approved ? "Tasdiqlangan" : "Kutilmoqda"}
                   </span>
                 </div>
                 {review.product && (
@@ -96,7 +96,7 @@ export default function ReviewsPage() {
                   <button
                     onClick={() => approveMutation.mutate({ id: review.id, approved: true })}
                     className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
-                    title="Одобрить"
+                    title="Tasdiqlash"
                   >
                     <Check className="h-4 w-4" />
                   </button>
@@ -105,7 +105,7 @@ export default function ReviewsPage() {
                   <button
                     onClick={() => approveMutation.mutate({ id: review.id, approved: false })}
                     className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                    title="Отклонить"
+                    title="Rad etish"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -115,7 +115,7 @@ export default function ReviewsPage() {
           </div>
         ))}
         {!isLoading && reviews.length === 0 && (
-          <div className="py-12 text-center text-neutral-500">Отзывы не найдены</div>
+          <div className="py-12 text-center text-neutral-500">Sharhlar topilmadi</div>
         )}
       </div>
     </div>

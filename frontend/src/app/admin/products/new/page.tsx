@@ -28,7 +28,7 @@ function ColorCreator({ onCreated }: { onCreated: () => void }) {
       setOpen(false);
       onCreated();
     } catch {
-      alert("Ошибка создания цвета");
+      alert("Rang yaratishda xatolik");
     } finally {
       setSaving(false);
     }
@@ -37,19 +37,19 @@ function ColorCreator({ onCreated }: { onCreated: () => void }) {
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} className="mt-3 text-xs text-primary-600 hover:underline">
-        + Добавить новый цвет
+        + Yangi rang qo'shish
       </button>
     );
   }
 
   return (
     <div className="mt-3 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700">
-      <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Новый цвет</p>
+      <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Yangi rang</p>
       <div className="flex items-end gap-3">
         <div className="flex-1">
           <input
             type="text"
-            placeholder="Название (напр. Розовый)"
+            placeholder="Nomi (masalan, Pushti)"
             value={colorName}
             onChange={(e) => setColorName(e.target.value)}
             className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
@@ -59,7 +59,7 @@ function ColorCreator({ onCreated }: { onCreated: () => void }) {
           <input type="color" value={hex} onChange={(e) => setHex(e.target.value)} className="h-9 w-12 rounded border border-neutral-200 dark:border-neutral-700 cursor-pointer" />
           <span className="text-xs font-mono text-neutral-500">{hex}</span>
         </div>
-        <Button variant="default" size="sm" onClick={handleCreate} isLoading={saving}>Создать</Button>
+        <Button variant="default" size="sm" onClick={handleCreate} isLoading={saving}>Yaratish</Button>
         <button onClick={() => setOpen(false)} className="p-2 text-neutral-400 hover:text-neutral-600"><X className="w-4 h-4" /></button>
       </div>
     </div>
@@ -196,12 +196,12 @@ export default function NewProductPage() {
 
   const validate = useCallback((): string[] => {
     const errs: string[] = [];
-    if (!name.trim()) errs.push("Название обязательно");
-    if (!sku.trim()) errs.push("Артикул (SKU) обязателен");
-    if (!categoryId) errs.push("Выберите категорию");
-    if (!brandId) errs.push("Выберите бренд");
-    if (!purchasePrice || purchasePrice <= 0) errs.push("Укажите закупочную цену");
-    if (!sellingPrice || sellingPrice <= 0) errs.push("Укажите розничную цену");
+    if (!name.trim()) errs.push("Nomi majburiy");
+    if (!sku.trim()) errs.push("Artikul (SKU) majburiy");
+    if (!categoryId) errs.push("Kategoriyani tanlang");
+    if (!brandId) errs.push("Brendni tanlang");
+    if (!purchasePrice || purchasePrice <= 0) errs.push("Sotib olish narxini kiriting");
+    if (!sellingPrice || sellingPrice <= 0) errs.push("Chakana narxni kiriting");
     return errs;
   }, [name, sku, categoryId, brandId, purchasePrice, sellingPrice]);
 
@@ -209,13 +209,13 @@ export default function NewProductPage() {
     mutationFn: (payload: Record<string, unknown>) =>
       apiPost<{ id: string }>("/products", payload),
     onSuccess: () => {
-      alert("Товар успешно создан!");
+      alert("Mahsulot muvaffaqiyatli yaratildi!");
       router.push("/admin/products");
     },
     onError: (err: unknown) => {
       const msg =
         (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail ?? "Ошибка при создании товара";
+          ?.detail ?? "Mahsulot yaratishda xatolik";
       alert(msg);
     },
   });
@@ -290,10 +290,10 @@ export default function NewProductPage() {
         </Link>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-            Новый товар
+            Yangi mahsulot
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-            Добавление нового товара в каталог
+            Katalogga yangi mahsulot qo'shish
           </p>
         </div>
       </div>
@@ -301,7 +301,7 @@ export default function NewProductPage() {
       {errors.length > 0 && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
-            Пожалуйста, исправьте ошибки:
+            Iltimos, xatolarni tuzating:
           </p>
           <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-400 space-y-1">
             {errors.map((e, i) => (
@@ -316,22 +316,22 @@ export default function NewProductPage() {
           {/* Basic Info */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-              Основная информация
+              Asosiy ma'lumotlar
             </h2>
             <div className="space-y-4">
               <div>
-                <label className={LABEL_CLS}>Название *</label>
+                <label className={LABEL_CLS}>Nomi *</label>
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="Самокат трёхколёсный со светящимися колёсами"
+                  placeholder="Uch g'ildirakli samokat"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
 
               <div>
-                <label className={LABEL_CLS}>Название (UZ)</label>
+                <label className={LABEL_CLS}>Nomi (UZ)</label>
                 <input
                   type="text"
                   className={INPUT_CLS}
@@ -342,18 +342,18 @@ export default function NewProductPage() {
               </div>
 
               <div>
-                <label className={LABEL_CLS}>Название (RU)</label>
+                <label className={LABEL_CLS}>Nomi (RU)</label>
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="Самокат трёхколёсный"
+                  placeholder="Samokat trehkolyosnyy"
                   value={nameRu}
                   onChange={(e) => setNameRu(e.target.value)}
                 />
               </div>
 
               <div>
-                <label className={LABEL_CLS}>Название (EN)</label>
+                <label className={LABEL_CLS}>Nomi (EN)</label>
                 <input
                   type="text"
                   className={INPUT_CLS}
@@ -365,7 +365,7 @@ export default function NewProductPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={LABEL_CLS}>Артикул (SKU) *</label>
+                  <label className={LABEL_CLS}>Artikul (SKU) *</label>
                   <input
                     type="text"
                     className={INPUT_CLS}
@@ -375,7 +375,7 @@ export default function NewProductPage() {
                   />
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>Штрихкод</label>
+                  <label className={LABEL_CLS}>Shtrixkod</label>
                   <input
                     type="text"
                     className={INPUT_CLS}
@@ -391,32 +391,32 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="samokat-tryokhkolyosnyy"
+                  placeholder="uch-gildirakli-samokat"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                 />
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  Генерируется автоматически из названия
+                  Nomdan avtomatik yaratiladi
                 </p>
               </div>
 
               <div>
-                <label className={LABEL_CLS}>Описание</label>
+                <label className={LABEL_CLS}>Tavsif</label>
                 <textarea
                   rows={4}
                   className={`${INPUT_CLS} resize-none`}
-                  placeholder="Детский самокат с тремя светящимися колёсами..."
+                  placeholder="Bolalar uchun uch g'ildirakli samokat..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
 
               <div>
-                <label className={LABEL_CLS}>Краткое описание</label>
+                <label className={LABEL_CLS}>Qisqa tavsif</label>
                 <textarea
                   rows={2}
                   className={`${INPUT_CLS} resize-none`}
-                  placeholder="Краткое описание товара..."
+                  placeholder="Mahsulotning qisqa tavsifi..."
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
                 />
@@ -427,17 +427,17 @@ export default function NewProductPage() {
           {/* Category & Brand */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-              Категория и бренд
+              Kategoriya va brend
             </h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={LABEL_CLS}>Категория *</label>
+                <label className={LABEL_CLS}>Kategoriya *</label>
                 <select
                   className={INPUT_CLS}
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
                 >
-                  <option value="">Выберите категорию</option>
+                  <option value="">Kategoriyani tanlang</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
@@ -446,13 +446,13 @@ export default function NewProductPage() {
                 </select>
               </div>
               <div>
-                <label className={LABEL_CLS}>Бренд *</label>
+                <label className={LABEL_CLS}>Brend *</label>
                 <select
                   className={INPUT_CLS}
                   value={brandId}
                   onChange={(e) => setBrandId(e.target.value)}
                 >
-                  <option value="">Выберите бренд</option>
+                  <option value="">Brendni tanlang</option>
                   {brands.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name}
@@ -466,11 +466,11 @@ export default function NewProductPage() {
           {/* Gender & Age */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-              Пол и возраст
+              Jinsi va yosh
             </h2>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className={LABEL_CLS}>Пол</label>
+                <label className={LABEL_CLS}>Jinsi</label>
                 <select
                   className={INPUT_CLS}
                   value={gender}
@@ -478,13 +478,13 @@ export default function NewProductPage() {
                     setGender(e.target.value as "boys" | "girls" | "both")
                   }
                 >
-                  <option value="both">Для всех</option>
-                  <option value="boys">Для мальчиков</option>
-                  <option value="girls">Для девочек</option>
+                  <option value="both">Barchasi uchun</option>
+                  <option value="boys">O'g'il bolalar uchun</option>
+                  <option value="girls">Qiz bolalar uchun</option>
                 </select>
               </div>
               <div>
-                <label className={LABEL_CLS}>Возраст от (мес.)</label>
+                <label className={LABEL_CLS}>Yoshdan (oy)</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -497,7 +497,7 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Возраст до (мес.)</label>
+                <label className={LABEL_CLS}>Yoshgacha (oy)</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -515,11 +515,11 @@ export default function NewProductPage() {
           {/* Vehicle Specs */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-              Характеристики транспорта
+              Transport xususiyatlari
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
-                <label className={LABEL_CLS}>Макс. нагрузка (кг)</label>
+                <label className={LABEL_CLS}>Maks. yuk (kg)</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -531,7 +531,7 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Вес изделия (кг)</label>
+                <label className={LABEL_CLS}>Mahsulot og'irligi (kg)</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -543,27 +543,27 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Габариты</label>
+                <label className={LABEL_CLS}>O'lchamlari</label>
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="60x30x80 см"
+                  placeholder="60x30x80 sm"
                   value={dimensions}
                   onChange={(e) => setDimensions(e.target.value)}
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Тип колёс</label>
+                <label className={LABEL_CLS}>G'ildirak turi</label>
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="PU, Резиновые, EVA"
+                  placeholder="PU, Rezina, EVA"
                   value={wheelType}
                   onChange={(e) => setWheelType(e.target.value)}
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Кол-во колёс</label>
+                <label className={LABEL_CLS}>G'ildirak soni</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -574,7 +574,7 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Макс. скорость (км/ч)</label>
+                <label className={LABEL_CLS}>Maks. tezlik (km/s)</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -585,11 +585,11 @@ export default function NewProductPage() {
                 />
               </div>
               <div className="md:col-span-3">
-                <label className={LABEL_CLS}>Тип аккумулятора</label>
+                <label className={LABEL_CLS}>Akkumulyator turi</label>
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="6V 4.5Ah, 12V 7Ah и т.д."
+                  placeholder="6V 4.5Ah, 12V 7Ah va h.k."
                   value={batteryType}
                   onChange={(e) => setBatteryType(e.target.value)}
                 />
@@ -604,7 +604,7 @@ export default function NewProductPage() {
                   className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Пульт управления
+                  Masofadan boshqarish pulti
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -615,7 +615,7 @@ export default function NewProductPage() {
                   className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Подсветка
+                  Yoritish
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -626,7 +626,7 @@ export default function NewProductPage() {
                   className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Музыка/звуки
+                  Musiqa/tovushlar
                 </span>
               </label>
             </div>
@@ -635,11 +635,11 @@ export default function NewProductPage() {
           {/* Pricing */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-              Цены
+              Narxlar
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className={LABEL_CLS}>Закупочная цена *</label>
+                <label className={LABEL_CLS}>Sotib olish narxi *</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -652,7 +652,7 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Розничная цена *</label>
+                <label className={LABEL_CLS}>Chakana narx *</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -665,7 +665,7 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Скидка (%)</label>
+                <label className={LABEL_CLS}>Chegirma (%)</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
@@ -677,11 +677,11 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Цена со скидкой</label>
+                <label className={LABEL_CLS}>Chegirmali narx</label>
                 <input
                   type="number"
                   className={INPUT_CLS}
-                  placeholder="Авто"
+                  placeholder="Avto"
                   min={0}
                   value={discountPrice}
                   onChange={(e) =>
@@ -696,7 +696,7 @@ export default function NewProductPage() {
           <div className={CARD_CLS}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Варианты (цвета)
+                Variantlar (ranglar)
               </h2>
               <Button
                 variant="outline"
@@ -704,7 +704,7 @@ export default function NewProductPage() {
                 leftIcon={<Plus className="w-4 h-4" />}
                 onClick={addVariant}
               >
-                Добавить вариант
+                Variant qo'shish
               </Button>
             </div>
 
@@ -723,7 +723,7 @@ export default function NewProductPage() {
                           updateVariant(variant._key, "color_id", e.target.value)
                         }
                       >
-                        <option value="">Цвет</option>
+                        <option value="">Rang</option>
                         {colors.map((c) => (
                           <option key={c.id} value={c.id}>
                             {c.name}
@@ -732,7 +732,7 @@ export default function NewProductPage() {
                       </select>
                       <input
                         type="text"
-                        placeholder="SKU варианта"
+                        placeholder="Variant SKU"
                         value={variant.sku}
                         onChange={(e) =>
                           updateVariant(variant._key, "sku", e.target.value)
@@ -741,7 +741,7 @@ export default function NewProductPage() {
                       />
                       <input
                         type="number"
-                        placeholder="Доп. цена"
+                        placeholder="Qo'sh. narx"
                         value={variant.additional_price || ""}
                         onChange={(e) =>
                           updateVariant(
@@ -767,7 +767,7 @@ export default function NewProductPage() {
             </div>
             <ColorCreator onCreated={() => queryClient.invalidateQueries({ queryKey: ["colors"] })} />
             <p className="text-xs text-neutral-500 mt-3">
-              Изображения можно загрузить после создания товара на странице редактирования.
+              Rasmlarni mahsulot yaratilgandan keyin tahrirlash sahifasida yuklash mumkin.
             </p>
           </div>
 
@@ -782,7 +782,7 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   className={INPUT_CLS}
-                  placeholder="Самокат трёхколёсный | Velmora Kids"
+                  placeholder="Uch g'ildirakli samokat | Velmora Kids"
                   value={seoTitle}
                   onChange={(e) => setSeoTitle(e.target.value)}
                 />
@@ -792,7 +792,7 @@ export default function NewProductPage() {
                 <textarea
                   rows={3}
                   className={`${INPUT_CLS} resize-none`}
-                  placeholder="Купите детский самокат со светящимися колёсами..."
+                  placeholder="Bolalar uchun yorug' g'ildirakli samokat..."
                   value={seoDescription}
                   onChange={(e) => setSeoDescription(e.target.value)}
                 />
@@ -805,11 +805,11 @@ export default function NewProductPage() {
         <div className="space-y-6">
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-              Публикация
+              Nashr qilish
             </h2>
             <div className="space-y-4">
               <div>
-                <label className={LABEL_CLS}>Статус</label>
+                <label className={LABEL_CLS}>Holat</label>
                 <select
                   className={INPUT_CLS}
                   value={status}
@@ -817,9 +817,9 @@ export default function NewProductPage() {
                     setStatus(e.target.value as "draft" | "active" | "inactive")
                   }
                 >
-                  <option value="draft">Черновик</option>
-                  <option value="active">Активен</option>
-                  <option value="inactive">Неактивен</option>
+                  <option value="draft">Qoralama</option>
+                  <option value="active">Faol</option>
+                  <option value="inactive">Nofaol</option>
                 </select>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -830,7 +830,7 @@ export default function NewProductPage() {
                   className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Показывать на главной
+                  Bosh sahifada ko'rsatish
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -841,7 +841,7 @@ export default function NewProductPage() {
                   className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Новинка
+                  Yangilik
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -852,7 +852,7 @@ export default function NewProductPage() {
                   className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Хит продаж
+                  Eng ko'p sotilgan
                 </span>
               </label>
             </div>
@@ -864,7 +864,7 @@ export default function NewProductPage() {
       <div className="fixed bottom-0 left-0 right-0 lg:left-72 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 p-4 shadow-elevated z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <Link href="/admin/products">
-            <Button variant="ghost">Отмена</Button>
+            <Button variant="ghost">Bekor qilish</Button>
           </Link>
           <div className="flex gap-3">
             <Button
@@ -872,14 +872,14 @@ export default function NewProductPage() {
               onClick={() => handleSubmit("draft")}
               disabled={createMutation.isPending}
             >
-              Сохранить черновик
+              Qoralamani saqlash
             </Button>
             <Button
               variant="default"
               onClick={() => handleSubmit("active")}
               isLoading={createMutation.isPending}
             >
-              Опубликовать товар
+              Mahsulotni nashr qilish
             </Button>
           </div>
         </div>

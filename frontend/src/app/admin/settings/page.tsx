@@ -41,18 +41,18 @@ interface SiteSettings {
 
 const TEXT_SECTIONS = [
   {
-    title: "Контакты",
+    title: "Kontaktlar",
     icon: Phone,
     fields: [
-      { key: "phone_primary", label: "Основной телефон", placeholder: "+998 71 200 00 00" },
-      { key: "phone_secondary", label: "Дополнительный телефон", placeholder: "+998 90 000 00 00" },
+      { key: "phone_primary", label: "Asosiy telefon", placeholder: "+998 71 200 00 00" },
+      { key: "phone_secondary", label: "Qo'shimcha telefon", placeholder: "+998 90 000 00 00" },
       { key: "email", label: "Email", placeholder: "info@velmora.uz" },
-      { key: "address", label: "Адрес", placeholder: "Ташкент, Узбекистан" },
-      { key: "working_hours", label: "Время работы", placeholder: "Пн-Пт: 09:00 - 18:00" },
+      { key: "address", label: "Manzil", placeholder: "Toshkent, O'zbekiston" },
+      { key: "working_hours", label: "Ish vaqti", placeholder: "Du-Ju: 09:00 - 18:00" },
     ],
   },
   {
-    title: "Социальные сети",
+    title: "Ijtimoiy tarmoqlar",
     icon: Globe,
     fields: [
       { key: "instagram_url", label: "Instagram", placeholder: "https://instagram.com/velmora.kids" },
@@ -62,27 +62,27 @@ const TEXT_SECTIONS = [
     ],
   },
   {
-    title: "Промо баннер",
+    title: "Promo banner",
     icon: MapPin,
     fields: [
-      { key: "promo_banner_title", label: "Заголовок", placeholder: "Сезонная распродажа" },
-      { key: "promo_banner_subtitle", label: "Подзаголовок", placeholder: "Скидки до 50%..." },
+      { key: "promo_banner_title", label: "Sarlavha", placeholder: "Mavsumiy chegirma" },
+      { key: "promo_banner_subtitle", label: "Qo'shimcha matn", placeholder: "50% gacha chegirma..." },
     ],
   },
   {
-    title: "Текстовый контент",
+    title: "Matnli kontent",
     icon: FileText,
     fields: [
-      { key: "footer_about", label: "О компании (футер)", placeholder: "Velmora Kids — ...", multiline: true },
+      { key: "footer_about", label: "Kompaniya haqida (futer)", placeholder: "Velmora Kids — ...", multiline: true },
     ],
   },
   {
-    title: "Оплата — Карта",
+    title: "To'lov — Karta",
     icon: CreditCard,
     fields: [
-      { key: "payment_card_number", label: "Номер карты", placeholder: "8600 1234 5678 9012" },
-      { key: "payment_card_holder", label: "Получатель", placeholder: "ABDULLOH RAHIMOV" },
-      { key: "payment_card_bank", label: "Банк/Система", placeholder: "Uzcard" },
+      { key: "payment_card_number", label: "Karta raqami", placeholder: "8600 1234 5678 9012" },
+      { key: "payment_card_holder", label: "Qabul qiluvchi", placeholder: "ABDULLOH RAHIMOV" },
+      { key: "payment_card_bank", label: "Bank/Tizim", placeholder: "Uzcard" },
     ],
   },
   {
@@ -90,7 +90,7 @@ const TEXT_SECTIONS = [
     icon: SearchIcon,
     fields: [
       { key: "meta_title", label: "Meta Title", placeholder: "Velmora Kids — ..." },
-      { key: "meta_description", label: "Meta Description", placeholder: "Интернет-магазин...", multiline: true },
+      { key: "meta_description", label: "Meta Description", placeholder: "Onlayn do'kon...", multiline: true },
     ],
   },
 ] as const;
@@ -154,7 +154,7 @@ function FileUploadCard({
       const res = await apiPost<{ field: string; url: string }>("/settings/upload", formData);
       onUploaded(field, res.url);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Ошибка загрузки";
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Yuklashda xatolik";
       setError(msg);
     } finally {
       setUploading(false);
@@ -211,7 +211,7 @@ function FileUploadCard({
           ) : (
             <Upload className="h-5 w-5" />
           )}
-          {uploading ? "Загрузка..." : "Загрузить файл"}
+          {uploading ? "Yuklanmoqda..." : "Fayl yuklash"}
         </button>
       )}
 
@@ -241,7 +241,7 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     apiGet<SiteSettings>("/settings/site")
       .then((data) => setSettings(data))
-      .catch(() => setMessage({ type: "error", text: "Не удалось загрузить настройки" }))
+      .catch(() => setMessage({ type: "error", text: "Sozlamalarni yuklashda xatolik" }))
       .finally(() => setLoading(false));
   }, []);
 
@@ -252,10 +252,10 @@ export default function AdminSettingsPage() {
     try {
       const updated = await apiPut<SiteSettings>("/settings/site", settings);
       setSettings(updated);
-      setMessage({ type: "success", text: "Настройки сохранены" });
+      setMessage({ type: "success", text: "Sozlamalar saqlandi" });
       setTimeout(() => setMessage(null), 3000);
     } catch {
-      setMessage({ type: "error", text: "Ошибка при сохранении" });
+      setMessage({ type: "error", text: "Saqlashda xatolik" });
     } finally {
       setSaving(false);
     }
@@ -276,7 +276,7 @@ export default function AdminSettingsPage() {
   if (!settings) {
     return (
       <div className="rounded-xl bg-red-50 p-6 text-center text-red-600 dark:bg-red-900/20 dark:text-red-400">
-        Не удалось загрузить настройки сайта
+        Sayt sozlamalarini yuklashda xatolik
       </div>
     );
   }
@@ -285,9 +285,9 @@ export default function AdminSettingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Настройки сайта</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Sayt sozlamalari</h1>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            Управление контактами, медиа, логотипами и текстовым контентом
+            Kontaktlar, media, logotiplar va matnli kontentni boshqarish
           </p>
         </div>
         <button
@@ -296,7 +296,7 @@ export default function AdminSettingsPage() {
           className="flex items-center gap-2 rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Сохранить
+          Saqlash
         </button>
       </div>
 

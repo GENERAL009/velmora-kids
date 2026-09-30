@@ -42,11 +42,11 @@ interface UserFormData {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  super_admin: "Супер Админ",
-  director: "Директор",
-  seller: "Продавец",
-  call_center: "Колл-центр",
-  customer: "Клиент",
+  super_admin: "Super admin",
+  director: "Direktor",
+  seller: "Sotuvchi",
+  call_center: "Call markaz",
+  customer: "Mijoz",
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -58,18 +58,18 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 const ROLE_FILTERS = [
-  { value: "all", label: "Все", icon: Shield },
-  { value: "super_admin", label: "Админы", icon: ShieldCheck },
-  { value: "director", label: "Директора", icon: ShieldCheck },
-  { value: "seller", label: "Продавцы", icon: ShoppingBag },
-  { value: "call_center", label: "Колл-центр", icon: Headphones },
+  { value: "all", label: "Barchasi", icon: Shield },
+  { value: "super_admin", label: "Adminlar", icon: ShieldCheck },
+  { value: "director", label: "Direktorlar", icon: ShieldCheck },
+  { value: "seller", label: "Sotuvchilar", icon: ShoppingBag },
+  { value: "call_center", label: "Call markaz", icon: Headphones },
 ];
 
 const ASSIGNABLE_ROLES = [
-  { value: "super_admin", label: "Супер Админ" },
-  { value: "director", label: "Директор" },
-  { value: "seller", label: "Продавец" },
-  { value: "call_center", label: "Колл-центр" },
+  { value: "super_admin", label: "Super admin" },
+  { value: "director", label: "Direktor" },
+  { value: "seller", label: "Sotuvchi" },
+  { value: "call_center", label: "Call markaz" },
 ];
 
 const emptyForm: UserFormData = {
@@ -91,7 +91,7 @@ function getApiErrorMessage(error: unknown): string {
     }
     if (typeof data?.message === "string") return data.message;
   }
-  return "Произошла ошибка. Попробуйте ещё раз.";
+  return "Xatolik yuz berdi. Qayta urinib ko'ring.";
 }
 
 export default function UsersPage() {
@@ -133,7 +133,7 @@ export default function UsersPage() {
       setShowAddModal(false);
       setFormData(emptyForm);
       setFormError(null);
-      setSuccessMsg("Сотрудник успешно создан");
+      setSuccessMsg("Xodim muvaffaqiyatli yaratildi");
     },
     onError: (err) => setFormError(getApiErrorMessage(err)),
   });
@@ -146,7 +146,7 @@ export default function UsersPage() {
       setEditingUser(null);
       setFormData(emptyForm);
       setFormError(null);
-      setSuccessMsg("Данные сотрудника обновлены");
+      setSuccessMsg("Xodim ma'lumotlari yangilandi");
     },
     onError: (err) => setFormError(getApiErrorMessage(err)),
   });
@@ -156,7 +156,7 @@ export default function UsersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
       setDeletingUser(null);
-      setSuccessMsg("Сотрудник деактивирован");
+      setSuccessMsg("Xodim o'chirildi");
     },
   });
 
@@ -164,7 +164,7 @@ export default function UsersPage() {
     mutationFn: (id: string) => apiPatch(`/users/${id}`, { is_active: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-      setSuccessMsg("Сотрудник активирован");
+      setSuccessMsg("Xodim faollashtirildi");
     },
   });
 
@@ -194,7 +194,7 @@ export default function UsersPage() {
     e.preventDefault();
     setFormError(null);
     if (formData.password.length < 8) {
-      setFormError("Пароль должен содержать минимум 8 символов");
+      setFormError("Parol kamida 8 belgidan iborat bo'lishi kerak");
       return;
     }
     const payload: Record<string, unknown> = {
@@ -222,7 +222,7 @@ export default function UsersPage() {
     if (formData.is_active !== editingUser.is_active) changed.is_active = formData.is_active;
     if (formData.password.trim()) {
       if (formData.password.length < 8) {
-        setFormError("Пароль должен содержать минимум 8 символов");
+        setFormError("Parol kamida 8 belgidan iborat bo'lishi kerak");
         return;
       }
       changed.password = formData.password;
@@ -261,7 +261,7 @@ export default function UsersPage() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-xs font-medium text-neutral-600 dark:text-neutral-300">
-              Имя *
+              Ism *
             </label>
             <input
               type="text"
@@ -273,7 +273,7 @@ export default function UsersPage() {
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-neutral-600 dark:text-neutral-300">
-              Фамилия *
+              Familiya *
             </label>
             <input
               type="text"
@@ -300,7 +300,7 @@ export default function UsersPage() {
 
         <div>
           <label className="mb-1 block text-xs font-medium text-neutral-600 dark:text-neutral-300">
-            Телефон
+            Telefon
           </label>
           <input
             type="tel"
@@ -313,7 +313,7 @@ export default function UsersPage() {
 
         <div>
           <label className="mb-1 block text-xs font-medium text-neutral-600 dark:text-neutral-300">
-            {mode === "edit" ? "Новый пароль (оставьте пустым)" : "Пароль *"}
+            {mode === "edit" ? "Yangi parol (bo'sh qoldiring)" : "Parol *"}
           </label>
           <input
             type="password"
@@ -321,14 +321,14 @@ export default function UsersPage() {
             minLength={mode === "create" ? 8 : undefined}
             value={formData.password}
             onChange={(e) => handleInputChange("password", e.target.value)}
-            placeholder={mode === "edit" ? "Оставьте пустым, чтобы не менять" : "Минимум 8 символов"}
+            placeholder={mode === "edit" ? "O'zgartirmaslik uchun bo'sh qoldiring" : "Kamida 8 belgi"}
             className="h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />
         </div>
 
         <div>
           <label className="mb-1 block text-xs font-medium text-neutral-600 dark:text-neutral-300">
-            Роль
+            Rol
           </label>
           <select
             value={formData.role}
@@ -346,7 +346,7 @@ export default function UsersPage() {
         {mode === "edit" && (
           <div className="flex items-center gap-3">
             <label className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
-              Активен
+              Faol
             </label>
             <button
               type="button"
@@ -382,15 +382,15 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Пользователи</h1>
-          <p className="mt-1 text-sm text-neutral-500">{users.length} сотрудников</p>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Foydalanuvchilar</h1>
+          <p className="mt-1 text-sm text-neutral-500">{users.length} xodim</p>
         </div>
         <button
           onClick={openAddModal}
           className="flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600"
         >
           <UserPlus className="h-4 w-4" />
-          Добавить сотрудника
+          Xodim qo'shish
         </button>
       </div>
 
@@ -400,7 +400,7 @@ export default function UsersPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
           <input
             type="search"
-            placeholder="Поиск по имени или email..."
+            placeholder="Ism yoki email bo'yicha qidirish..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-10 pr-4 text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
@@ -429,13 +429,13 @@ export default function UsersPage() {
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Сотрудник</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Xodim</th>
               <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Email</th>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Телефон</th>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Роль</th>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Статус</th>
-              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Дата</th>
-              <th className="px-4 py-3 text-right font-medium text-neutral-600 dark:text-neutral-300">Действия</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Telefon</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Rol</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Holat</th>
+              <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Sana</th>
+              <th className="px-4 py-3 text-right font-medium text-neutral-600 dark:text-neutral-300">Amallar</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -483,7 +483,7 @@ export default function UsersPage() {
                         : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     )}
                   >
-                    {user.is_active ? "Активен" : "Отключён"}
+                    {user.is_active ? "Faol" : "O'chirilgan"}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
@@ -496,16 +496,16 @@ export default function UsersPage() {
                       <button
                         onClick={() => activateMutation.mutate(user.id)}
                         disabled={activateMutation.isPending}
-                        title="Активировать"
+                        title="Faollashtirish"
                         className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
                       >
-                        Активировать
+                        Faollashtirish
                       </button>
                     )}
                     {/* Edit button */}
                     <button
                       onClick={() => openEditModal(user)}
-                      title="Редактировать"
+                      title="Tahrirlash"
                       className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
                     >
                       <Pencil className="h-4 w-4" />
@@ -514,7 +514,7 @@ export default function UsersPage() {
                     {!isCurrentUser(user.id) && (
                       <button
                         onClick={() => setDeletingUser(user)}
-                        title="Деактивировать"
+                        title="O'chirish"
                         className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -527,7 +527,7 @@ export default function UsersPage() {
             {!isLoading && filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-neutral-500">
-                  Пользователи не найдены
+                  Foydalanuvchilar topilmadi
                 </td>
               </tr>
             )}
@@ -541,7 +541,7 @@ export default function UsersPage() {
           <div className="w-full max-w-md bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-elevated">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Добавить сотрудника
+                Xodim qo'shish
               </h2>
               <button
                 onClick={() => {
@@ -572,14 +572,14 @@ export default function UsersPage() {
                   }}
                   className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700"
                 >
-                  Отмена
+                  Bekor qilish
                 </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
                   className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
                 >
-                  {createMutation.isPending ? "Создание..." : "Создать"}
+                  {createMutation.isPending ? "Yaratilmoqda..." : "Yaratish"}
                 </button>
               </div>
             </form>
@@ -593,7 +593,7 @@ export default function UsersPage() {
           <div className="w-full max-w-md bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-elevated">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Редактировать сотрудника
+                Xodimni tahrirlash
               </h2>
               <button
                 onClick={() => {
@@ -624,14 +624,14 @@ export default function UsersPage() {
                   }}
                   className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700"
                 >
-                  Отмена
+                  Bekor qilish
                 </button>
                 <button
                   type="submit"
                   disabled={updateMutation.isPending}
                   className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
                 >
-                  {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
+                  {updateMutation.isPending ? "Saqlanmoqda..." : "Saqlash"}
                 </button>
               </div>
             </form>
@@ -644,10 +644,10 @@ export default function UsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-sm bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-elevated">
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-              Деактивация сотрудника
+              Xodimni o'chirish
             </h2>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-              Вы уверены, что хотите деактивировать пользователя{" "}
+              Foydalanuvchini o'chirmoqchimisiz?{" "}
               <strong>
                 {deletingUser.first_name} {deletingUser.last_name}
               </strong>
@@ -658,14 +658,14 @@ export default function UsersPage() {
                 onClick={() => setDeletingUser(null)}
                 className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700"
               >
-                Отмена
+                Bekor qilish
               </button>
               <button
                 onClick={() => deleteMutation.mutate(deletingUser.id)}
                 disabled={deleteMutation.isPending}
                 className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? "Деактивация..." : "Деактивировать"}
+                {deleteMutation.isPending ? "O'chirilmoqda..." : "O'chirish"}
               </button>
             </div>
           </div>

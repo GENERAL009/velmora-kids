@@ -31,7 +31,7 @@ export function DataTable<T>({
   keyExtractor,
   onRowClick,
   isLoading = false,
-  emptyMessage = "Нет данных",
+  emptyMessage = "Ma'lumotlar yo'q",
   showCheckbox = false,
   selectedItems = new Set(),
   onSelectionChange,

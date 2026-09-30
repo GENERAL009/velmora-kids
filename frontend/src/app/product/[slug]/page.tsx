@@ -219,12 +219,12 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Product main section */}
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto max-w-7xl overflow-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12">
           {/* Gallery */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             <ProductGallery
@@ -235,10 +235,10 @@ export default function ProductDetailPage() {
 
           {/* Product info */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-6"
+            className="min-w-0 space-y-6"
           >
             {/* Brand & badges */}
             <div className="flex items-center gap-3">
@@ -336,23 +336,23 @@ export default function ProductDetailPage() {
                 {canAddToCart ? "В корзину" : "Выберите цвет"}
               </Button>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 overflow-hidden">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="flex-1 sm:flex-initial"
+                  className="min-w-0 flex-1 sm:flex-initial"
                   onClick={toggleFavorite}
                 >
                   <Heart
-                    className={cn("h-5 w-5", isFavorite && "fill-primary-500 text-primary-500")}
+                    className={cn("h-5 w-5 flex-shrink-0", isFavorite && "fill-primary-500 text-primary-500")}
                   />
-                  <span className="ml-2 sm:hidden">Избранное</span>
+                  <span className="ml-2 truncate sm:hidden">Sevimli</span>
                 </Button>
 
-                <div className="relative flex-1 sm:flex-initial">
+                <div className="relative min-w-0 flex-1 sm:flex-initial">
                   <Button variant="outline" size="lg" className="w-full" onClick={handleShare}>
-                    <Share2 className="h-5 w-5" />
-                    <span className="ml-2 sm:hidden">Поделиться</span>
+                    <Share2 className="h-5 w-5 flex-shrink-0" />
+                    <span className="ml-2 truncate sm:hidden">Ulashish</span>
                   </Button>
                   {shareMessage && (
                     <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-charcoal px-2 py-1 text-xs text-white">

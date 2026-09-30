@@ -52,9 +52,9 @@ export default function AdminDashboard() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Boshqaruv paneli</h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-            Добро пожаловать в панель управления
+            Boshqaruv paneliga xush kelibsiz
           </p>
         </div>
         <div className="flex gap-2">
@@ -68,10 +68,10 @@ export default function AdminDashboard() {
                   : "bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
               }`}
             >
-              {range === "today" && "Сегодня"}
-              {range === "7days" && "7 дней"}
-              {range === "30days" && "30 дней"}
-              {range === "month" && "Месяц"}
+              {range === "today" && "Bugun"}
+              {range === "7days" && "7 kun"}
+              {range === "30days" && "30 kun"}
+              {range === "month" && "Oy"}
             </button>
           ))}
         </div>
@@ -80,22 +80,22 @@ export default function AdminDashboard() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Выручка"
+          title="Daromad"
           value={kpisLoading ? "..." : formatPrice(kpis?.revenue ?? 0)}
           icon={DollarSign}
         />
         <StatCard
-          title="Заказы"
+          title="Buyurtmalar"
           value={kpisLoading ? "..." : String(kpis?.orders ?? 0)}
           icon={ShoppingCart}
         />
         <StatCard
-          title="Средний чек"
+          title="O'rtacha chek"
           value={kpisLoading ? "..." : formatPrice(kpis?.average_order_value ?? 0)}
           icon={TrendingUp}
         />
         <StatCard
-          title="Товаров"
+          title="Mahsulotlar"
           value={kpisLoading ? "..." : String(kpis?.total_products ?? 0)}
           icon={Users}
         />
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
         {/* Revenue Chart */}
         <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
           <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-            Выручка за {days === 1 ? "сегодня" : `${days} дней`}
+            Daromad: {days === 1 ? "bugun" : `${days} kun`}
           </h3>
           {revenue.length > 0 ? (
             <div className="flex items-end justify-between h-48 gap-2">
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div className="flex items-center justify-center h-48 text-neutral-400">
-              Нет данных за выбранный период
+              Tanlangan davr uchun ma'lumot yo'q
             </div>
           )}
         </div>
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
         {/* Orders by Status */}
         <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
           <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-            Заказы по статусам
+            Buyurtmalar holati
           </h3>
           <div className="space-y-4">
             {ordersByStatus.map((item) => {
@@ -172,10 +172,10 @@ export default function AdminDashboard() {
         <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-soft border border-neutral-200 dark:border-neutral-700">
           <div className="p-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-              Последние заказы
+              Oxirgi buyurtmalar
             </h3>
             <Link href="/admin/orders" className="text-sm text-primary-600 hover:text-primary-700">
-              Все заказы
+              Barcha buyurtmalar
             </Link>
           </div>
           <div className="overflow-x-auto">
@@ -183,16 +183,16 @@ export default function AdminDashboard() {
               <thead className="bg-neutral-50 dark:bg-neutral-900">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                    Номер
+                    Raqam
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                    Клиент
+                    Mijoz
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                    Статус
+                    Holat
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                    Сумма
+                    Summa
                   </th>
                 </tr>
               </thead>
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
                 ) : (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-neutral-400">
-                      Нет заказов
+                      Buyurtmalar yo'q
                     </td>
                   </tr>
                 )}
@@ -232,7 +232,7 @@ export default function AdminDashboard() {
         <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-soft border border-neutral-200 dark:border-neutral-700">
           <div className="p-6 border-b border-neutral-200 dark:border-neutral-700">
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-              Топ товары
+              Top mahsulotlar
             </h3>
           </div>
           <div className="overflow-x-auto">
@@ -240,13 +240,13 @@ export default function AdminDashboard() {
               <thead className="bg-neutral-50 dark:bg-neutral-900">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                    Название
+                    Nomi
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                    Продано
+                    Sotildi
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                    Выручка
+                    Daromad
                   </th>
                 </tr>
               </thead>
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                 ) : (
                   <tr>
                     <td colSpan={3} className="px-4 py-8 text-center text-neutral-400">
-                      Нет данных
+                      Ma'lumot yo'q
                     </td>
                   </tr>
                 )}
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
               <Eye className="w-5 h-5 text-violet-600 dark:text-violet-400" />
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-              Самые просматриваемые товары
+              Eng ko'p ko'rilgan mahsulotlar
             </h3>
           </div>
         </div>
@@ -305,16 +305,16 @@ export default function AdminDashboard() {
                   #
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                  Товар
+                  Mahsulot
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                  Бренд
+                  Brend
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                  Цена
+                  Narx
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-                  Просмотры
+                  Ko'rishlar
                 </th>
               </tr>
             </thead>
@@ -349,7 +349,7 @@ export default function AdminDashboard() {
               ) : (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-neutral-400">
-                    Нет данных о просмотрах
+                    Ko'rishlar haqida ma'lumot yo'q
                   </td>
                 </tr>
               )}
@@ -368,10 +368,10 @@ export default function AdminDashboard() {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
-                Низкий остаток на складе
+                Omborda kam qoldiq
               </h3>
               <p className="text-sm text-orange-700 dark:text-orange-300 mb-4">
-                {kpis?.low_stock ?? 0} позиций требуют пополнения
+                {kpis?.low_stock ?? 0} ta pozitsiya to'ldirilishi kerak
               </p>
               <div className="space-y-2">
                 {(lowStockItems ?? []).slice(0, 3).map((item) => (
@@ -388,13 +388,13 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
-                      {item.stock} шт
+                      {item.stock} dona
                     </span>
                   </div>
                 ))}
                 {(lowStockItems ?? []).length === 0 && (
                   <p className="text-sm text-orange-600 dark:text-orange-400">
-                    Все позиции в наличии
+                    Barcha pozitsiyalar mavjud
                   </p>
                 )}
               </div>
@@ -410,16 +410,16 @@ export default function AdminDashboard() {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                Ожидающие заказы
+                Kutilayotgan buyurtmalar
               </h3>
               <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
-                {kpis?.pending_orders ?? 0} новых заказов требуют подтверждения
+                {kpis?.pending_orders ?? 0} ta yangi buyurtma tasdiqlanishi kerak
               </p>
               <Link
                 href="/admin/orders?status=new"
                 className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
-                Перейти к заказам
+                Buyurtmalarga o'tish
               </Link>
             </div>
           </div>

@@ -10,7 +10,7 @@ import { apiPost, apiGet } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 function formatPrice(value: number): string {
-  return value.toLocaleString("ru-RU").replace(/,/g, " ") + " сум";
+  return value.toLocaleString("uz-UZ").replace(/,/g, " ") + " so'm";
 }
 
 interface StockVariant {
@@ -42,8 +42,8 @@ interface POSSaleResponse {
 }
 
 const PAYMENT_METHODS = [
-  { value: "cash", label: "Наличные" },
-  { value: "card_transfer", label: "Карта" },
+  { value: "cash", label: "Naqd" },
+  { value: "card_transfer", label: "Karta" },
   { value: "payme", label: "Payme" },
   { value: "click", label: "Click" },
 ];
@@ -141,13 +141,13 @@ export default function POSPage() {
       searchInputRef.current?.focus();
     },
     onError: (err: any) => {
-      setError(err?.response?.data?.detail || "Ошибка при оформлении продажи");
+      setError(err?.response?.data?.detail || "Sotuvni rasmiylashtrishda xatolik");
     },
   });
 
   const handleCheckout = () => {
     if (cart.length === 0) {
-      setError("Добавьте товары в корзину");
+      setError("Savatga tovar qo'shing");
       return;
     }
     saleMutation.mutate({
@@ -165,9 +165,9 @@ export default function POSPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Касса</h1>
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Kassa</h1>
         <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-          Оффлайн продажа — поиск товара, добавление в чек, оформление
+          Offlayn sotuv — tovar qidirish, chekka qo'shish, rasmiylashtirish
         </p>
       </div>
 
@@ -180,7 +180,7 @@ export default function POSPage() {
             <input
               ref={searchInputRef}
               type="search"
-              placeholder="Поиск по названию или SKU..."
+              placeholder="Nomi yoki SKU bo'yicha qidirish..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -191,7 +191,7 @@ export default function POSPage() {
           {/* Search Results */}
           {isSearching && (
             <p className="text-sm text-neutral-500 dark:text-neutral-400 py-4 text-center">
-              Поиск...
+              Qidirilmoqda...
             </p>
           )}
 
@@ -237,7 +237,7 @@ export default function POSPage() {
                             : "text-green-600 dark:text-green-400"
                         )}
                       >
-                        В наличии: {variant.stock}
+                        Mavjud: {variant.stock}
                       </p>
                     </div>
                   </button>
@@ -249,14 +249,14 @@ export default function POSPage() {
           {!isSearching && searchQuery && searchResults.length === 0 && (
             <div className="text-center py-10 text-neutral-500 dark:text-neutral-400">
               <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Ничего не найдено</p>
+              <p>Hech narsa topilmadi</p>
             </div>
           )}
 
           {!searchQuery && (
             <div className="text-center py-16 text-neutral-400 dark:text-neutral-500">
               <Search className="w-16 h-16 mx-auto mb-4 opacity-20" />
-              <p className="text-lg">Введите название товара или SKU для поиска</p>
+              <p className="text-lg">Qidirish uchun tovar nomi yoki SKU kiriting</p>
             </div>
           )}
         </div>
@@ -267,10 +267,10 @@ export default function POSPage() {
             <div className="px-4 py-3 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700">
               <h2 className="font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5" />
-                Чек
+                Chek
                 {cart.length > 0 && (
                   <span className="ml-auto text-sm font-normal text-neutral-500">
-                    {cart.length} поз.
+                    {cart.length} poz.
                   </span>
                 )}
               </h2>
@@ -278,7 +278,7 @@ export default function POSPage() {
 
             {cart.length === 0 ? (
               <div className="px-4 py-8 text-center text-neutral-400 dark:text-neutral-500 text-sm">
-                Корзина пуста
+                Savat bo'sh
               </div>
             ) : (
               <div className="divide-y divide-neutral-100 dark:divide-neutral-700 max-h-[40vh] overflow-y-auto">
@@ -333,7 +333,7 @@ export default function POSPage() {
               <div className="px-4 py-3 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700">
                 <div className="flex items-center justify-between">
                   <span className="text-base font-bold text-neutral-900 dark:text-white">
-                    Итого
+                    Jami
                   </span>
                   <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
                     {formatPrice(cartTotal)}
@@ -347,19 +347,19 @@ export default function POSPage() {
           <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm p-4 space-y-3">
             <div>
               <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                Имя покупателя
+                Xaridor ismi
               </label>
               <input
                 type="text"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Необязательно"
+                placeholder="Ixtiyoriy"
                 className={inputCls}
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                Телефон
+                Telefon
               </label>
               <input
                 type="tel"
@@ -371,7 +371,7 @@ export default function POSPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                Способ оплаты
+                To'lov usuli
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {PAYMENT_METHODS.map((pm) => (
@@ -392,13 +392,13 @@ export default function POSPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                Заметка
+                Izoh
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
-                placeholder="Необязательно"
+                placeholder="Ixtiyoriy"
                 className={inputCls + " resize-none"}
               />
             </div>
@@ -419,7 +419,7 @@ export default function POSPage() {
             isLoading={saleMutation.isPending}
             disabled={cart.length === 0}
           >
-            Оформить продажу — {formatPrice(cartTotal)}
+            Sotuvni rasmiylashtirish — {formatPrice(cartTotal)}
           </Button>
 
           {/* Last sale receipt */}
@@ -428,17 +428,17 @@ export default function POSPage() {
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                 <span className="font-bold text-green-800 dark:text-green-300">
-                  Продажа оформлена
+                  Sotuv rasmiylashtirildi
                 </span>
               </div>
               <div className="text-sm text-green-700 dark:text-green-400 space-y-1">
                 <p>
-                  Чек: <span className="font-mono font-semibold">{lastSale.order_number}</span>
+                  Chek: <span className="font-mono font-semibold">{lastSale.order_number}</span>
                 </p>
                 <p>
-                  Сумма: <span className="font-semibold">{formatPrice(lastSale.total)}</span>
+                  Summa: <span className="font-semibold">{formatPrice(lastSale.total)}</span>
                 </p>
-                <p>Позиций: {lastSale.items_count}</p>
+                <p>Pozitsiyalar: {lastSale.items_count}</p>
               </div>
             </div>
           )}

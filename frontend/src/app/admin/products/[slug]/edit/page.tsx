@@ -138,20 +138,20 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
       }
       queryClient.invalidateQueries({ queryKey: ["product"] });
     } catch (err) {
-      alert("Ошибка загрузки изображения");
+      alert("Rasm yuklashda xatolik");
     } finally {
       setUploading(false);
     }
   };
 
   const handleDelete = async (imageId: string) => {
-    if (!confirm("Удалить изображение?")) return;
+    if (!confirm("Rasmni o'chirmoqchimisiz?")) return;
     try {
       await apiDelete(`/products/${productId}/images/${imageId}`);
       setImages((prev) => prev.filter((img) => img.id !== imageId));
       queryClient.invalidateQueries({ queryKey: ["product"] });
     } catch {
-      alert("Ошибка удаления");
+      alert("O'chirishda xatolik");
     }
   };
 
@@ -177,7 +177,7 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
 
   return (
     <div className={CARD_CLS}>
-      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Изображения</h2>
+      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Rasmlar</h2>
 
       {/* Upload area */}
       <div
@@ -205,7 +205,7 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
           <>
             <Upload className="mx-auto h-8 w-8 text-neutral-400 mb-2" />
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Перетащите файлы сюда или нажмите для выбора
+              Fayllarni bu yerga tashlang yoki tanlash uchun bosing
             </p>
             <p className="text-xs text-neutral-400 mt-1">JPEG, PNG, WebP, AVIF</p>
           </>
@@ -220,7 +220,7 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
               <Image src={img.file_path} alt={img.alt_text || "Product"} fill unoptimized className="object-cover" />
               {img.is_primary && (
                 <span className="absolute top-1 left-1 bg-primary-500 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                  <Star className="w-2.5 h-2.5" /> Главное
+                  <Star className="w-2.5 h-2.5" /> Asosiy
                 </span>
               )}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -228,7 +228,7 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
                   <button
                     onClick={() => handleSetPrimary(img.id!)}
                     className="p-1.5 bg-white rounded-full text-primary-600 hover:bg-primary-50"
-                    title="Сделать главным"
+                    title="Asosiy qilish"
                   >
                     <Star className="w-4 h-4" />
                   </button>
@@ -236,7 +236,7 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
                 <button
                   onClick={() => handleDelete(img.id!)}
                   className="p-1.5 bg-white rounded-full text-red-600 hover:bg-red-50"
-                  title="Удалить"
+                  title="O'chirish"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -265,7 +265,7 @@ function ColorCreator({ onCreated }: { onCreated: () => void }) {
       setOpen(false);
       onCreated();
     } catch {
-      alert("Ошибка создания цвета");
+      alert("Rang yaratishda xatolik");
     } finally {
       setSaving(false);
     }
@@ -277,19 +277,19 @@ function ColorCreator({ onCreated }: { onCreated: () => void }) {
         onClick={() => setOpen(true)}
         className="mt-3 text-xs text-primary-600 hover:underline"
       >
-        + Добавить новый цвет
+        + Yangi rang qo'shish
       </button>
     );
   }
 
   return (
     <div className="mt-3 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700">
-      <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Новый цвет</p>
+      <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Yangi rang</p>
       <div className="flex items-end gap-3">
         <div className="flex-1">
           <input
             type="text"
-            placeholder="Название (напр. Розовый)"
+            placeholder="Nomi (masalan, Pushti)"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
@@ -305,7 +305,7 @@ function ColorCreator({ onCreated }: { onCreated: () => void }) {
           <span className="text-xs font-mono text-neutral-500">{hex}</span>
         </div>
         <Button variant="default" size="sm" onClick={handleCreate} isLoading={saving}>
-          Создать
+          Yaratish
         </Button>
         <button onClick={() => setOpen(false)} className="p-2 text-neutral-400 hover:text-neutral-600">
           <X className="w-4 h-4" />
@@ -456,11 +456,11 @@ export default function EditProductPage() {
 
   const validate = useCallback((): string[] => {
     const errs: string[] = [];
-    if (!name.trim()) errs.push("Название обязательно");
-    if (!formSku.trim()) errs.push("Артикул (SKU) обязателен");
-    if (!categoryId) errs.push("Выберите категорию");
-    if (!brandId) errs.push("Выберите бренд");
-    if (!sellingPrice || Number(sellingPrice) <= 0) errs.push("Укажите розничную цену");
+    if (!name.trim()) errs.push("Nomi majburiy");
+    if (!formSku.trim()) errs.push("Artikul (SKU) majburiy");
+    if (!categoryId) errs.push("Kategoriyani tanlang");
+    if (!brandId) errs.push("Brendni tanlang");
+    if (!sellingPrice || Number(sellingPrice) <= 0) errs.push("Chakana narxni kiriting");
     return errs;
   }, [name, formSku, categoryId, brandId, sellingPrice]);
 
@@ -470,13 +470,13 @@ export default function EditProductPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["product", slug] });
-      alert("Товар успешно обновлён!");
+      alert("Mahsulot muvaffaqiyatli yangilandi!");
       router.push("/admin/products");
     },
     onError: (err: unknown) => {
       const msg =
         (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail ?? "Ошибка при обновлении товара";
+          ?.detail ?? "Mahsulotni yangilashda xatolik";
       alert(msg);
     },
   });
@@ -544,7 +544,7 @@ export default function EditProductPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-        <span className="ml-3 text-neutral-600 dark:text-neutral-400">Загрузка товара...</span>
+        <span className="ml-3 text-neutral-600 dark:text-neutral-400">Mahsulot yuklanmoqda...</span>
       </div>
     );
   }
@@ -552,9 +552,9 @@ export default function EditProductPage() {
   if (productError || (!productLoading && !product)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <p className="text-red-600 dark:text-red-400">Товар не найден или произошла ошибка загрузки.</p>
+        <p className="text-red-600 dark:text-red-400">Mahsulot topilmadi yoki yuklashda xatolik.</p>
         <Link href="/admin/products">
-          <Button variant="outline">Назад к списку товаров</Button>
+          <Button variant="outline">Mahsulotlar ro'yxatiga qaytish</Button>
         </Link>
       </div>
     );
@@ -567,14 +567,14 @@ export default function EditProductPage() {
           <Button variant="ghost" size="icon"><ArrowLeft className="w-5 h-5" /></Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Редактировать товар</h1>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Mahsulotni tahrirlash</h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">{product?.name}</p>
         </div>
       </div>
 
       {errors.length > 0 && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">Пожалуйста, исправьте ошибки:</p>
+          <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">Iltimos, xatolarni tuzating:</p>
           <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-400 space-y-1">
             {errors.map((e, i) => <li key={i}>{e}</li>)}
           </ul>
@@ -585,31 +585,31 @@ export default function EditProductPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
           <div className={CARD_CLS}>
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Основная информация</h2>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Asosiy ma'lumotlar</h2>
             <div className="space-y-4">
               <div>
-                <label className={LABEL_CLS}>Название *</label>
+                <label className={LABEL_CLS}>Nomi *</label>
                 <input type="text" className={INPUT_CLS} value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Название (UZ)</label>
+                <label className={LABEL_CLS}>Nomi (UZ)</label>
                 <input type="text" className={INPUT_CLS} value={nameUz} onChange={(e) => setNameUz(e.target.value)} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Название (RU)</label>
+                <label className={LABEL_CLS}>Nomi (RU)</label>
                 <input type="text" className={INPUT_CLS} value={nameRu} onChange={(e) => setNameRu(e.target.value)} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Название (EN)</label>
+                <label className={LABEL_CLS}>Nomi (EN)</label>
                 <input type="text" className={INPUT_CLS} value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={LABEL_CLS}>Артикул (SKU) *</label>
+                  <label className={LABEL_CLS}>Artikul (SKU) *</label>
                   <input type="text" className={INPUT_CLS} value={formSku} onChange={(e) => setFormSku(e.target.value)} />
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>Штрихкод</label>
+                  <label className={LABEL_CLS}>Shtrixkod</label>
                   <input type="text" className={INPUT_CLS} value={barcode} onChange={(e) => setBarcode(e.target.value)} />
                 </div>
               </div>
@@ -618,11 +618,11 @@ export default function EditProductPage() {
                 <input type="text" className={INPUT_CLS} value={formSlug} onChange={(e) => setFormSlug(e.target.value)} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Описание</label>
+                <label className={LABEL_CLS}>Tavsif</label>
                 <textarea rows={4} className={`${INPUT_CLS} resize-none`} value={description} onChange={(e) => setDescription(e.target.value)} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Краткое описание</label>
+                <label className={LABEL_CLS}>Qisqa tavsif</label>
                 <textarea rows={2} className={`${INPUT_CLS} resize-none`} value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} />
               </div>
             </div>
@@ -630,19 +630,19 @@ export default function EditProductPage() {
 
           {/* Category & Brand */}
           <div className={CARD_CLS}>
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Категория и бренд</h2>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Kategoriya va brend</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={LABEL_CLS}>Категория *</label>
+                <label className={LABEL_CLS}>Kategoriya *</label>
                 <select className={INPUT_CLS} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-                  <option value="">Выберите категорию</option>
+                  <option value="">Kategoriyani tanlang</option>
                   {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className={LABEL_CLS}>Бренд *</label>
+                <label className={LABEL_CLS}>Brend *</label>
                 <select className={INPUT_CLS} value={brandId} onChange={(e) => setBrandId(e.target.value)}>
-                  <option value="">Выберите бренд</option>
+                  <option value="">Brendni tanlang</option>
                   {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </div>
@@ -651,22 +651,22 @@ export default function EditProductPage() {
 
           {/* Gender & Age */}
           <div className={CARD_CLS}>
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Пол и возраст</h2>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Jinsi va yosh</h2>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className={LABEL_CLS}>Пол</label>
+                <label className={LABEL_CLS}>Jinsi</label>
                 <select className={INPUT_CLS} value={gender} onChange={(e) => setGender(e.target.value as "boys" | "girls" | "both")}>
-                  <option value="both">Для всех</option>
-                  <option value="boys">Для мальчиков</option>
-                  <option value="girls">Для девочек</option>
+                  <option value="both">Barchasi uchun</option>
+                  <option value="boys">O'g'il bolalar uchun</option>
+                  <option value="girls">Qiz bolalar uchun</option>
                 </select>
               </div>
               <div>
-                <label className={LABEL_CLS}>Возраст от (мес.)</label>
+                <label className={LABEL_CLS}>Yoshdan (oy)</label>
                 <input type="number" className={INPUT_CLS} min={0} value={ageMin} onChange={(e) => setAgeMin(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Возраст до (мес.)</label>
+                <label className={LABEL_CLS}>Yoshgacha (oy)</label>
                 <input type="number" className={INPUT_CLS} min={0} value={ageMax} onChange={(e) => setAgeMax(e.target.value ? Number(e.target.value) : "")} />
               </div>
             </div>
@@ -674,71 +674,71 @@ export default function EditProductPage() {
 
           {/* Vehicle Specs */}
           <div className={CARD_CLS}>
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Характеристики транспорта</h2>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Transport xususiyatlari</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
-                <label className={LABEL_CLS}>Макс. нагрузка (кг)</label>
+                <label className={LABEL_CLS}>Maks. yuk (kg)</label>
                 <input type="number" className={INPUT_CLS} min={0} step="0.1" value={maxWeightKg} onChange={(e) => setMaxWeightKg(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Вес изделия (кг)</label>
+                <label className={LABEL_CLS}>Mahsulot og'irligi (kg)</label>
                 <input type="number" className={INPUT_CLS} min={0} step="0.1" value={productWeightKg} onChange={(e) => setProductWeightKg(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Габариты</label>
-                <input type="text" className={INPUT_CLS} placeholder="60x30x80 см" value={dimensions} onChange={(e) => setDimensions(e.target.value)} />
+                <label className={LABEL_CLS}>O'lchamlari</label>
+                <input type="text" className={INPUT_CLS} placeholder="60x30x80 sm" value={dimensions} onChange={(e) => setDimensions(e.target.value)} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Тип колёс</label>
-                <input type="text" className={INPUT_CLS} placeholder="PU, Резиновые" value={wheelType} onChange={(e) => setWheelType(e.target.value)} />
+                <label className={LABEL_CLS}>G'ildirak turi</label>
+                <input type="text" className={INPUT_CLS} placeholder="PU, Rezina" value={wheelType} onChange={(e) => setWheelType(e.target.value)} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Кол-во колёс</label>
+                <label className={LABEL_CLS}>G'ildirak soni</label>
                 <input type="number" className={INPUT_CLS} min={0} value={wheelCount} onChange={(e) => setWheelCount(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Макс. скорость (км/ч)</label>
+                <label className={LABEL_CLS}>Maks. tezlik (km/s)</label>
                 <input type="number" className={INPUT_CLS} min={0} value={maxSpeedKmh} onChange={(e) => setMaxSpeedKmh(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div className="md:col-span-3">
-                <label className={LABEL_CLS}>Тип аккумулятора</label>
+                <label className={LABEL_CLS}>Akkumulyator turi</label>
                 <input type="text" className={INPUT_CLS} placeholder="6V 4.5Ah" value={batteryType} onChange={(e) => setBatteryType(e.target.value)} />
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-6">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={hasRemoteControl} onChange={(e) => setHasRemoteControl(e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Пульт управления</span>
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">Masofadan boshqarish pulti</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={hasLights} onChange={(e) => setHasLights(e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Подсветка</span>
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">Yoritish</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={hasMusic} onChange={(e) => setHasMusic(e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Музыка/звуки</span>
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">Musiqa/tovushlar</span>
               </label>
             </div>
           </div>
 
           {/* Pricing */}
           <div className={CARD_CLS}>
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Цены</h2>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Narxlar</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className={LABEL_CLS}>Закупочная цена</label>
+                <label className={LABEL_CLS}>Sotib olish narxi</label>
                 <input type="number" className={INPUT_CLS} min={0} value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Розничная цена *</label>
+                <label className={LABEL_CLS}>Chakana narx *</label>
                 <input type="number" className={INPUT_CLS} min={0} value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Скидка (%)</label>
+                <label className={LABEL_CLS}>Chegirma (%)</label>
                 <input type="number" className={INPUT_CLS} min={0} max={100} value={discountPercent} onChange={(e) => setDiscountPercent(Number(e.target.value) || 0)} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Цена со скидкой</label>
+                <label className={LABEL_CLS}>Chegirmali narx</label>
                 <input type="number" className={INPUT_CLS} min={0} value={discountPrice} onChange={(e) => setDiscountPrice(e.target.value ? Number(e.target.value) : "")} />
               </div>
             </div>
@@ -747,14 +747,14 @@ export default function EditProductPage() {
           {/* Variants */}
           <div className={CARD_CLS}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Варианты (цвета)</h2>
+              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Variantlar (ranglar)</h2>
               <Button variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={addVariant}>
-                Добавить вариант
+                Variant qo'shish
               </Button>
             </div>
             {variants.length === 0 ? (
               <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center py-6">
-                Нет вариантов. Нажмите &quot;Добавить вариант&quot;, чтобы создать.
+                Variantlar yo'q. Yaratish uchun &quot;Variant qo'shish&quot; tugmasini bosing.
               </p>
             ) : (
               <div className="space-y-4">
@@ -767,19 +767,19 @@ export default function EditProductPage() {
                           value={variant.color_id}
                           onChange={(e) => updateVariant(variant._key, "color_id", e.target.value)}
                         >
-                          <option value="">Цвет</option>
+                          <option value="">Rang</option>
                           {colors.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                         <input
                           type="text"
-                          placeholder="SKU варианта"
+                          placeholder="Variant SKU"
                           value={variant.sku}
                           onChange={(e) => updateVariant(variant._key, "sku", e.target.value)}
                           className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
                         />
                         <input
                           type="number"
-                          placeholder="Доп. цена"
+                          placeholder="Qo'sh. narx"
                           value={variant.additional_price || ""}
                           onChange={(e) => updateVariant(variant._key, "additional_price", Number(e.target.value) || 0)}
                           className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
@@ -818,37 +818,37 @@ export default function EditProductPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           <div className={CARD_CLS}>
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Публикация</h2>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Nashr qilish</h2>
             <div className="space-y-4">
               <div>
-                <label className={LABEL_CLS}>Статус</label>
+                <label className={LABEL_CLS}>Holat</label>
                 <select className={INPUT_CLS} value={status} onChange={(e) => setStatus(e.target.value as "draft" | "active" | "inactive")}>
-                  <option value="draft">Черновик</option>
-                  <option value="active">Активен</option>
-                  <option value="inactive">Неактивен</option>
+                  <option value="draft">Qoralama</option>
+                  <option value="active">Faol</option>
+                  <option value="inactive">Nofaol</option>
                 </select>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Показывать на главной</span>
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">Bosh sahifada ko'rsatish</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Новинка</span>
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">Yangilik</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={isBestseller} onChange={(e) => setIsBestseller(e.target.checked)} className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Хит продаж</span>
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">Eng ko'p sotilgan</span>
               </label>
             </div>
           </div>
 
           <div className={CARD_CLS}>
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Информация</h2>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Ma'lumot</h2>
             <div className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
               <p>ID: <span className="font-mono text-xs">{productId}</span></p>
-              {product?.created_at && <p>Создан: {new Date(product.created_at).toLocaleDateString("ru-RU")}</p>}
-              {product?.updated_at && <p>Обновлён: {new Date(product.updated_at).toLocaleDateString("ru-RU")}</p>}
+              {product?.created_at && <p>Yaratilgan: {new Date(product.created_at).toLocaleDateString("uz-UZ")}</p>}
+              {product?.updated_at && <p>Yangilangan: {new Date(product.updated_at).toLocaleDateString("uz-UZ")}</p>}
             </div>
           </div>
         </div>
@@ -857,10 +857,10 @@ export default function EditProductPage() {
       <div className="fixed bottom-0 left-0 right-0 lg:left-72 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 p-4 shadow-elevated z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <Link href="/admin/products">
-            <Button variant="ghost">Отмена</Button>
+            <Button variant="ghost">Bekor qilish</Button>
           </Link>
           <Button variant="default" leftIcon={<Save className="w-4 h-4" />} onClick={handleSubmit} isLoading={updateMutation.isPending}>
-            Сохранить изменения
+            O'zgarishlarni saqlash
           </Button>
         </div>
       </div>
