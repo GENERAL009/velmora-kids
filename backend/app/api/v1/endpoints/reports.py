@@ -88,7 +88,13 @@ async def top_products(
             OrderItem.product_name,
             func.sum(OrderItem.quantity).label("total_sold"),
             func.sum(OrderItem.total).label("total_revenue"),
-        ).group_by(OrderItem.product_name)
+        )
+        .join(Order, Order.id == OrderItem.order_id)
+        .where(
+            Order.payment_status == PaymentStatus.PAID,
+            Order.status.notin_([OrderStatus.CANCELLED, OrderStatus.RETURNED]),
+        )
+        .group_by(OrderItem.product_name)
         .order_by(func.sum(OrderItem.quantity).desc())
         .limit(limit)
     )

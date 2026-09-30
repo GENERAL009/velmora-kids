@@ -21,12 +21,6 @@ async def test_list_brands_public(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_list_sizes_public(client: AsyncClient):
-    response = await client.get("/api/v1/sizes")
-    assert response.status_code == 200
-
-
-@pytest.mark.asyncio
 async def test_list_colors_public(client: AsyncClient):
     response = await client.get("/api/v1/colors")
     assert response.status_code == 200

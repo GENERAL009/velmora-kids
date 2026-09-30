@@ -2,6 +2,8 @@
 Seed the database with realistic data for Velmora Kids (vehicles & ride-ons).
 Run: python -m seed
 """
+import os
+import secrets
 import asyncio
 import uuid
 from datetime import datetime, timedelta, timezone, date
@@ -65,7 +67,7 @@ async def seed_users(db: AsyncSession) -> dict:
     dev_admin = User(
         email="abdulloh@velmora.uz",
         phone="+998900000001",
-        hashed_password=hash_password("a20662006b"),
+        hashed_password=hash_password(os.environ.get("SEED_ADMIN_PASSWORD") or secrets.token_urlsafe(12)),
         first_name="Abdulloh",
         last_name="Developer",
         role=UserRole.SUPER_ADMIN,

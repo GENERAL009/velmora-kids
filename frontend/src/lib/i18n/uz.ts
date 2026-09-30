@@ -15,7 +15,8 @@ export const uz: TranslationKeys = {
 
   hero: {
     title: "Velmora Kids",
-    subtitle: "Bugun kim uchun uslub tanlaymiz?",
+    subtitle: "Kim uchun xarid qilamiz?",
+    description: "Eng yaxshi mahsulotlarni siz uchun saralab beramiz.",
     forGirls: "Qizlar uchun",
     forBoys: "O'g'il bolalar uchun",
     changeChoice: "← Tanlovni o'zgartirish",

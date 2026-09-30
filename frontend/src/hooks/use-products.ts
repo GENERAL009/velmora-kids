@@ -82,7 +82,7 @@ interface ApiPaginatedProducts {
   pages: number;
 }
 
-function mapVariant(v: ApiVariant, productPrice: number): ProductVariant {
+function mapVariant(v: ApiVariant): ProductVariant {
   const additionalPrice = Number(v.additional_price) || 0;
   return {
     id: v.id,
@@ -141,7 +141,7 @@ export function mapApiProduct(p: ApiProduct): Product {
       sort_order: img.sort_order,
       is_primary: img.is_primary,
     })),
-    variants: (p.variants || []).map((v) => mapVariant(v, finalPrice)),
+    variants: (p.variants || []).map((v) => mapVariant(v)),
     tags: [],
     is_active: p.status === "active",
     is_featured: p.is_featured,

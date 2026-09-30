@@ -28,7 +28,7 @@ docker compose -f $COMPOSE_FILE up -d
 
 echo "[5/5] Running post-deploy migration..."
 sleep 5
-docker compose -f $COMPOSE_FILE exec -T backend sh -c "alembic upgrade head" || true
+docker compose -f $COMPOSE_FILE exec -T backend sh -c "alembic upgrade head"
 
 echo ""
 echo "=== Cleaning up old images ==="

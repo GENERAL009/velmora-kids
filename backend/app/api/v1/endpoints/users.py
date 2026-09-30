@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.utils.audit import log_audit
 from app.api.v1.deps import get_db, RoleChecker
 from app.core.security import hash_password
 from app.models.user import User, UserRole
@@ -54,13 +55,29 @@ async def update_user(
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    allowed_fields = {"first_name", "last_name", "email", "phone", "is_active", "is_verified", "avatar"}
+    changes: dict = {}
     for field, value in data.items():
         if field == "password":
+            if not isinstance(value, str) or len(value) < 8:
+                raise HTTPException(status_code=400, detail="Parol kamida 8 ta belgidan iborat bo'lishi kerak")
             user.hashed_password = hash_password(value)
+            changes["password"] = "***"
         elif field == "role":
-            user.role = UserRole(value)
-        elif hasattr(user, field) and field != "id":
+            try:
+                new_role = UserRole(value)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Noto'g'ri rol")
+            if user.id == current_user.id and new_role != UserRole.SUPER_ADMIN:
+                raise HTTPException(status_code=400, detail="O'zingizning super admin rolingizni o'zgartira olmaysiz")
+            changes["role"] = new_role.value
+            user.role = new_role
+        elif field in allowed_fields:
+            if field == "is_active" and user.id == current_user.id and not value:
+                raise HTTPException(status_code=400, detail="O'zingizni bloklay olmaysiz")
             setattr(user, field, value)
+            changes[field] = value
+    await log_audit(db, current_user.id, "user_updated", "user", str(user.id), new_value=changes)
     await db.flush()
     await db.refresh(user)
     return user

@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  // Lint has only style warnings (no-explicit-any etc.); type errors DO fail the build now.
   eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
   images: {
     remotePatterns: [
       {

@@ -25,25 +25,29 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "Velmora Kids — Премиальная детская одежда",
+    default: "Velmora Kids — коляски, велосипеды, самокаты и электромобили для детей",
     template: "%s | Velmora Kids",
   },
   description:
-    "Velmora Kids — интернет-магазин премиальной детской одежды. Стильная и качественная одежда для девочек, мальчиков и новорожденных. Бесплатная доставка по Ташкенту.",
+    "Velmora Kids — интернет-магазин детского транспорта в Узбекистане: коляски, велосипеды, беговелы, самокаты и детские электромобили. Bolalar kolyaskalari, velosipedlari, samokatlari va elektromobillari.",
   keywords: [
-    "детская одежда",
-    "премиум",
+    "детские коляски",
+    "детские велосипеды",
+    "беговелы",
+    "детские самокаты",
+    "детские электромобили",
+    "bolalar kolyaskasi",
+    "bolalar velosipedi",
+    "samokat",
+    "bolalar mashinasi",
     "Ташкент",
     "Узбекистан",
-    "одежда для девочек",
-    "одежда для мальчиков",
-    "новорожденные",
     "Velmora Kids",
   ],
   openGraph: {
-    title: "Velmora Kids — Премиальная детская одежда",
+    title: "Velmora Kids — детский транспорт",
     description:
-      "Стильная и качественная одежда для детей. Натуральные ткани, изысканный дизайн.",
+      "Коляски, велосипеды, самокаты и детские электромобили с доставкой по Узбекистану.",
     type: "website",
     locale: "ru_RU",
     siteName: "Velmora Kids",

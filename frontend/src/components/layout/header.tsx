@@ -17,8 +17,6 @@ import { useAuthStore } from "@/store/auth";
 import { useNotificationStore } from "@/store/notification";
 import { MobileMenu } from "./mobile-menu";
 
-const navLinks: { href: string; label: string }[] = [];
-
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

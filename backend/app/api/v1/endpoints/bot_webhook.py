@@ -1,393 +1,203 @@
 """Telegram Bot webhook handler for payment verification callbacks."""
+import hmac
 import logging
-from datetime import datetime, timezone
+import uuid
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
-from app.models.order import Order, OrderItem, Payment, PaymentStatus, TransactionStatus
-from app.models.product import ProductImage
-from app.models.content import Notification
+from app.models.order import Payment
+from app.services import payment_flow
 from app.services.telegram_service import (
     answer_callback_query,
-    edit_message_caption,
-    notify_payment_approved,
-    notify_payment_rejected_to_admins,
+    esc,
+    is_admin,
     send_force_reply,
-    send_message_to_admins,
-    _send_request,
+    send_telegram_message,
 )
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/bot", tags=["Telegram Bot"])
 
-# In-memory store for pending rejections (admin_id -> payment_id)
-pending_rejections: dict[int, str] = {}
+# Pending "reject" actions waiting for the admin to type a reason.
+# Stored in Redis so it works with several uvicorn workers; in-memory is only a fallback.
+_PENDING_TTL = 15 * 60
+_pending_fallback: dict[int, str] = {}
+
+
+async def _set_pending(admin_id: int, payment_id: str) -> None:
+    from app.core.cache import get_redis
+    try:
+        r = await get_redis()
+        await r.set(f"tg:pending_reject:{admin_id}", payment_id, ex=_PENDING_TTL)
+        return
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Redis unavailable for pending rejection: %s", e)
+    _pending_fallback[admin_id] = payment_id
+
+
+async def _pop_pending(admin_id: int) -> str | None:
+    from app.core.cache import get_redis
+    try:
+        r = await get_redis()
+        key = f"tg:pending_reject:{admin_id}"
+        value = await r.get(key)
+        if value:
+            await r.delete(key)
+            return value
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Redis unavailable for pending rejection: %s", e)
+    return _pending_fallback.pop(admin_id, None)
+
+
+def _verify_secret(request: Request) -> None:
+    expected = settings.telegram_webhook_secret
+    received = request.headers.get("x-telegram-bot-api-secret-token", "")
+    if not expected or not hmac.compare_digest(received, expected):
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 
 @router.post("/webhook")
-async def telegram_webhook(request: Request):
-    """Handle Telegram Bot webhook updates (callback_query for inline buttons + reply for rejection reason)."""
+async def telegram_webhook(request: Request, background: BackgroundTasks):
+    """Telegram updates: inline button presses and replies with a rejection reason."""
+    _verify_secret(request)
     try:
         update = await request.json()
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
-    # Handle inline button press (callback_query)
     if "callback_query" in update:
-        await _handle_callback_query(update["callback_query"])
-        return {"ok": True}
-
-    # Handle text message (reply with rejection reason)
-    if "message" in update:
+        await _handle_callback_query(update["callback_query"], background)
+    elif "message" in update:
         message = update["message"]
-        # Check if this is a reply to our force_reply
         if message.get("reply_to_message") and message.get("text"):
-            await _handle_rejection_reason(message)
-        return {"ok": True}
-
+            await _handle_rejection_reason(message, background)
     return {"ok": True}
 
 
-async def _handle_callback_query(callback_query: dict):
-    """Process inline button callback (approve/reject payment)."""
+def _parse_payment_id(raw: str) -> uuid.UUID | None:
+    try:
+        return uuid.UUID(raw)
+    except (ValueError, TypeError):
+        return None
+
+
+async def _handle_callback_query(callback_query: dict, background: BackgroundTasks):
     callback_id = callback_query.get("id", "")
-    data = callback_query.get("data", "")
-    from_user = callback_query.get("from", {})
+    data = callback_query.get("data", "") or ""
+    from_user = callback_query.get("from", {}) or {}
     admin_id = from_user.get("id")
-    admin_name = f"{from_user.get('first_name', '')} {from_user.get('last_name', '')}".strip()
-    chat_id = str(callback_query.get("message", {}).get("chat", {}).get("id", ""))
-    message_id = callback_query.get("message", {}).get("message_id")
+    admin_name = f"{from_user.get('first_name', '')} {from_user.get('last_name', '')}".strip() or "Admin"
+    chat_id = str((callback_query.get("message") or {}).get("chat", {}).get("id", ""))
 
-    # Security: Inline buttons are only sent to authorized admin private chats,
-    # so if a user can click the button, they are authorized.
+    if not is_admin(admin_id):
+        logger.warning("Callback from non-admin telegram user %s ignored", admin_id)
+        await answer_callback_query(callback_id, "⛔ Sizda bu amal uchun ruxsat yo'q")
+        return
 
+    action, _, raw_id = data.partition(":")
+    payment_id = _parse_payment_id(raw_id)
+    if action not in ("approve_payment", "reject_payment", "suspicious_payment") or payment_id is None:
+        await answer_callback_query(callback_id, "Noma'lum amal")
+        return
 
-    if data.startswith("approve_payment:"):
-        payment_id = data.split(":", 1)[1]
-        await _approve_payment(payment_id, admin_name, callback_id, chat_id, message_id)
+    if action == "reject_payment":
+        await _set_pending(int(admin_id), str(payment_id))
+        await answer_callback_query(callback_id, "Keyingi xabarga javob sifatida rad etish sababini yozing")
+        await send_force_reply(chat_id, "✏️ To'lovni rad etish sababini yozing:\n\n(Shu xabarga javob bering)")
+        return
 
-    elif data.startswith("reject_payment:"):
-        payment_id = data.split(":", 1)[1]
-        # Store pending rejection and ask for reason
-        pending_rejections[admin_id] = payment_id
-        await answer_callback_query(callback_id, "Напишите причину отказа в ответ на следующее сообщение")
-        await send_force_reply(
-            chat_id,
-            f"✏️ Напишите причину отклонения оплаты:\n\n"
-            f"(Ответьте на это сообщение)"
-        )
-
-    elif data.startswith("suspicious_payment:"):
-        payment_id = data.split(":", 1)[1]
-        await _mark_payment_suspicious(payment_id, admin_name, callback_id, chat_id, message_id)
-
-    else:
-        await answer_callback_query(callback_id, "Неизвестное действие")
-
-async def _mark_payment_suspicious(payment_id: str, admin_name: str, callback_id: str, chat_id: str, message_id: int | None):
-    """Mark the payment as suspicious."""
     async with AsyncSessionLocal() as db:
         try:
-            from uuid import UUID
-            pid = UUID(payment_id)
-
-            result = await db.execute(select(Payment).where(Payment.id == pid))
-            payment = result.scalar_one_or_none()
+            payment = (await db.execute(select(Payment).where(Payment.id == payment_id))).scalar_one_or_none()
             if not payment:
-                await answer_callback_query(callback_id, "❌ Платёж не найден")
+                await answer_callback_query(callback_id, "❌ To'lov topilmadi")
+                return
+            order = await payment_flow.lock_order(db, payment.order_id)
+            if not order:
+                await answer_callback_query(callback_id, "❌ Buyurtma topilmadi")
                 return
 
-            if payment.status in (TransactionStatus.COMPLETED, TransactionStatus.FAILED):
-                await answer_callback_query(callback_id, "ℹ️ Статус оплаты уже изменен")
-                return
-
-            # Update payment to suspicious
-            payment.status = TransactionStatus.SUSPICIOUS
-            payment.verified_at = datetime.now(timezone.utc)
-            payment.verified_by = None
-
-            order_for_notif = await db.execute(select(Order).where(Order.id == payment.order_id))
-            order_obj = order_for_notif.scalar_one_or_none()
-            if order_obj:
-                notif = Notification(
-                    user_id=order_obj.customer_id,
-                    title="Дополнительная проверка",
-                    message=f"Платёж по заказу #{order_obj.order_number} проходит дополнительную проверку. Пожалуйста, ожидайте.",
-                    type="order",
-                    link=f"/account/orders/{order_obj.id}",
+            if action == "approve_payment":
+                changed = await payment_flow.apply_paid(
+                    db, order, by_user_id=None, by_name=admin_name, source="telegram",
                 )
-                db.add(notif)
-
-            await db.commit()
-
-            # Answer callback
-            await answer_callback_query(callback_id, "⚠️ Отмечено как подозрительное")
-
-            # Update the message caption to reflect this but KEEP inline buttons
-            # so they can still approve or reject it later!
-            if message_id and chat_id:
-                # We can't easily retrieve the order number here without querying, 
-                # but we can fetch it:
-                order_result = await db.execute(select(Order).where(Order.id == payment.order_id))
-                order = order_result.scalar_one_or_none()
-                
-                inline_keyboard = {
-                    "inline_keyboard": [
-                        [
-                            {
-                                "text": "✅ Подтвердить оплату",
-                                "callback_data": f"approve_payment:{payment_id}",
-                            },
-                        ],
-                        [
-                            {
-                                "text": "❌ Отклонить",
-                                "callback_data": f"reject_payment:{payment_id}",
-                            },
-                        ],
-                    ]
-                }
-                
-                caption = (
-                    f"⚠️ <b>ПОДОЗРИТЕЛЬНЫЙ ЧЕК</b>\n\n"
-                    f"🛒 Заказ: <b>#{order.order_number if order else 'N/A'}</b>\n"
-                    f"💰 Сумма: <b>{payment.amount:,.0f} сум</b>\n"
-                    f"👨‍💼 Отметил: {admin_name}\n\n"
-                    f"<i>Клиент получил уведомление о проверке.</i>"
+                if not changed:
+                    await answer_callback_query(callback_id, "ℹ️ To'lov allaqachon tasdiqlangan")
+                    return
+                payload = await payment_flow.build_delivery_payload(db, order, admin_name)
+                message_ids = payment_flow.admin_message_ids(order)
+                await db.commit()
+                await answer_callback_query(callback_id, "✅ To'lov tasdiqlandi!")
+                background.add_task(payment_flow.after_approved, payload, message_ids)
+            else:  # suspicious
+                changed = await payment_flow.apply_suspicious(
+                    db, order, by_user_id=None, by_name=admin_name, source="telegram",
                 )
-                
-                # Edit the button message (text message, not photo)
-                await _send_request("editMessageText", {
-                    "chat_id": chat_id,
-                    "message_id": message_id,
-                    "text": caption,
-                    "parse_mode": "HTML",
-                    "reply_markup": inline_keyboard,
-                })
-        except Exception as e:
-            logger.error(f"Error marking payment suspicious: {e}")
+                if not changed:
+                    await answer_callback_query(callback_id, "ℹ️ To'lov holati allaqachon o'zgargan")
+                    return
+                message_ids = payment_flow.admin_message_ids(order)
+                amount = f"{order.total:,.0f}"
+                await db.commit()
+                await answer_callback_query(callback_id, "⚠️ Shubhali deb belgilandi")
+                background.add_task(
+                    payment_flow.after_suspicious, order.order_number, amount, admin_name,
+                    message_ids, str(payment_id),
+                )
+        except Exception as e:  # noqa: BLE001
+            logger.exception("Telegram callback %s failed", action)
             await db.rollback()
-            await answer_callback_query(callback_id, f"❌ Ошибка: {str(e)[:100]}")
+            await answer_callback_query(callback_id, f"❌ Xatolik: {str(e)[:100]}")
 
 
-async def _approve_payment(payment_id: str, admin_name: str, callback_id: str, chat_id: str, message_id: int | None):
-    """Approve the payment, update DB, notify channel."""
-    async with AsyncSessionLocal() as db:
-        try:
-            from uuid import UUID
-            pid = UUID(payment_id)
-
-            result = await db.execute(
-                select(Payment).where(Payment.id == pid)
-            )
-            payment = result.scalar_one_or_none()
-            if not payment:
-                await answer_callback_query(callback_id, "❌ Платёж не найден")
-                return
-
-            if payment.status == TransactionStatus.COMPLETED:
-                await answer_callback_query(callback_id, "ℹ️ Оплата уже подтверждена")
-                return
-
-            # Update payment
-            payment.status = TransactionStatus.COMPLETED
-            payment.verified_at = datetime.now(timezone.utc)
-            payment.rejection_reason = None
-
-            # Update order
-            order_result = await db.execute(
-                select(Order).where(Order.id == payment.order_id)
-                .options(selectinload(Order.items))
-            )
-            order = order_result.scalar_one_or_none()
-            if order:
-                order.payment_status = PaymentStatus.PAID
-                order.paid_at = datetime.now(timezone.utc)
-
-            # Decrease stock for all order items now that payment is confirmed
-            if order:
-                from app.services import inventory_service
-                from app.models.inventory import StockMovementType
-
-                for oi in order.items:
-                    if oi.product_variant_id:
-                        await inventory_service.decrease_stock_for_sale(
-                            db, oi.product_variant_id, oi.quantity,
-                            order.customer_id,
-                            StockMovementType.SALE, order.id,
-                        )
-
-            # Create notification for customer
-            if order:
-                notif = Notification(
-                    user_id=order.customer_id,
-                    title="Оплата подтверждена",
-                    message=f"Ваш платёж по заказу #{order.order_number} на сумму {payment.amount:,.0f} сум подтверждён. Заказ передан на комплектацию.",
-                    type="order",
-                    link=f"/account/orders/{order.id}",
-                )
-                db.add(notif)
-
-            await db.commit()
-
-            # Answer callback
-            await answer_callback_query(callback_id, "✅ To'lov tasdiqlandi!")
-
-            # Edit original button message (text message, not photo)
-            if message_id and chat_id:
-                await _send_request("editMessageText", {
-                    "chat_id": chat_id,
-                    "message_id": message_id,
-                    "text": (
-                        f"✅ <b>TO'LOV TASDIQLANDI</b>\n\n"
-                        f"🛒 Buyurtma: <b>#{order.order_number if order else 'N/A'}</b>\n"
-                        f"💰 Summa: <b>{payment.amount:,.0f} so'm</b>\n"
-                        f"👨‍💼 Tasdiqlagan: {admin_name}\n"
-                        f"🕐 {datetime.now(timezone.utc).strftime('%d.%m.%Y %H:%M')}"
-                    ),
-                    "parse_mode": "HTML",
-                })
-
-            # Notify channel for delivery (with product images)
-            if order:
-                items_text = ""
-                for item in order.items:
-                    color_info = f" ({item.color_name})" if item.color_name else ""
-                    items_text += f"  • {item.product_name}{color_info} × {item.quantity}\n"
-
-                address = f"{order.delivery_city or ''}, {order.delivery_address or ''}".strip(", ")
-
-                base_url = settings.BACKEND_BASE_URL.rstrip("/") if settings.BACKEND_BASE_URL else ""
-                product_image_urls = []
-                seen_products = set()
-                for item in order.items:
-                    if item.product_variant_id and item.product_variant_id not in seen_products:
-                        seen_products.add(item.product_variant_id)
-                        from app.models.product import ProductVariant
-                        var_result = await db.execute(
-                            select(ProductVariant).where(ProductVariant.id == item.product_variant_id)
-                        )
-                        variant = var_result.scalar_one_or_none()
-                        if variant:
-                            img_result = await db.execute(
-                                select(ProductImage)
-                                .where(ProductImage.product_id == variant.product_id, ProductImage.is_primary == True)
-                            )
-                            img = img_result.scalar_one_or_none()
-                            if img and img.file_path:
-                                url = img.file_path
-                                if url.startswith("/") and base_url:
-                                    url = base_url + url
-                                if url.startswith("http"):
-                                    product_image_urls.append(url)
-
-                await notify_payment_approved(
-                    order_number=order.order_number,
-                    customer_name=f"{order.customer_first_name} {order.customer_last_name}",
-                    customer_phone=order.customer_phone,
-                    amount=f"{order.total:,.0f}",
-                    address=address,
-                    items_text=items_text,
-                    approved_by=admin_name,
-                    product_image_urls=product_image_urls,
-                )
-
-        except Exception as e:
-            logger.error(f"Error approving payment: {e}")
-            await db.rollback()
-            await answer_callback_query(callback_id, f"❌ Ошибка: {str(e)[:100]}")
-
-
-async def _handle_rejection_reason(message: dict):
-    """Process the rejection reason text from admin."""
-    from_user = message.get("from", {})
+async def _handle_rejection_reason(message: dict, background: BackgroundTasks):
+    from_user = message.get("from", {}) or {}
     admin_id = from_user.get("id")
-    admin_name = f"{from_user.get('first_name', '')} {from_user.get('last_name', '')}".strip()
-    reason = message.get("text", "Без комментария")
+    if not is_admin(admin_id):
+        return
+    admin_name = f"{from_user.get('first_name', '')} {from_user.get('last_name', '')}".strip() or "Admin"
+    reason = (message.get("text") or "").strip()[:1000] or "Izohsiz"
     chat_id = str(message.get("chat", {}).get("id", ""))
 
-    # Admin check bypassed - if they can reply to the bot's force_reply, they are authorized
-    
-    payment_id = pending_rejections.pop(admin_id, None)
+    raw = await _pop_pending(int(admin_id))
+    payment_id = _parse_payment_id(raw) if raw else None
     if not payment_id:
         return
 
     async with AsyncSessionLocal() as db:
         try:
-            from uuid import UUID
-            pid = UUID(payment_id)
-
-            result = await db.execute(select(Payment).where(Payment.id == pid))
-            payment = result.scalar_one_or_none()
+            payment = (await db.execute(select(Payment).where(Payment.id == payment_id))).scalar_one_or_none()
             if not payment:
                 return
-
-            # Update payment
-            payment.status = TransactionStatus.FAILED
-            payment.rejection_reason = reason
-            payment.verified_at = datetime.now(timezone.utc)
-
-            # Update order
-            order_result = await db.execute(
-                select(Order).where(Order.id == payment.order_id)
+            order = await payment_flow.lock_order(db, payment.order_id)
+            if not order:
+                return
+            changed = await payment_flow.apply_rejected(
+                db, order, reason=reason, by_user_id=None, by_name=admin_name, source="telegram",
             )
-            order = order_result.scalar_one_or_none()
-            if order:
-                order.payment_status = PaymentStatus.FAILED
-
-                notif = Notification(
-                    user_id=order.customer_id,
-                    title="Оплата отклонена",
-                    message=f"Платёж по заказу #{order.order_number} отклонён. Причина: {reason}",
-                    type="order",
-                    link=f"/account/orders/{order.id}",
-                )
-                db.add(notif)
-
+            if not changed:
+                await send_telegram_message("ℹ️ Bu to'lov allaqachon tasdiqlangan — rad etib bo'lmaydi.", chat_id=chat_id)
+                return
+            message_ids = payment_flow.admin_message_ids(order)
+            order_number = order.order_number
+            customer_name = f"{order.customer_first_name} {order.customer_last_name}"
+            amount = f"{order.total:,.0f}"
             await db.commit()
-
-            # Confirm to admin
-            from app.services.telegram_service import send_telegram_message
             await send_telegram_message(
-                f"❌ <b>Оплата отклонена</b>\n\n"
-                f"🛒 Заказ: <b>#{order.order_number if order else 'N/A'}</b>\n"
-                f"📝 Причина: {reason}\n"
-                f"👨‍💼 Отклонил: {admin_name}",
+                f"❌ <b>To'lov rad etildi</b>\n\n"
+                f"🛒 Buyurtma: <b>#{esc(order_number)}</b>\n"
+                f"📝 Sabab: {esc(reason)}",
                 chat_id=chat_id,
             )
-
-            # Notify other admins
-            if order:
-                await notify_payment_rejected_to_admins(
-                    order_number=order.order_number,
-                    customer_name=f"{order.customer_first_name} {order.customer_last_name}",
-                    amount=f"{order.total:,.0f}",
-                    reason=reason,
-                    rejected_by=admin_name,
-                )
-
-            # Edit the original button message for all admins
-            if payment.telegram_message_id:
-                for aid in settings.TELEGRAM_ADMIN_IDS:
-                    await _send_request("editMessageText", {
-                        "chat_id": str(aid),
-                        "message_id": payment.telegram_message_id,
-                        "text": (
-                            f"❌ <b>ОПЛАТА ОТКЛОНЕНА</b>\n\n"
-                            f"🛒 Заказ: <b>#{order.order_number if order else 'N/A'}</b>\n"
-                            f"💰 Сумма: <b>{payment.amount:,.0f} сум</b>\n"
-                            f"📝 Причина: {reason}\n"
-                            f"👨‍💼 Отклонил: {admin_name}"
-                        ),
-                        "parse_mode": "HTML",
-                    })
-
-        except Exception as e:
-            logger.error(f"Error rejecting payment: {e}")
+            background.add_task(
+                payment_flow.after_rejected, order_number, customer_name, amount, reason,
+                admin_name, message_ids,
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("Rejecting payment failed")
             await db.rollback()
+

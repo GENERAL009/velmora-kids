@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.deps import get_db, RoleChecker
 from app.models.user import User, UserRole
 from app.core.config import settings as app_settings
+from app.utils.uploads import IMAGE_TYPES, LOGO_TYPES, VIDEO_TYPES, save_upload
 
 router = APIRouter(prefix="/settings", tags=["Site Settings"])
 
@@ -43,9 +44,9 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "logo_favicon": "",
     "promo_banner_title": "Сезонная распродажа",
     "promo_banner_subtitle": "Скидки до 50% на избранные коллекции",
-    "footer_about": "Velmora Kids — премиальный магазин детской одежды в Узбекистане.",
-    "meta_title": "Velmora Kids — Детская одежда премиум класса",
-    "meta_description": "Интернет-магазин премиальной детской одежды. Доставка по всему Узбекистану.",
+    "footer_about": "Velmora Kids — магазин детских колясок, велосипедов, самокатов и электромобилей в Узбекистане.",
+    "meta_title": "Velmora Kids — коляски, велосипеды, самокаты и электромобили для детей",
+    "meta_description": "Интернет-магазин детского транспорта: коляски, велосипеды, беговелы, самокаты и детские электромобили. Доставка по всему Узбекистану.",
     "payment_card_number": "",
     "payment_card_holder": "",
     "payment_card_bank": "Uzcard",
@@ -105,7 +106,9 @@ class SiteSettingsUpdate(BaseModel):
 
 @router.get("/site")
 async def get_site_settings():
-    return _read_settings()
+    data = _read_settings()
+    data["delivery_fee_courier"] = app_settings.DELIVERY_FEE_COURIER
+    return data
 
 
 @router.put("/site")
@@ -120,8 +123,6 @@ async def update_site_settings(
     return current
 
 
-ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/svg+xml", "image/x-icon", "image/gif"}
-ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm"}
 UPLOAD_FIELDS = {
     "hero_video_url", "hero_video_url_dark",
     "hero_video_poster", "hero_video_poster_dark",
@@ -129,8 +130,6 @@ UPLOAD_FIELDS = {
     "hero_boys_image_light", "hero_boys_image_dark",
     "logo_header", "logo_footer", "logo_favicon",
 }
-MAX_VIDEO_SIZE = 100 * 1024 * 1024  # 100MB
-MAX_IMAGE_SIZE = 10 * 1024 * 1024   # 10MB
 
 
 @router.post("/upload")
@@ -143,29 +142,16 @@ async def upload_setting_file(
         raise HTTPException(400, f"Invalid field: {field}. Allowed: {', '.join(sorted(UPLOAD_FIELDS))}")
 
     is_video = field in ("hero_video_url", "hero_video_url_dark")
-    allowed = ALLOWED_VIDEO_TYPES if is_video else ALLOWED_IMAGE_TYPES
-    max_size = MAX_VIDEO_SIZE if is_video else MAX_IMAGE_SIZE
+    if is_video:
+        allowed, max_mb = VIDEO_TYPES, 100
+    elif field.startswith("logo_"):
+        allowed, max_mb = LOGO_TYPES, 10
+    else:
+        allowed, max_mb = IMAGE_TYPES, 10
 
-    if file.content_type not in allowed:
-        raise HTTPException(400, f"Unsupported file type: {file.content_type}")
-
-    content = await file.read()
-    if len(content) > max_size:
-        raise HTTPException(400, f"File too large. Max: {max_size // (1024*1024)}MB")
+    _, file_url = await save_upload(file, "settings", allowed, max_mb=max_mb, name_prefix=field)
 
     try:
-        ext = Path(file.filename).suffix.lower() if file.filename else (".mp4" if is_video else ".jpg")
-        upload_dir = Path(app_settings.UPLOAD_DIR) / "settings"
-        upload_dir.mkdir(parents=True, exist_ok=True)
-
-        filename = f"{field}_{uuid.uuid4().hex[:8]}{ext}"
-        file_path = upload_dir / filename
-
-        with open(file_path, "wb") as f:
-            f.write(content)
-
-        file_url = f"/uploads/settings/{filename}"
-
         current = _read_settings()
         old_url = current.get(field, "")
         if old_url and old_url.startswith("/uploads/settings/"):

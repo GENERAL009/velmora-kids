@@ -42,10 +42,13 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_GROUP_ID: str = ""
     TELEGRAM_ADMIN_IDS: list[int] = [1566454370, 1519994286]
+    # Secret for Telegram webhook requests (X-Telegram-Bot-Api-Secret-Token).
+    # If empty, it is derived from TELEGRAM_BOT_TOKEN, so no extra config is required.
+    TELEGRAM_WEBHOOK_SECRET: str = ""
 
-    # Super Admin (auto-created on startup)
+    # Super Admin (auto-created on startup only if ADMIN_PASSWORD is set in .env)
     ADMIN_EMAIL: str = "abdulloh@velmora.uz"
-    ADMIN_PASSWORD: str = "a20662006b"
+    ADMIN_PASSWORD: str = ""
     ADMIN_FIRST_NAME: str = "Abdulloh"
     ADMIN_LAST_NAME: str = "Admin"
     ADMIN_PHONE: str = "+998900000001"
@@ -63,6 +66,25 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:8000",
     ]
+
+    # Delivery
+    DELIVERY_FEE_COURIER: int = 30000
+
+    # Upload limits
+    MAX_RECEIPT_SIZE_MB: int = 10
+
+    @property
+    def telegram_webhook_secret(self) -> str:
+        if self.TELEGRAM_WEBHOOK_SECRET:
+            return self.TELEGRAM_WEBHOOK_SECRET
+        if not self.TELEGRAM_BOT_TOKEN:
+            return ""
+        import hashlib
+        return hashlib.sha256(f"velmora-webhook:{self.TELEGRAM_BOT_TOKEN}".encode()).hexdigest()
+
+    @property
+    def uses_default_secret_key(self) -> bool:
+        return self.SECRET_KEY.startswith("change-me")
 
     @property
     def async_database_url(self) -> str:

@@ -43,3 +43,6 @@ coverage/
 
 # Alembic
 alembic/versions/*.pyc
+
+# Test database created by pytest
+test.db

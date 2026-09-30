@@ -390,7 +390,7 @@ export default function UsersPage() {
           className="flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600"
         >
           <UserPlus className="h-4 w-4" />
-          Xodim qo'shish
+          {"Xodim qo'shish"}
         </button>
       </div>
 
@@ -541,7 +541,7 @@ export default function UsersPage() {
           <div className="w-full max-w-md bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-elevated">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Xodim qo'shish
+                {"Xodim qo'shish"}
               </h2>
               <button
                 onClick={() => {
@@ -644,10 +644,10 @@ export default function UsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-sm bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-elevated">
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-              Xodimni o'chirish
+              {"Xodimni o'chirish"}
             </h2>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-              Foydalanuvchini o'chirmoqchimisiz?{" "}
+              {"Foydalanuvchini o'chirmoqchimisiz?"}{" "}
               <strong>
                 {deletingUser.first_name} {deletingUser.last_name}
               </strong>

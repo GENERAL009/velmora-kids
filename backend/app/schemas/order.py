@@ -6,19 +6,22 @@ from typing import Optional
 
 class OrderItemCreate(BaseModel):
     product_variant_id: UUID
-    quantity: int = Field(ge=1)
+    quantity: int = Field(ge=1, le=100)
 
 
 class OrderCreate(BaseModel):
-    customer_first_name: str
-    customer_last_name: str
-    customer_phone: str
+    customer_first_name: str = Field(min_length=1, max_length=100)
+    customer_last_name: str = Field(min_length=1, max_length=100)
+    customer_phone: str = Field(min_length=5, max_length=20)
     delivery_method: Optional[str] = None
     delivery_city: Optional[str] = None
     delivery_address: Optional[str] = None
+    delivery_lat: Optional[float] = Field(None, ge=-90, le=90)
+    delivery_lon: Optional[float] = Field(None, ge=-180, le=180)
     payment_method: str
-    comment: Optional[str] = None
-    items: list[OrderItemCreate]
+    promo_code: Optional[str] = Field(None, max_length=50)
+    comment: Optional[str] = Field(None, max_length=2000)
+    items: list[OrderItemCreate] = Field(min_length=1, max_length=100)
 
 
 class OrderItemResponse(BaseModel):
@@ -51,10 +54,13 @@ class OrderResponse(BaseModel):
     delivery_method: Optional[str] = None
     delivery_city: Optional[str] = None
     delivery_address: Optional[str] = None
+    delivery_lat: Optional[float] = None
+    delivery_lon: Optional[float] = None
     customer_first_name: str
     customer_last_name: str
     customer_phone: str
     comment: Optional[str] = None
+    notes: Optional[str] = None
     items: list[OrderItemResponse]
     created_at: datetime
     paid_at: Optional[datetime] = None

@@ -14,9 +14,15 @@ async def test_register_customer(client: AsyncClient):
         "phone": "+998900000099",
     })
     assert response.status_code == 201
-    data = response.json()
+    tokens = response.json()
+    assert tokens["access_token"] and tokens["refresh_token"]
+
+    me = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {tokens['access_token']}"})
+    assert me.status_code == 200
+    data = me.json()
     assert data["email"] == "newuser@test.com"
     assert data["first_name"] == "New"
+    assert data["role"] == "customer"
     assert "hashed_password" not in data
 
 
@@ -24,7 +30,7 @@ async def test_register_customer(client: AsyncClient):
 async def test_register_duplicate_email(client: AsyncClient, customer_user):
     response = await client.post("/api/v1/auth/register", json={
         "email": "customer@test.com",
-        "password": "pass123",
+        "password": "pass12345",
         "first_name": "Dup",
         "last_name": "User",
     })

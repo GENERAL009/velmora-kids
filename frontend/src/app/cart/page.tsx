@@ -36,12 +36,17 @@ export default function CartPage() {
   const deliveryFee = subtotal > 500000 ? 0 : 30000;
   const total = subtotal - discount + deliveryFee;
 
-  const handleApplyPromo = () => {
+  const [promoLoading, setPromoLoading] = useState(false);
+  const handleApplyPromo = async () => {
     setPromoError("");
-    if (applyPromo(promoInput)) {
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    const result = await applyPromo(promoInput);
+    setPromoLoading(false);
+    if (result.ok) {
       setPromoInput("");
-    } else if (promoInput.trim()) {
-      setPromoError(t.cart.promoInvalid);
+    } else {
+      setPromoError(result.message || t.cart.promoInvalid);
     }
   };
 
@@ -269,7 +274,7 @@ export default function CartPage() {
                       variant="outline"
                       size="sm"
                       onClick={handleApplyPromo}
-                      disabled={!!storePromo}
+                      disabled={!!storePromo || promoLoading}
                     >
                       {t.cart.apply}
                     </Button>

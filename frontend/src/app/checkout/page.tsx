@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
-import { ShoppingBag, CreditCard, Copy, UploadCloud, CheckCircle2 } from "lucide-react";
+import { ShoppingBag, Copy, UploadCloud, CheckCircle2 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ interface SiteSettings {
   payment_card_number?: string;
   payment_card_holder?: string;
   payment_card_bank?: string;
+  delivery_fee_courier?: number;
   [key: string]: unknown;
 }
 
@@ -58,6 +59,7 @@ export default function CheckoutPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isNavigating = useRef(false);
 
@@ -120,7 +122,8 @@ export default function CheckoutPage() {
   const { getDiscount, promoCode: storePromo } = useCartStore();
   const subtotal = getTotal();
   const discount = getDiscount();
-  const deliveryFee = deliveryMethod === "courier" ? 30000 : 0;
+  const courierFee = Number(settings?.delivery_fee_courier ?? 30000);
+  const deliveryFee = deliveryMethod === "courier" ? courierFee : 0;
   const total = subtotal - discount + deliveryFee;
 
   const [errorMessage, setErrorMessage] = useState("");
@@ -144,6 +147,9 @@ export default function CheckoutPage() {
         delivery_city: formData.city,
         delivery_address: formData.address,
         payment_method: formData.payment_method,
+        promo_code: storePromo || undefined,
+        delivery_lat: formData.delivery_method === "courier" ? coords?.lat : undefined,
+        delivery_lon: formData.delivery_method === "courier" ? coords?.lon : undefined,
         comment: formData.comment || undefined,
         items: items.map((item) => ({
           product_variant_id: item.variant.id,
@@ -285,11 +291,11 @@ export default function CheckoutPage() {
                         Локация на карте
                       </label>
                       <LocationPicker 
-                        initialAddress={user?.address || ""}
                         onAddressChange={(address, city) => {
                           setValue("address", address, { shouldValidate: true });
                           setValue("city", city, { shouldValidate: true });
-                        }} 
+                        }}
+                        onLocationChange={(lat, lon) => setCoords({ lat, lon })}
                       />
                     </div>
 

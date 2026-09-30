@@ -187,6 +187,7 @@ class ProductVariantCreate(BaseModel):
     barcode: Optional[str] = Field(None, max_length=100)
     additional_price: Decimal = Decimal("0.00")
     is_active: bool = True
+    initial_stock: int = Field(0, ge=0, le=100000)
 
 
 class ProductVariantUpdate(BaseModel):
@@ -215,6 +216,7 @@ class ProductVariantResponse(BaseModel):
 
 class ProductCreate(BaseModel):
     name: str = Field(..., max_length=300)
+    initial_stock: int = Field(0, ge=0, le=100000)
     name_uz: Optional[str] = Field(None, max_length=300)
     name_ru: Optional[str] = Field(None, max_length=300)
     name_en: Optional[str] = Field(None, max_length=300)
@@ -296,7 +298,8 @@ class ProductUpdate(BaseModel):
     is_new: Optional[bool] = None
 
 
-class ProductResponse(BaseModel):
+class ProductPublicResponse(BaseModel):
+    """Storefront view — no purchase (cost) price."""
     id: uuid.UUID
     name: str
     name_uz: Optional[str] = None
@@ -326,7 +329,6 @@ class ProductResponse(BaseModel):
     has_remote_control: bool = False
     has_lights: bool = False
     has_music: bool = False
-    purchase_price: Decimal
     selling_price: Decimal
     discount_percent: int
     discount_price: Optional[Decimal] = None
@@ -346,6 +348,11 @@ class ProductResponse(BaseModel):
     images: list[ProductImageResponse] = []
 
     model_config = {"from_attributes": True}
+
+
+class ProductResponse(ProductPublicResponse):
+    """Admin view — includes purchase price."""
+    purchase_price: Decimal
 
 
 class ProductList(BaseModel):

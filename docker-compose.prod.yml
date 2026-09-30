@@ -82,6 +82,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_YANDEX_API_KEY: ${NEXT_PUBLIC_YANDEX_API_KEY:-}
     container_name: velmora_frontend
     restart: always
     environment:

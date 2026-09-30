@@ -1,10 +1,11 @@
 from typing import Annotated
 from uuid import UUID
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import Request, APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from app.core.ratelimit import rate_limit
 from app.api.v1.deps import get_current_active_user, get_db, RoleChecker
 from app.models.user import User, UserRole
 from app.models.content import ProductQuestion
@@ -34,8 +35,10 @@ async def list_questions(
 @router.post("/questions", status_code=201, response_model=ProductQuestionDetailResponse)
 async def ask_question(
     data: ProductQuestionCreate,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
+    await rate_limit(request, "question", limit=5, window=300)
     question = ProductQuestion(
         product_id=data.product_id,
         customer_name=data.customer_name,

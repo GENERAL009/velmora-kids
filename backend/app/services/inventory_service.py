@@ -1,3 +1,4 @@
+import logging
 import math
 import uuid
 from datetime import datetime, timezone
@@ -9,6 +10,8 @@ from fastapi import HTTPException, status
 
 from app.models.inventory import StockLog, StockMovementType
 from app.models.product import Product, ProductVariant
+
+logger = logging.getLogger(__name__)
 
 
 async def get_stock_list(db: AsyncSession, filters) -> dict:
@@ -55,7 +58,22 @@ async def get_stock_list(db: AsyncSession, filters) -> dict:
     }
 
 
-async def add_stock(db: AsyncSession, variant_id: uuid.UUID, quantity: int, note: str | None, user_id: uuid.UUID) -> ProductVariant:
+async def _invalidate_product_cache() -> None:
+    from app.core.cache import cache_delete_pattern
+    await cache_delete_pattern("products:*")
+
+
+async def add_stock(
+    db: AsyncSession,
+    variant_id: uuid.UUID,
+    quantity: int,
+    note: str | None,
+    user_id: uuid.UUID,
+    movement_type: StockMovementType = StockMovementType.INCOMING,
+    reference_id: uuid.UUID | None = None,
+) -> ProductVariant:
+    if quantity <= 0:
+        raise HTTPException(status_code=400, detail="Miqdor musbat bo'lishi kerak")
     result = await db.execute(
         select(ProductVariant).where(ProductVariant.id == variant_id).with_for_update()
     )
@@ -68,16 +86,18 @@ async def add_stock(db: AsyncSession, variant_id: uuid.UUID, quantity: int, note
 
     log = StockLog(
         product_variant_id=variant_id,
-        movement_type=StockMovementType.INCOMING,
+        movement_type=movement_type,
         quantity=quantity,
         stock_before=before,
         stock_after=variant.stock,
+        reference_id=reference_id,
         note=note,
         created_by=user_id,
     )
     db.add(log)
     await db.flush()
     await db.refresh(variant)
+    await _invalidate_product_cache()
     return variant
 
 
@@ -105,6 +125,7 @@ async def adjust_stock(db: AsyncSession, variant_id: uuid.UUID, new_quantity: in
     db.add(log)
     await db.flush()
     await db.refresh(variant)
+    await _invalidate_product_cache()
     return variant
 
 
@@ -137,6 +158,7 @@ async def decrease_stock_for_sale(
     )
     db.add(log)
     await db.flush()
+    await _invalidate_product_cache()
 
 
 async def get_stock_logs(db: AsyncSession, variant_id: uuid.UUID) -> list:

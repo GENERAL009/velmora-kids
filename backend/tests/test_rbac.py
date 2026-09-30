@@ -14,7 +14,7 @@ async def test_seller_cannot_access_users(client: AsyncClient, seller_token):
 @pytest.mark.asyncio
 async def test_call_center_cannot_access_warehouse(client: AsyncClient, call_center_token):
     response = await client.get(
-        "/api/v1/warehouses",
+        "/api/v1/inventory",
         headers={"Authorization": f"Bearer {call_center_token}"},
     )
     assert response.status_code == 403

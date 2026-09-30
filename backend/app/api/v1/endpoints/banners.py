@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.deps import get_db, RoleChecker
 from app.core.cache import cache_get, cache_set, cache_delete_pattern
 from app.core.config import settings
+from app.utils.uploads import IMAGE_TYPES, save_upload
 from app.models.content import Banner
 from app.models.user import User, UserRole
 from app.schemas.content import BannerCreate, BannerResponse
@@ -62,21 +63,8 @@ async def upload_banner_image(
     current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
     file: UploadFile = File(...),
 ):
-    allowed = {"image/jpeg", "image/png", "image/webp", "image/avif"}
-    if file.content_type not in allowed:
-        raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP, AVIF images allowed")
-
-    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
-    filename = f"{uuid_mod.uuid4().hex}.{ext}"
-    banner_dir = os.path.join(settings.UPLOAD_DIR, "banners")
-    os.makedirs(banner_dir, exist_ok=True)
-
-    filepath = os.path.join(banner_dir, filename)
-    content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
-
-    return {"url": f"/uploads/banners/{filename}"}
+    _, url = await save_upload(file, "banners", IMAGE_TYPES, max_mb=10)
+    return {"url": url}
 
 
 @router.put("/{banner_id}", response_model=BannerResponse)

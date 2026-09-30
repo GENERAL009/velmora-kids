@@ -15,7 +15,8 @@ export const ru = {
   // Hero section
   hero: {
     title: "Velmora Kids",
-    subtitle: "Для кого подбираем стиль сегодня?",
+    subtitle: "Для кого выбираем покупку?",
+    description: "Подберём для вас лучшие товары.",
     forGirls: "Для девочек",
     forBoys: "Для мальчиков",
     changeChoice: "← Изменить выбор",

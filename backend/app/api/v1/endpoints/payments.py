@@ -24,22 +24,21 @@ async def initiate_payment(
         raise HTTPException(status_code=404, detail="Order not found")
     if order.customer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your order")
-    provider_name = payment_method if payment_method in ("payme", "click", "cash") else order.payment_method.value
+    provider_name = payment_method if payment_method in ("cash", "card_transfer") else order.payment_method.value
     return await payment_service.initiate_payment(db, order_id, provider_name)
 
 
+# NOTE: Payme (JSON-RPC Merchant API) and Click (prepare/complete) are not implemented yet.
+# The old handlers accepted payloads that real providers never send and could not safely
+# mark orders as paid, so they are disabled until a proper integration is written.
 @router.post("/payme/callback")
-async def payme_callback(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
-    data = await request.json()
-    auth = request.headers.get("Authorization", "")
-    data["_auth_header"] = auth
-    return await payment_service.handle_callback(db, "payme", data)
+async def payme_callback():
+    raise HTTPException(status_code=501, detail="Payme integratsiyasi hali ulanmagan")
 
 
 @router.post("/click/callback")
-async def click_callback(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
-    data = await request.json()
-    return await payment_service.handle_callback(db, "click", data)
+async def click_callback():
+    raise HTTPException(status_code=501, detail="Click integratsiyasi hali ulanmagan")
 
 
 @router.get("", response_model=list[PaymentResponse])
@@ -77,10 +76,14 @@ async def upload_receipt(
     if order.customer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your order")
 
+    if order.payment_status.value == "paid":
+        raise HTTPException(status_code=400, detail="Bu buyurtma allaqachon to'langan")
+    if order.status.value in ("cancelled", "returned"):
+        raise HTTPException(status_code=400, detail="Buyurtma bekor qilingan")
+
     # Find the payment for card_transfer
     payment = next((p for p in order.payments if p.provider.value == "card_transfer"), None)
     if not payment:
-        # Create one if not exists
         from app.models.order import TransactionStatus, PaymentProvider
         payment = Payment(
             order_id=order.id,
@@ -91,21 +94,20 @@ async def upload_receipt(
         db.add(payment)
         await db.flush()
 
-    # Save file
-    ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
-    filename = f"{order.id}_{int(time.time())}.{ext}"
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-    file_path = os.path.join(settings.UPLOAD_DIR, filename)
-    
-    # In production with async, it's better to use aiofiles, but for simplicity here:
-    content = await file.read()
-    with open(file_path, "wb") as f:
-        f.write(content)
+    # Validate + save file (type/size/content checked; extension never taken from the user)
+    from app.utils.uploads import RECEIPT_TYPES, save_upload
+    file_path, receipt_url = await save_upload(
+        file, "receipts", RECEIPT_TYPES, max_mb=settings.MAX_RECEIPT_SIZE_MB, name_prefix=str(order.id),
+    )
 
     # Update payment record
-    payment.receipt_image = f"/uploads/{filename}"
+    from app.models.order import TransactionStatus as _TS, PaymentStatus as _PS
+    payment.receipt_image = receipt_url
     payment.receipt_uploaded_at = datetime.now(timezone.utc)
-    payment.status = "pending"  # Reset status if it was failed before
+    payment.status = _TS.PENDING  # Reset status if it was failed before
+    payment.rejection_reason = None
+    if order.payment_status == _PS.FAILED:
+        order.payment_status = _PS.PENDING
     await db.commit()
 
     # Send to Telegram admins with product images + receipt

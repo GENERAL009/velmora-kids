@@ -102,6 +102,7 @@ interface VariantForm {
   sku: string;
   barcode: string;
   additional_price: number;
+  initial_stock: number;
   is_active: boolean;
 }
 
@@ -111,6 +112,7 @@ const EMPTY_VARIANT = (): VariantForm => ({
   sku: "",
   barcode: "",
   additional_price: 0,
+  initial_stock: 0,
   is_active: true,
 });
 
@@ -272,8 +274,11 @@ export default function NewProductPage() {
           sku: v.sku,
           barcode: v.barcode || undefined,
           additional_price: Number(v.additional_price) || 0,
+          initial_stock: Math.max(0, Math.floor(Number(v.initial_stock) || 0)),
           is_active: v.is_active,
         })),
+      // Used when no colour variant is filled in (a default variant is created)
+      initial_stock: Math.max(0, Math.floor(Number(variants[0]?.initial_stock) || 0)),
     };
 
     createMutation.mutate(payload);
@@ -748,6 +753,21 @@ export default function NewProductPage() {
                             variant._key,
                             "additional_price",
                             Number(e.target.value) || 0
+                          )
+                        }
+                        className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
+                      />
+                      <input
+                        type="number"
+                        min={0}
+                        placeholder="Omborda (dona)"
+                        title="Boshlang'ich qoldiq — ombor tarixiga yoziladi"
+                        value={variant.initial_stock || ""}
+                        onChange={(e) =>
+                          updateVariant(
+                            variant._key,
+                            "initial_stock",
+                            Math.max(0, Number(e.target.value) || 0)
                           )
                         }
                         className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"

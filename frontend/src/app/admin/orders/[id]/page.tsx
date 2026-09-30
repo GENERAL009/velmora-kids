@@ -459,6 +459,26 @@ export default function OrderDetailPage() {
                   </p>
                 </div>
               )}
+              {order.delivery_lat != null && order.delivery_lon != null && (
+                <div>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Xaritadagi nuqta</p>
+                  <a
+                    href={`https://yandex.uz/maps/?pt=${order.delivery_lon},${order.delivery_lat}&z=17&l=map`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Yandex xaritada ochish
+                  </a>
+                </div>
+              )}
+              {order.notes && (
+                <div>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Izoh (tizim)</p>
+                  <p className="text-sm text-neutral-900 dark:text-white">{order.notes}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">Narx</p>
                 <p className="font-medium text-neutral-900 dark:text-white">

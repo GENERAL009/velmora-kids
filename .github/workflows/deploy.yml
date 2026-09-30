@@ -47,11 +47,15 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt aiosqlite
 
       - name: Check imports
         working-directory: backend
         run: python -c "from app.main import app; print('Backend imports OK')"
+
+      - name: Run tests
+        working-directory: backend
+        run: python -m pytest -q
 
   deploy:
     name: Deploy to Production
@@ -78,11 +82,13 @@ jobs:
 
             echo "=== Building & deploying ==="
             docker compose -f docker-compose.prod.yml --env-file .env build --parallel
-            docker compose -f docker-compose.prod.yml --env-file .env up -d
 
-            echo "=== Running migrations ==="
-            sleep 8
-            docker compose -f docker-compose.prod.yml exec -T backend sh -c "alembic upgrade head" || true
+            echo "=== Running migrations (deploy stops here if they fail) ==="
+            docker compose -f docker-compose.prod.yml --env-file .env up -d postgres redis
+            sleep 5
+            docker compose -f docker-compose.prod.yml --env-file .env run --rm --no-deps backend alembic upgrade head
+
+            docker compose -f docker-compose.prod.yml --env-file .env up -d
 
             echo "=== Restarting nginx ==="
             docker restart velmora_nginx

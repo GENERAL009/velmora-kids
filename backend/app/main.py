@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -7,6 +8,8 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.database import async_engine
 
+logger = logging.getLogger("velmora")
+
 
 async def ensure_superadmin():
     from sqlalchemy import select
@@ -15,6 +18,8 @@ async def ensure_superadmin():
     from app.models.user import User, UserRole
     from app.core.security import hash_password
 
+    if not settings.ADMIN_PASSWORD:
+        return
     try:
         async with AsyncSessionLocal() as db:
             result = await db.execute(select(User).where(User.email == settings.ADMIN_EMAIL))
@@ -32,14 +37,21 @@ async def ensure_superadmin():
             )
             db.add(admin)
             await db.commit()
-            print(f"Super admin created: {settings.ADMIN_EMAIL}")
-    except (IntegrityError, Exception):
+            logger.info("Super admin created: %s", settings.ADMIN_EMAIL)
+    except IntegrityError:
         pass
+    except Exception as e:  # noqa: BLE001
+        logger.error("ensure_superadmin failed: %s", e)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from app.services.telegram_service import verify_bot_and_setup_webhook
+    if settings.uses_default_secret_key and not settings.DEBUG:
+        logger.critical(
+            "SECRET_KEY is the default value! JWT tokens can be forged. "
+            "Set a long random SECRET_KEY in .env"
+        )
     await ensure_superadmin()
     await verify_bot_and_setup_webhook()
     yield
@@ -51,11 +63,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Velmora Kids API",
-    description="Premium Kids E-commerce + POS + CRM platform API",
+    description="Kids vehicles e-commerce + POS + CRM platform API",
     version="1.0.0",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.DEBUG else None,
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
     lifespan=lifespan,
 )
 

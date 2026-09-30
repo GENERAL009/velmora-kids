@@ -1,9 +1,11 @@
 from typing import Annotated
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import Request, APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
+from app.core.ratelimit import rate_limit
+from app.services import promotion_service
 from app.api.v1.deps import get_db, RoleChecker
 from app.models.user import User, UserRole
 from app.models.content import Promotion
@@ -42,15 +44,8 @@ async def create_promotion(
 @router.post("/validate-coupon", response_model=PromotionResponse)
 async def validate_coupon(
     data: CouponValidation,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    result = await db.execute(select(Promotion).where(Promotion.code == data.code, Promotion.is_active == True))
-    promo = result.scalar_one_or_none()
-    if not promo:
-        raise HTTPException(status_code=404, detail="Invalid coupon code")
-    now = datetime.now(timezone.utc)
-    if now < promo.start_date or now > promo.end_date:
-        raise HTTPException(status_code=400, detail="Coupon has expired")
-    if promo.usage_limit and promo.used_count >= promo.usage_limit:
-        raise HTTPException(status_code=400, detail="Coupon usage limit reached")
-    return promo
+    await rate_limit(request, "coupon", limit=20, window=60)
+    return await promotion_service.get_valid_promotion(db, data.code)

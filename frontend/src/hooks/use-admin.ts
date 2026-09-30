@@ -119,10 +119,13 @@ export interface AdminOrderDetail {
   delivery_method?: string;
   delivery_city?: string;
   delivery_address?: string;
+  delivery_lat?: number | null;
+  delivery_lon?: number | null;
   customer_first_name: string;
   customer_last_name: string;
   customer_phone: string;
   comment?: string;
+  notes?: string | null;
   items: {
     id: string;
     product_name: string;

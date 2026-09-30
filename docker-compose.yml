@@ -42,7 +42,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       SECRET_KEY: ${SECRET_KEY:-super-secret-key-change-in-production}
       CORS_ORIGINS: '["http://localhost:3000","http://localhost:80","http://localhost","https://corsage-spring-hybrid.ngrok-free.dev"]'
-      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN:-8821316184:AAHdJmz0HTvQhjeiDRcw93Q3wchcyxHK8UA}"
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN:-}"
       TELEGRAM_GROUP_ID: "${TELEGRAM_GROUP_ID:--1003937642808}"
       TELEGRAM_ADMIN_IDS: "${TELEGRAM_ADMIN_IDS:-[1566454370,1519994286,8257343094]}"
       BACKEND_BASE_URL: "${BACKEND_BASE_URL:-}"

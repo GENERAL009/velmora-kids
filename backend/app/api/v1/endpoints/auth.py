@@ -1,5 +1,3 @@
-import time
-from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Annotated
 
@@ -10,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_active_user, get_db
+from app.core.ratelimit import rate_limit
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -21,20 +20,6 @@ from app.models.user import User, UserRole
 from app.schemas.user import RefreshTokenRequest, Token, UserCreate, UserLogin, UserResponse, UserUpdate
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-_rate_limit_store: dict[str, list[float]] = defaultdict(list)
-RATE_LIMIT_WINDOW = 60
-RATE_LIMIT_MAX = 10
-
-
-def _check_rate_limit(request: Request) -> None:
-    ip = request.client.host if request.client else "unknown"
-    now = time.time()
-    _rate_limit_store[ip] = [t for t in _rate_limit_store[ip] if now - t < RATE_LIMIT_WINDOW]
-    if len(_rate_limit_store[ip]) >= RATE_LIMIT_MAX:
-        raise HTTPException(status_code=429, detail="Too many requests, try again later")
-    _rate_limit_store[ip].append(now)
-
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
@@ -51,7 +36,7 @@ async def register(
     user_in: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Token:
-    _check_rate_limit(request)
+    await rate_limit(request, "register", limit=10, window=60)
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == user_in.email))
     if result.scalar_one_or_none() is not None:
@@ -113,7 +98,7 @@ async def login(
     credentials: UserLogin,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Token:
-    _check_rate_limit(request)
+    await rate_limit(request, "login", limit=10, window=60)
     result = await db.execute(select(User).where(User.email == credentials.email))
     user = result.scalar_one_or_none()
 
@@ -151,7 +136,7 @@ async def refresh_token(
     token: RefreshTokenRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Token:
-    _check_rate_limit(request)
+    await rate_limit(request, "refresh", limit=10, window=60)
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired refresh token",
@@ -235,5 +220,5 @@ async def forgot_password(
     body: ForgotPasswordRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    _check_rate_limit(request)
+    await rate_limit(request, "forgot", limit=10, window=60)
     return {"message": "If an account with this email exists, a reset link has been sent"}

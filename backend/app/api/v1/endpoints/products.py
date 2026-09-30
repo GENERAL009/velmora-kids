@@ -9,13 +9,16 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.deps import get_current_active_user, get_db, RoleChecker
+from app.api.v1.deps import get_current_active_user, get_db, get_optional_user, RoleChecker
 from app.core.cache import cache_get, cache_set, cache_delete, cache_delete_pattern
 from app.core.config import settings
+from app.utils.uploads import IMAGE_TYPES, save_upload
+from app.utils.audit import log_audit
 from app.models.user import User, UserRole
-from app.models.product import Product, ProductImage
+from app.models.product import Product, ProductImage, ProductStatus
 from app.services import product_service
 from app.schemas.product import (
+    ProductPublicResponse,
     CategoryCreate, CategoryUpdate, CategoryResponse,
     BrandCreate, BrandUpdate, BrandResponse,
     ProductCreate, ProductResponse, PaginatedProducts, ProductList,
@@ -107,12 +110,19 @@ async def track_product_view(slug: str, db: Annotated[AsyncSession, Depends(get_
         raise HTTPException(status_code=404, detail="Product not found")
 
 
-@router.get("/products/{slug}", response_model=ProductResponse)
-async def get_product(slug: str, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.get("/products/{slug}", response_model=ProductResponse | ProductPublicResponse)
+async def get_product(
+    slug: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    viewer: Annotated[User | None, Depends(get_optional_user)] = None,
+):
     product = await product_service.get_product_by_slug(db, slug)
-    if not product:
+    is_staff = viewer is not None and viewer.role in (UserRole.SUPER_ADMIN, UserRole.DIRECTOR, UserRole.SELLER)
+    if not product or (not is_staff and product.status != ProductStatus.ACTIVE):
         raise HTTPException(status_code=404, detail="Product not found")
-    return product
+    if is_staff:
+        return ProductResponse.model_validate(product)
+    return ProductPublicResponse.model_validate(product)
 
 
 @router.post("/products", status_code=status.HTTP_201_CREATED, response_model=ProductResponse)
@@ -121,7 +131,7 @@ async def create_product(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
 ):
-    result = await product_service.create_product(db, data)
+    result = await product_service.create_product(db, data, current_user.id)
     await cache_delete_pattern("products:*")
     return result
 
@@ -165,6 +175,8 @@ async def delete_product(
             detail="Mahsulot buyurtmalarda ishlatilgan, o'chirib bo'lmaydi"
         )
     try:
+        await log_audit(db, current_user.id, "product_deleted", "product", str(product.id),
+                        old_value={"name": product.name, "sku": product.sku})
         await db.delete(product)
         await db.flush()
     except IntegrityError:
@@ -186,21 +198,7 @@ async def upload_product_image(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    allowed = {"image/jpeg", "image/png", "image/webp", "image/avif"}
-    if file.content_type not in allowed:
-        raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP, AVIF images allowed")
-
-    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
-    filename = f"{uuid_mod.uuid4().hex}.{ext}"
-    product_dir = os.path.join(settings.UPLOAD_DIR, "products", str(product_id))
-    os.makedirs(product_dir, exist_ok=True)
-
-    filepath = os.path.join(product_dir, filename)
-    content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
-
-    rel_path = f"/uploads/products/{product_id}/{filename}"
+    _, rel_path = await save_upload(file, f"products/{product_id}", IMAGE_TYPES, max_mb=10)
 
     if is_primary:
         from sqlalchemy import update as sql_update
@@ -306,21 +304,8 @@ async def upload_category_image(
     current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
     file: UploadFile = File(...),
 ):
-    allowed = {"image/jpeg", "image/png", "image/webp", "image/avif"}
-    if file.content_type not in allowed:
-        raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP, AVIF images allowed")
-
-    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
-    filename = f"{uuid_mod.uuid4().hex}.{ext}"
-    cat_dir = os.path.join(settings.UPLOAD_DIR, "categories")
-    os.makedirs(cat_dir, exist_ok=True)
-
-    filepath = os.path.join(cat_dir, filename)
-    content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
-
-    return {"url": f"/uploads/categories/{filename}"}
+    _, url = await save_upload(file, "categories", IMAGE_TYPES, max_mb=10)
+    return {"url": url}
 
 
 @router.put("/categories/{category_id}", response_model=CategoryResponse)

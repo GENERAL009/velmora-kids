@@ -151,7 +151,6 @@ function PremiumPaymentAnimation() {
           ].map((item) => {
             const isDone = item.step <= activeStep;
             const isCurrent = item.step === activeStep;
-            const IconComp = item.icon;
 
             return (
               <div 

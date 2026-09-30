@@ -70,6 +70,8 @@ async def get_products(db: AsyncSession, filters, user_id: UUID | None = None) -
         query = query.where(
             or_(
                 Product.name.ilike(search_term),
+                Product.name_uz.ilike(search_term),
+                Product.name_ru.ilike(search_term),
                 Product.sku.ilike(search_term),
                 Product.barcode.ilike(search_term),
             )
@@ -132,7 +134,7 @@ async def get_or_create_default_color(db: AsyncSession) -> Color:
     return color
 
 
-async def create_product(db: AsyncSession, data) -> Product:
+async def create_product(db: AsyncSession, data, user_id=None) -> Product:
     slug = data.slug or slugify(data.name)
     existing = await db.execute(select(Product).where(Product.slug == slug))
     if existing.scalar_one_or_none():
@@ -165,6 +167,7 @@ async def create_product(db: AsyncSession, data) -> Product:
     await db.flush()
 
     has_variants = hasattr(data, 'variants') and data.variants
+    initial: list[tuple[ProductVariant, int]] = []
     if has_variants:
         for v in data.variants:
             variant = ProductVariant(
@@ -173,9 +176,10 @@ async def create_product(db: AsyncSession, data) -> Product:
                 sku=v.sku or f"{sku}-{uuid_mod.uuid4().hex[:4].upper()}",
                 barcode=v.barcode,
                 additional_price=v.additional_price or 0,
-                stock=10,
+                stock=0,  # stock is added via Inventory (with a stock log)
             )
             db.add(variant)
+            initial.append((variant, getattr(v, "initial_stock", 0) or 0))
     else:
         default_color = await get_or_create_default_color(db)
         variant = ProductVariant(
@@ -183,12 +187,16 @@ async def create_product(db: AsyncSession, data) -> Product:
             color_id=default_color.id,
             sku=f"{sku}-STD",
             additional_price=0,
-            stock=10,
+            stock=0,  # stock is added via Inventory (with a stock log)
         )
         db.add(variant)
-
+        initial.append((variant, getattr(data, "initial_stock", 0) or 0))
     await db.flush()
-
+    if user_id is not None:
+        from app.services import inventory_service
+        for variant, qty in initial:
+            if qty > 0:
+                await inventory_service.add_stock(db, variant.id, qty, "Boshlang'ich qoldiq", user_id)
     result = await db.execute(
         select(Product).where(Product.id == product.id).options(
             selectinload(Product.brand),
@@ -242,7 +250,7 @@ async def update_product(db: AsyncSession, product_id: UUID, data) -> Product:
                     sku=v.sku or f"{product.sku}-{uuid_mod.uuid4().hex[:4].upper()}",
                     barcode=v.barcode,
                     additional_price=v.additional_price or 0,
-                    stock=10,
+                    stock=0,  # stock is added via Inventory (with a stock log)
                 )
                 db.add(variant)
 
@@ -312,6 +320,8 @@ async def search_products(db: AsyncSession, query_str: str, limit: int = 10) -> 
         Product.status == ProductStatus.ACTIVE,
         or_(
             Product.name.ilike(search_term),
+            Product.name_uz.ilike(search_term),
+            Product.name_ru.ilike(search_term),
             Product.sku.ilike(search_term),
             Product.barcode.ilike(search_term),
         )

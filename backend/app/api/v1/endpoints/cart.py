@@ -17,7 +17,6 @@ async def _get_or_create_cart(db: AsyncSession, user_id: UUID) -> Cart:
     result = await db.execute(
         select(Cart).where(Cart.user_id == user_id).options(
             selectinload(Cart.items).selectinload(CartItem.product_variant).selectinload(ProductVariant.product),
-            selectinload(Cart.items).selectinload(CartItem.product_variant).selectinload(ProductVariant.size),
             selectinload(Cart.items).selectinload(CartItem.product_variant).selectinload(ProductVariant.color),
         )
     )

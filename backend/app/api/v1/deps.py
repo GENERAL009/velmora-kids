@@ -7,24 +7,14 @@ from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import AsyncSessionLocal
+from app.core.database import get_db  # noqa: F401  (single shared dependency)
 from app.core.security import verify_token
 from app.models.user import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
-
-async def get_db() -> AsyncSession:  # type: ignore[misc]
-    """Yield an async database session."""
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+STAFF_ROLES = (UserRole.SUPER_ADMIN, UserRole.DIRECTOR, UserRole.SELLER, UserRole.CALL_CENTER)
 
 
 async def get_current_user(
@@ -64,6 +54,36 @@ async def get_current_active_user(
             detail="Inactive user account",
         )
     return current_user
+
+
+async def get_optional_user(
+    token: Annotated[str | None, Depends(optional_oauth2_scheme)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> User | None:
+    """Return the authenticated active user, or None for anonymous/invalid tokens."""
+    if not token:
+        return None
+    try:
+        payload = verify_token(token)
+        if payload.get("type") != "access" or not payload.get("sub"):
+            return None
+        user_id = uuid.UUID(payload["sub"])
+    except (JWTError, ValueError):
+        return None
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active:
+        return None
+    return user
+
+
+def client_ip(request) -> str:
+    """Real client IP behind nginx (X-Real-IP is set by our nginx config)."""
+    return (
+        request.headers.get("x-real-ip")
+        or (request.headers.get("x-forwarded-for", "").split(",")[0].strip())
+        or (request.client.host if request.client else "unknown")
+    )
 
 
 class RoleChecker:

@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { YMaps, Map, Placemark, GeolocationControl, SearchControl } from "@pbe/react-yandex-maps";
 import { MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LocationPickerProps {
   onAddressChange: (address: string, city: string) => void;
+  /** Called with the exact point the customer chose on the map */
+  onLocationChange?: (lat: number, lon: number) => void;
   initialAddress?: string;
 }
 
-export function LocationPicker({ onAddressChange, initialAddress }: LocationPickerProps) {
+export function LocationPicker({ onAddressChange, onLocationChange, initialAddress }: LocationPickerProps) {
   const [coordinates, setCoordinates] = useState<[number, number]>([41.311081, 69.240562]); // Default Tashkent
   const [address, setAddress] = useState(initialAddress || "");
   const [loading, setLoading] = useState(false);
@@ -36,10 +38,21 @@ export function LocationPicker({ onAddressChange, initialAddress }: LocationPick
     }
   };
 
-  const handleMapClick = (e: any) => {
-    const coords = e.get("coords");
+  const selectPoint = (coords: [number, number]) => {
     setCoordinates(coords);
+    onLocationChange?.(coords[0], coords[1]);
     reverseGeocode(coords[0], coords[1]);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleMapClick = (e: any) => {
+    selectPoint(e.get("coords") as [number, number]);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handlePlacemarkDrag = (e: any) => {
+    const coords = e.get("target")?.geometry?.getCoordinates?.();
+    if (coords) selectPoint(coords as [number, number]);
   };
 
   const detectLocation = () => {
@@ -48,8 +61,7 @@ export function LocationPicker({ onAddressChange, initialAddress }: LocationPick
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const coords: [number, number] = [position.coords.latitude, position.coords.longitude];
-          setCoordinates(coords);
-          reverseGeocode(coords[0], coords[1]);
+          selectPoint(coords);
         },
         (error) => {
           console.error("Location error:", error);
@@ -91,7 +103,11 @@ export function LocationPicker({ onAddressChange, initialAddress }: LocationPick
           >
             <GeolocationControl options={{ float: "right" }} />
             <SearchControl options={{ float: "left" }} />
-            <Placemark geometry={coordinates} />
+            <Placemark
+              geometry={coordinates}
+              options={{ draggable: true, preset: "islands#redDotIcon" }}
+              onDragEnd={handlePlacemarkDrag}
+            />
           </Map>
         </YMaps>
       </div>

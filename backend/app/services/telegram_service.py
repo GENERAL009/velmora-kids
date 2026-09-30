@@ -1,6 +1,8 @@
+import html
 import json
 import logging
 from datetime import datetime, timezone
+from decimal import Decimal
 
 import httpx
 
@@ -9,6 +11,21 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 TELEGRAM_API = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}"
+
+# Photos Telegram can't render as "photo" are sent as documents instead
+_DOCUMENT_EXTS = (".heic", ".heif", ".avif")
+
+
+def esc(value) -> str:
+    """Escape user-provided text for Telegram HTML parse mode."""
+    return html.escape("" if value is None else str(value), quote=False)
+
+
+def is_admin(telegram_user_id) -> bool:
+    try:
+        return int(telegram_user_id) in {int(a) for a in settings.TELEGRAM_ADMIN_IDS}
+    except (TypeError, ValueError):
+        return False
 
 
 async def verify_bot_and_setup_webhook() -> bool:
@@ -34,6 +51,7 @@ async def verify_bot_and_setup_webhook() -> bool:
         wh_result = await _send_request("setWebhook", {
             "url": webhook_url,
             "allowed_updates": ["callback_query", "message"],
+            "secret_token": settings.telegram_webhook_secret,
         })
         if wh_result and wh_result.get("ok"):
             logger.info(f"Telegram webhook registered: {webhook_url}")
@@ -116,8 +134,12 @@ async def send_photo_to_admins(
             data["reply_markup"] = json.dumps(reply_markup)
 
         try:
+            as_document = photo_path.lower().endswith(_DOCUMENT_EXTS)
             with open(photo_path, "rb") as f:
-                result = await _send_request("sendPhoto", data=data, files={"photo": f})
+                if as_document:
+                    result = await _send_request("sendDocument", data=data, files={"document": f})
+                else:
+                    result = await _send_request("sendPhoto", data=data, files={"photo": f})
                 if result:
                     results.append(result)
         except FileNotFoundError:
@@ -257,8 +279,8 @@ async def send_payment_verification_request(
         f"━━━━━━━━━━━━━━━━━━\n"
         f"\n"
         f"🛒 Buyurtma: <b>#{order_number}</b>\n"
-        f"👤 Xaridor: <b>{customer_name}</b>\n"
-        f"📞 Telefon: {customer_phone}\n"
+        f"👤 Xaridor: <b>{esc(customer_name)}</b>\n"
+        f"📞 Telefon: {esc(customer_phone)}\n"
         f"💰 Summa: <b>{amount} so'm</b>\n"
         f"\n"
         f"⏳ Tekshiruv kutilmoqda..."
@@ -289,7 +311,8 @@ async def send_payment_verification_request(
     product_urls = product_image_urls or []
     media_sent = False
 
-    if product_urls:
+    receipt_is_photo = not receipt_path.lower().endswith(_DOCUMENT_EXTS)
+    if product_urls and receipt_is_photo:
         media_results = await send_media_group_to_admins(
             photo_urls=product_urls,
             local_file_paths=[receipt_path],
@@ -349,6 +372,38 @@ async def send_force_reply(chat_id: str, text: str) -> dict | None:
     })
 
 
+async def send_location(
+    chat_id: str,
+    latitude: float | Decimal,
+    longitude: float | Decimal,
+    reply_to_message_id: int | None = None,
+) -> dict | None:
+    """Send a map pin (Telegram location) to a chat."""
+    data: dict = {
+        "chat_id": str(chat_id),
+        "latitude": float(latitude),
+        "longitude": float(longitude),
+    }
+    if reply_to_message_id:
+        data["reply_parameters"] = {"message_id": reply_to_message_id, "allow_sending_without_reply": True}
+    return await _send_request("sendLocation", data)
+
+
+def _first_message_id(result: dict | None) -> int | None:
+    if not result:
+        return None
+    res = result.get("result")
+    if isinstance(res, list) and res:
+        return res[0].get("message_id")
+    if isinstance(res, dict):
+        return res.get("message_id")
+    return None
+
+
+def yandex_maps_link(latitude, longitude) -> str:
+    return f"https://yandex.uz/maps/?pt={float(longitude)},{float(latitude)}&z=17&l=map"
+
+
 async def notify_payment_approved(
     order_number: str,
     customer_name: str,
@@ -358,62 +413,89 @@ async def notify_payment_approved(
     items_text: str,
     approved_by: str,
     product_image_urls: list[str] | None = None,
+    latitude: float | Decimal | None = None,
+    longitude: float | Decimal | None = None,
+    payment_label: str | None = None,
 ) -> bool:
-    """Send approved order notification with product images to channel for delivery staff."""
+    """Send approved order to the delivery channel: text + product photos, then the map location.
+
+    `items_text` is expected to be already HTML-escaped by the caller.
+    """
     target = settings.TELEGRAM_GROUP_ID
     if not target:
         logger.warning("TELEGRAM_GROUP_ID not configured — skipping channel notification")
         return False
-    logger.info(f"Sending approved order notification to channel {target}")
+    logger.info("Sending approved order notification to channel %s", target)
+
+    has_location = latitude is not None and longitude is not None
+    map_line = ""
+    if has_location:
+        map_line = f'\n  🗺 <a href="{yandex_maps_link(latitude, longitude)}">Yandex xaritada ochish</a>'
+
+    payment_line = f"💳 To'lov: {esc(payment_label)}\n" if payment_label else ""
 
     text = (
         f"✅ <b>To'lov tasdiqlandi — Yetkazishga tayyor!</b>\n"
         f"━━━━━━━━━━━━━━━━━━\n"
         f"\n"
-        f"🛒 Buyurtma: <b>#{order_number}</b>\n"
-        f"👤 Xaridor: <b>{customer_name}</b>\n"
-        f"📞 Telefon: {customer_phone}\n"
+        f"🛒 Buyurtma: <b>#{esc(order_number)}</b>\n"
+        f"👤 Xaridor: <b>{esc(customer_name)}</b>\n"
+        f"📞 Telefon: {esc(customer_phone)}\n"
         f"💰 Summa: <b>{amount} so'm</b>\n"
+        f"{payment_line}"
         f"\n"
         f"📦 <b>Tovarlar:</b>\n"
         f"{items_text}\n"
         f"\n"
         f"📍 <b>Yetkazish manzili:</b>\n"
-        f"  {address}\n"
+        f"  {esc(address) or '—'}{map_line}\n"
         f"\n"
-        f"👨‍💼 Tasdiqlagan: {approved_by}\n"
+        f"👨‍💼 Tasdiqlagan: {esc(approved_by)}\n"
         f"\n"
         f"🚚 <b>Buyurtmani yetkazishga tayyorlang!</b>"
     )
 
+    sent: dict | None = None
     urls = [u for u in (product_image_urls or []) if u and u.startswith("http")]
+    caption_fits = len(text) <= 1024
     if urls:
         media = []
-        for i, url in enumerate(urls):
+        for i, url in enumerate(urls[:10]):
             item = {"type": "photo", "media": url}
-            if i == 0:
-                item["caption"] = text[:1024]
+            if i == 0 and caption_fits:
+                item["caption"] = text
                 item["parse_mode"] = "HTML"
             media.append(item)
 
         if len(media) >= 2:
-            result = await _send_request("sendMediaGroup", {
+            sent = await _send_request("sendMediaGroup", {
                 "chat_id": str(target),
                 "media": json.dumps(media),
             })
         else:
-            result = await _send_request("sendPhoto", {
-                "chat_id": str(target),
-                "photo": urls[0],
-                "caption": text[:1024],
-                "parse_mode": "HTML",
-            })
+            photo_data = {"chat_id": str(target), "photo": urls[0]}
+            if caption_fits:
+                photo_data.update({"caption": text, "parse_mode": "HTML"})
+            sent = await _send_request("sendPhoto", photo_data)
+        if not sent:
+            logger.info("Channel media group failed — falling back to text-only")
+        elif not caption_fits:
+            sent = None  # photos went out without caption; send the text below
 
-        if result:
-            return True
-        logger.info("Channel media group failed — falling back to text-only")
+    if not sent:
+        sent = await _send_request("sendMessage", {
+            "chat_id": str(target),
+            "text": text[:4096],
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+        })
 
-    return await send_telegram_message(text)
+    if has_location:
+        loc = await send_location(target, latitude, longitude, reply_to_message_id=_first_message_id(sent))
+        if not loc:
+            logger.warning("Failed to send location for order %s", order_number)
+
+    return sent is not None
 
 
 async def notify_payment_rejected_to_admins(
@@ -423,134 +505,73 @@ async def notify_payment_rejected_to_admins(
     reason: str,
     rejected_by: str,
 ) -> bool:
-    """Notify admins about payment rejection."""
+    """Notify the group about payment rejection."""
     text = (
-        f"❌ <b>Оплата отклонена</b>\n"
+        f"❌ <b>To'lov rad etildi</b>\n"
         f"\n"
-        f"🛒 Заказ: <b>#{order_number}</b>\n"
-        f"👤 Покупатель: {customer_name}\n"
-        f"💰 Сумма: {amount} сум\n"
-        f"📝 Причина: {reason}\n"
-        f"👨‍💼 Отклонил: {rejected_by}"
+        f"🛒 Buyurtma: <b>#{esc(order_number)}</b>\n"
+        f"👤 Xaridor: {esc(customer_name)}\n"
+        f"💰 Summa: {amount} so'm\n"
+        f"📝 Sabab: {esc(reason)}\n"
+        f"👨‍💼 Rad etdi: {esc(rejected_by)}"
     )
     return await send_telegram_message(text)
 
 
-# ============================================================
-# Legacy functions (backward compatible)
-# ============================================================
-
-
-def format_order_notification(
-    order_id: str,
-    order_number: str,
-    customer_name: str,
-    customer_phone: str,
-    customer_email: str,
-    address: str,
-    items: list[dict],
-    total: str,
-    payment_method: str,
-    payment_status: str,
-    created_at: datetime | None = None,
-) -> tuple[str, list[str]]:
-    """Format order notification text and collect ALL product image URLs."""
-    now = created_at or datetime.now(timezone.utc)
-    time_str = now.strftime("%d.%m.%Y %H:%M")
-
-    status_emoji = {
-        "pending": "🕐 Ожидает",
-        "paid": "✅ Оплачен",
-        "failed": "❌ Ошибка",
-        "refunded": "↩️ Возврат",
-    }
-    pay_status = status_emoji.get(payment_status, payment_status)
-
-    method_map = {
-        "cash": "💵 Наличные",
-        "payme": "💳 Payme",
-        "click": "💳 Click",
-        "card": "💳 Карта",
-        "card_transfer": "💳 Карта→карта перевод",
-        "bank_transfer": "🏦 Банковский перевод",
-    }
-    pay_method = method_map.get(payment_method, payment_method)
-
-    items_text = ""
-    all_images: list[str] = []
-    for item in items:
-        items_text += f"  • {item['name']}"
-        if item.get("size"):
-            items_text += f" (размер: {item['size']})"
-        if item.get("color"):
-            items_text += f" [{item['color']}]"
-        items_text += f" × {item['quantity']} = {item['subtotal']}\n"
-        if item.get("image"):
-            all_images.append(item["image"])
-
-    text = (
-        f"🛒 <b>Новый заказ #{order_number}</b>\n"
-        f"📅 {time_str}\n"
-        f"━━━━━━━━━━━━━━━━━━\n"
-        f"\n"
-        f"👤 <b>Покупатель:</b>\n"
-        f"  Имя: {customer_name}\n"
-        f"  Тел: {customer_phone}\n"
-        f"  Email: {customer_email}\n"
-        f"\n"
-        f"📦 <b>Товары:</b>\n"
-        f"{items_text}\n"
-        f"💰 <b>Итого: {total} сум</b>\n"
-        f"\n"
-        f"📍 <b>Адрес доставки:</b>\n"
-        f"  {address}\n"
-        f"\n"
-        f"💳 <b>Оплата:</b> {pay_method}\n"
-        f"📋 <b>Статус:</b> {pay_status}\n"
-    )
-
-    return text, all_images
+PAYMENT_METHOD_LABELS = {
+    "cash": "💵 Naqd pul",
+    "payme": "💳 Payme",
+    "click": "💳 Click",
+    "card_transfer": "💳 Kartadan kartaga",
+    "bank_transfer": "🏦 Bank o'tkazmasi",
+}
 
 
 async def notify_new_order(
-    order_id: str,
     order_number: str,
     customer_name: str,
     customer_phone: str,
-    customer_email: str,
     address: str,
     items: list[dict],
+    subtotal: str,
+    discount: str,
+    delivery_fee: str,
     total: str,
     payment_method: str,
-    payment_status: str,
-    created_at: datetime | None = None,
+    comment: str | None = None,
+    has_location: bool = False,
 ) -> bool:
-    """Send new order notification with ALL product images to admins' personal chats only."""
-    text, all_images = format_order_notification(
-        order_id=order_id,
-        order_number=order_number,
-        customer_name=customer_name,
-        customer_phone=customer_phone,
-        customer_email=customer_email,
-        address=address,
-        items=items,
-        total=total,
-        payment_method=payment_method,
-        payment_status=payment_status,
-        created_at=created_at,
+    """Send a new-order notification (text only) to admins' personal chats."""
+    now = datetime.now(timezone.utc).strftime("%d.%m.%Y %H:%M")
+    items_text = "".join(
+        f"  • {esc(i['name'])}"
+        + (f" [{esc(i['color'])}]" if i.get("color") else "")
+        + f" × {i['quantity']} = {i['total']}\n"
+        for i in items
     )
-
-    # Try sending product images as media group; fall back to text-only
-    if all_images:
-        results = await send_media_group_to_admins(
-            photo_urls=all_images,
-            caption=text,
-        )
-        if not results:
-            logger.info("Media group failed for new order — falling back to text-only")
-            await send_message_to_admins(text)
-    else:
-        await send_message_to_admins(text)
-
+    lines = [
+        f"🛒 <b>Yangi buyurtma #{esc(order_number)}</b>",
+        f"📅 {now} (UTC)",
+        "━━━━━━━━━━━━━━━━━━",
+        "",
+        f"👤 {esc(customer_name)}",
+        f"📞 {esc(customer_phone)}",
+        "",
+        "📦 <b>Tovarlar:</b>",
+        items_text,
+        f"Oraliq summa: {subtotal} so'm",
+    ]
+    if discount and discount != "0":
+        lines.append(f"Chegirma: −{discount} so'm")
+    if delivery_fee and delivery_fee != "0":
+        lines.append(f"Yetkazish: {delivery_fee} so'm")
+    lines += [
+        f"💰 <b>Jami: {total} so'm</b>",
+        "",
+        f"📍 {esc(address) or '—'}" + (" (xaritada belgilangan)" if has_location else ""),
+        f"💳 {PAYMENT_METHOD_LABELS.get(payment_method, esc(payment_method))}",
+    ]
+    if comment:
+        lines.append(f"💬 {esc(comment)}")
+    await send_message_to_admins("\n".join(lines))
     return True
-

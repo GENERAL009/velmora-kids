@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { create } from "zustand";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -63,7 +63,7 @@ function GenderSelector({ onSelect }: { onSelect: (g: GenderChoice) => void }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="relative flex min-h-dvh flex-col items-center justify-center gap-6 bg-gradient-to-br from-cream via-primary-50/20 to-accent-50/10 px-4 text-center dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 sm:gap-8"
+      className="relative flex min-h-dvh flex-col items-center justify-center gap-6 bg-gradient-to-br from-cream via-primary-50/20 to-accent-50/10 px-4 text-center dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 sm:gap-10"
     >
       {videoUrl && (
         <div className="absolute inset-0">
@@ -87,87 +87,120 @@ function GenderSelector({ onSelect }: { onSelect: (g: GenderChoice) => void }) {
         transition={{ delay: 0.2 }}
         className="relative"
       >
-        <Sparkles className="mx-auto mb-3 h-8 w-8 text-primary-400 sm:mb-4 sm:h-10 sm:w-10" />
-        <h2 className="font-display text-2xl font-bold text-charcoal dark:text-white sm:text-4xl md:text-5xl">
-          {t.hero.title}
+        <Sparkles
+          strokeWidth={1.5}
+          className="mx-auto mb-2 h-9 w-9 text-rose-400 drop-shadow-[0_0_12px_rgba(251,113,133,0.55)] sm:mb-3 sm:h-12 sm:w-12"
+        />
+        <h2 className="font-display text-4xl font-bold tracking-tight text-charcoal drop-shadow-sm dark:text-white sm:text-6xl md:text-7xl">
+          Velmora <span className="text-rose-400">Kids</span>
         </h2>
-        <p className="mt-3 text-lg text-neutral-500 dark:text-neutral-400">
+        <p className="mt-3 text-lg font-semibold text-charcoal/90 dark:text-white sm:mt-4 sm:text-2xl">
           {t.hero.subtitle}
+        </p>
+        <p className="mt-1.5 text-sm text-neutral-600 dark:text-neutral-300 sm:text-base">
+          {t.hero.description}
         </p>
       </motion.div>
 
-      <div className="relative flex flex-col gap-4 sm:flex-row sm:gap-6">
-        <motion.button
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.97 }}
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.35 }}
-          onClick={() => onSelect("girls")}
-          className="group relative overflow-hidden rounded-2xl border-2 border-pink-200 bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 shadow-lg transition-shadow hover:shadow-xl dark:border-pink-800 dark:from-pink-950/40 dark:via-rose-950/30 dark:to-fuchsia-950/20"
-        >
-          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-pink-200/40 blur-2xl transition-all group-hover:bg-pink-300/50 dark:bg-pink-700/20" />
-          {girlsImage ? (
-            <div className="relative h-40 w-40 sm:h-52 sm:w-52">
-              <Image
-                src={girlsImage}
-                alt={t.hero.forGirls}
-                fill
-                className="object-cover rounded-2xl"
-                unoptimized
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent rounded-b-2xl p-3">
-                <p className="text-sm font-semibold text-white sm:text-base">
-                  {t.hero.forGirls}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="px-8 py-6 sm:px-12 sm:py-10">
-              <span className="relative text-4xl sm:text-5xl">👧</span>
-              <p className="relative mt-2 text-base font-semibold text-pink-700 dark:text-pink-300 sm:mt-3 sm:text-lg">
-                {t.hero.forGirls}
-              </p>
-            </div>
-          )}
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.97 }}
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.35 }}
-          onClick={() => onSelect("boys")}
-          className="group relative overflow-hidden rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-50 shadow-lg transition-shadow hover:shadow-xl dark:border-blue-800 dark:from-blue-950/40 dark:via-sky-950/30 dark:to-indigo-950/20"
-        >
-          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-blue-200/40 blur-2xl transition-all group-hover:bg-blue-300/50 dark:bg-blue-700/20" />
-          {boysImage ? (
-            <div className="relative h-40 w-40 sm:h-52 sm:w-52">
-              <Image
-                src={boysImage}
-                alt={t.hero.forBoys}
-                fill
-                className="object-cover rounded-2xl"
-                unoptimized
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent rounded-b-2xl p-3">
-                <p className="text-sm font-semibold text-white sm:text-base">
-                  {t.hero.forBoys}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="px-8 py-6 sm:px-12 sm:py-10">
-              <span className="relative text-4xl sm:text-5xl">👦</span>
-              <p className="relative mt-2 text-base font-semibold text-blue-700 dark:text-blue-300 sm:mt-3 sm:text-lg">
-                {t.hero.forBoys}
-              </p>
-            </div>
-          )}
-        </motion.button>
+      <div className="relative flex w-full max-w-[640px] flex-row justify-center gap-3 sm:gap-6">
+        <GenderCard
+          gender="girls"
+          image={girlsImage}
+          label={t.hero.forGirls}
+          onSelect={onSelect}
+        />
+        <GenderCard
+          gender="boys"
+          image={boysImage}
+          label={t.hero.forBoys}
+          onSelect={onSelect}
+        />
       </div>
     </motion.div>
+  );
+}
+
+const GENDER_CARD_STYLES = {
+  girls: {
+    frame: "from-pink-200 via-pink-100/80 to-white/70 dark:from-pink-400/60 dark:via-pink-300/30 dark:to-white/20",
+    glow: "shadow-[0_24px_60px_-18px_rgba(236,72,153,0.55)]",
+    placeholder: "from-pink-100 via-rose-50 to-pink-200 dark:from-pink-950/60 dark:via-rose-950/40 dark:to-pink-900/40",
+    footer: "bg-white/95 dark:bg-neutral-900/90",
+    button: "from-rose-400 to-pink-500",
+    emoji: "\u{1F467}",
+    enterX: -30,
+  },
+  boys: {
+    frame: "from-sky-200 via-blue-100/80 to-white/70 dark:from-sky-400/60 dark:via-blue-300/30 dark:to-white/20",
+    glow: "shadow-[0_24px_60px_-18px_rgba(59,130,246,0.55)]",
+    placeholder: "from-sky-100 via-blue-50 to-indigo-100 dark:from-blue-950/60 dark:via-sky-950/40 dark:to-indigo-900/40",
+    footer: "bg-white/95 dark:bg-neutral-900/90",
+    button: "from-blue-400 to-blue-600",
+    emoji: "\u{1F466}",
+    enterX: 30,
+  },
+} as const;
+
+function GenderCard({
+  gender,
+  image,
+  label,
+  onSelect,
+}: {
+  gender: "girls" | "boys";
+  image?: string;
+  label: string;
+  onSelect: (g: GenderChoice) => void;
+}) {
+  const s = GENDER_CARD_STYLES[gender];
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ y: -6 }}
+      whileTap={{ scale: 0.97 }}
+      initial={{ opacity: 0, x: s.enterX }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.35 }}
+      onClick={() => onSelect(gender)}
+      aria-label={label}
+      className={cn(
+        "group relative w-1/2 max-w-[300px] rounded-[22px] bg-gradient-to-b p-[3px] backdrop-blur-md transition-shadow sm:rounded-[28px]",
+        s.frame,
+        s.glow
+      )}
+    >
+      <div className="overflow-hidden rounded-[19px] sm:rounded-[25px]">
+        <div className={cn("relative aspect-[4/3.3] w-full overflow-hidden bg-gradient-to-br", s.placeholder)}>
+          {image ? (
+            <Image
+              src={image}
+              alt={label}
+              fill
+              sizes="(max-width: 640px) 50vw, 300px"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              unoptimized
+            />
+          ) : (
+            <span className="absolute inset-0 flex items-center justify-center text-5xl sm:text-7xl">
+              {s.emoji}
+            </span>
+          )}
+        </div>
+        <div className={cn("flex items-center justify-between gap-2 px-3 py-2.5 text-left sm:px-5 sm:py-4", s.footer)}>
+          <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-100 sm:text-base">
+            {label}
+          </span>
+          <span
+            className={cn(
+              "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-md transition-transform duration-300 group-hover:translate-x-1 sm:h-9 sm:w-9",
+              s.button
+            )}
+          >
+            <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </span>
+        </div>
+      </div>
+    </motion.button>
   );
 }
 

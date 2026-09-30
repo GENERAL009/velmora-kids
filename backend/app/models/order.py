@@ -105,6 +105,8 @@ class Order(Base):
     delivery_method: Mapped[str | None] = mapped_column(String(100), nullable=True)
     delivery_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
     delivery_address: Mapped[str | None] = mapped_column(Text, nullable=True)
+    delivery_lat: Mapped[Decimal | None] = mapped_column(Numeric(10, 8), nullable=True)
+    delivery_lon: Mapped[Decimal | None] = mapped_column(Numeric(11, 8), nullable=True)
 
     customer_first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     customer_last_name: Mapped[str] = mapped_column(String(100), nullable=False)

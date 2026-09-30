@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query
@@ -10,9 +11,11 @@ from sqlalchemy.orm import selectinload
 from app.api.v1.deps import get_db, RoleChecker
 from app.models.user import User, UserRole
 from app.models.product import Product, ProductVariant
-from app.models.order import Order, OrderItem, OrderStatus, PaymentMethod, PaymentStatus
+from app.models.order import Order, OrderItem, OrderStatus, Payment, PaymentMethod, PaymentProvider, PaymentStatus, TransactionStatus
 from app.models.inventory import StockLog, StockMovementType
 from app.services import inventory_service
+from app.services.order_service import effective_unit_price
+from app.utils.audit import log_audit
 from app.schemas.inventory import (
     StockListResponse, StockItemVariant, StockAddRequest, StockAdjustRequest,
     StockLogResponse, POSSaleRequest, POSSaleResponse,
@@ -94,7 +97,7 @@ async def pos_sale(
 ):
     """POS cash register sale — creates order and decrements stock."""
     order_number = f"POS-{datetime.now(timezone.utc).strftime('%y%m%d')}-{uuid.uuid4().hex[:4].upper()}"
-    total = 0.0
+    total = Decimal(0)
     order_items = []
 
     for item in data.items:
@@ -102,9 +105,8 @@ async def pos_sale(
             select(ProductVariant)
             .where(ProductVariant.id == item.variant_id)
             .options(
-                selectinload(ProductVariant.product), 
+                selectinload(ProductVariant.product),
                 selectinload(ProductVariant.color),
-                selectinload(ProductVariant.size)
             )
             .with_for_update()
         )
@@ -120,7 +122,7 @@ async def pos_sale(
                 detail=f"{variant.product.name} ({variant.color.name}): mavjud {variant.stock}, so'ralgan {item.quantity}"
             )
 
-        price = float(variant.product.selling_price) + float(variant.additional_price)
+        price = effective_unit_price(variant.product, variant)
         item_total = price * item.quantity
         total += item_total
 
@@ -158,7 +160,7 @@ async def pos_sale(
             product_variant_id=v.id,
             product_name=v.product.name,
             product_sku=v.product.sku,
-            size_name=v.size.name if v.size else "",
+            size_name=None,
             color_name=v.color.name if v.color else "",
             quantity=oi["quantity"],
             unit_price=oi["unit_price"],
@@ -174,9 +176,18 @@ async def pos_sale(
 
     await db.flush()
 
+    db.add(Payment(
+        order_id=order.id,
+        provider=PaymentProvider(order.payment_method.value),
+        amount=total,
+        status=TransactionStatus.COMPLETED,
+        verified_by=current_user.id,
+        verified_at=datetime.now(timezone.utc),
+    ))
+    await log_audit(db, current_user.id, "pos_sale", "order", str(order.id), new_value={"total": str(total)})
     return POSSaleResponse(
         order_id=order.id,
         order_number=order_number,
-        total=total,
+        total=float(total),
         items_count=len(order_items),
     )
