@@ -14,7 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN adduser --system --uid 1001 appuser
-RUN mkdir -p /app/uploads && chown appuser:nogroup /app/uploads
+RUN mkdir -p /app/uploads/settings /app/uploads/products /app/uploads/categories /app/uploads/banners /app/uploads/data \
+    && chown -R appuser:nogroup /app/uploads
 USER appuser
 
 EXPOSE 8000
