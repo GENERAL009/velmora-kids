@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { SiteLogo } from "@/components/layout/site-logo";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -69,10 +70,7 @@ export function Header() {
 
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-display text-xl font-bold tracking-tight text-charcoal dark:text-white transition-colors sm:text-2xl">
-                Velmora{" "}
-                <span className="text-primary-500">Kids</span>
-              </span>
+              <SiteLogo className="h-8 max-w-[150px] sm:h-10 sm:max-w-[200px]" textClassName="text-xl sm:text-2xl" />
             </Link>
 
             {/* Spacer */}

@@ -9,6 +9,7 @@ import {
 import { apiGet, apiPut, apiPost } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { TRUST_ICONS, type TrustBadge } from "@/components/product/trust-badges";
 
 interface SiteSettings {
@@ -20,13 +21,16 @@ interface SiteSettings {
   facebook_url: string;
   tiktok_url: string;
   address: string;
+  address_uz: string;
   working_hours: string;
+  working_hours_uz: string;
   hero_video_url: string;
   hero_video_poster: string;
   logo_header: string;
   logo_footer: string;
   logo_favicon: string;
   footer_about: string;
+  footer_about_uz: string;
   meta_title: string;
   meta_description: string;
   payment_card_number: string;
@@ -47,8 +51,10 @@ const TEXT_SECTIONS = [
       { key: "phone_primary", label: "Asosiy telefon", placeholder: "+998 71 200 00 00" },
       { key: "phone_secondary", label: "Qo'shimcha telefon", placeholder: "+998 90 000 00 00" },
       { key: "email", label: "Email", placeholder: "info@velmora.uz" },
-      { key: "address", label: "Manzil", placeholder: "Toshkent, O'zbekiston" },
-      { key: "working_hours", label: "Ish vaqti", placeholder: "Du-Ju: 09:00 - 18:00" },
+      { key: "address_uz", label: "Manzil (o'zbekcha)", placeholder: "Toshkent sh., Amir Temur ko'chasi, 107" },
+      { key: "address", label: "Manzil (ruscha)", placeholder: "г. Ташкент, ул. Амира Темура, 107" },
+      { key: "working_hours_uz", label: "Ish vaqti (o'zbekcha)", placeholder: "Du-Sha: 9:00 - 20:00" },
+      { key: "working_hours", label: "Ish vaqti (ruscha)", placeholder: "Пн-Сб: 9:00 - 20:00" },
     ],
   },
   {
@@ -65,7 +71,8 @@ const TEXT_SECTIONS = [
     title: "Matnli kontent",
     icon: FileText,
     fields: [
-      { key: "footer_about", label: "Kompaniya haqida (futer)", placeholder: "Velmora Kids — ...", multiline: true },
+      { key: "footer_about_uz", label: "Kompaniya haqida, futer (o'zbekcha)", placeholder: "Velmora Kids — ...", multiline: true },
+      { key: "footer_about", label: "Kompaniya haqida, futer (ruscha)", placeholder: "Velmora Kids — ...", multiline: true },
     ],
   },
   {
@@ -153,8 +160,15 @@ function FileUploadCard({
     }
   };
 
-  const handleClear = () => {
-    onUploaded(field, "");
+  const handleClear = async () => {
+    if (!confirm("Faylni olib tashlaysizmi?")) return;
+    try {
+      // saved right away, like an upload
+      await apiPut("/settings/site", { [field]: "" });
+      onUploaded(field, "");
+    } catch {
+      setError("O'chirishda xatolik");
+    }
   };
 
   return (
@@ -228,6 +242,7 @@ function FileUploadCard({
 }
 
 export default function AdminSettingsPage() {
+  const queryClient = useQueryClient();
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -247,9 +262,12 @@ export default function AdminSettingsPage() {
     try {
       const updated = await apiPut<SiteSettings>("/settings/site", settings);
       setSettings(updated);
+      queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      toast.success("Sozlamalar saqlandi");
       setMessage({ type: "success", text: "Sozlamalar saqlandi" });
       setTimeout(() => setMessage(null), 3000);
     } catch {
+      toast.error("Saqlashda xatolik");
       setMessage({ type: "error", text: "Saqlashda xatolik" });
     } finally {
       setSaving(false);
@@ -258,6 +276,12 @@ export default function AdminSettingsPage() {
 
   const updateField = (key: string, value: string) => {
     setSettings((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  // uploads/removals are stored immediately — refresh the storefront copy too
+  const onFileChanged = (key: string, value: string) => {
+    updateField(key, value);
+    queryClient.invalidateQueries({ queryKey: ["site-settings"] });
   };
 
   if (loading) {
@@ -332,7 +356,7 @@ export default function AdminSettingsPage() {
                     accept={item.accept}
                     type={item.type}
                     currentUrl={(settings as unknown as Record<string, string>)[item.key] || ""}
-                    onUploaded={updateField}
+                    onUploaded={onFileChanged}
                   />
                 ))}
               </div>

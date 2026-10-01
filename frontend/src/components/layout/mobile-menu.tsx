@@ -2,6 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
+import { SiteLogo } from "@/components/layout/site-logo";
+import { useSiteSettings, telHref } from "@/hooks/use-site-settings";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronRight, User, Heart, MapPin, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +18,7 @@ interface MobileMenuProps {
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const t = useTranslation();
+  const { settings } = useSiteSettings();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
 
@@ -55,9 +58,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             <div className="flex h-full flex-col">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 px-6 py-4">
-                <span className="font-display text-lg font-bold text-charcoal dark:text-white">
-                  Velmora <span className="text-primary-500">Kids</span>
-                </span>
+                <SiteLogo className="h-8 max-w-[160px]" textClassName="text-lg" />
                 <button
                   onClick={onClose}
                   className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-500 dark:text-neutral-400 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -146,9 +147,11 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     )}
                   </Link>
                 )}
-                <p className="mt-2 text-xs text-neutral-400">
-                  +998 71 200 00 00
-                </p>
+                {settings?.phone_primary && (
+                  <a href={telHref(settings.phone_primary) ?? undefined} className="mt-2 block text-xs text-neutral-400 hover:text-primary-600">
+                    {settings.phone_primary}
+                  </a>
+                )}
               </div>
             </div>
           </motion.div>

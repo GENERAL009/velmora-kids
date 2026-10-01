@@ -4,9 +4,27 @@ import React from "react";
 import Link from "next/link";
 import { MapPin, Phone, Mail, Star } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
+import { useSiteSettings, safeHref, telHref } from "@/hooks/use-site-settings";
+import { SiteLogo } from "@/components/layout/site-logo";
 
 export function Footer() {
   const t = useTranslation();
+  const { settings, text } = useSiteSettings();
+  // while loading (or if the API is down) keep showing the built-in texts
+  const fallback = !settings;
+  const phones = fallback
+    ? ["+998 71 200 00 00"]
+    : [settings.phone_primary, settings.phone_secondary].map((p) => (p || "").trim()).filter(Boolean);
+  const email = fallback ? "info@velmorakids.uz" : (settings.email || "").trim();
+  const address = fallback ? t.layoutUi.address : text("address");
+  const workingHours = fallback ? t.footer.workingHours : text("working_hours");
+  const about = fallback ? t.footer.footerAbout : text("footer_about");
+  const socials = [
+    { label: "Instagram", short: "IG", href: safeHref(fallback ? "https://instagram.com/velmora.kids" : settings.instagram_url) },
+    { label: "Telegram", short: "TG", href: safeHref(fallback ? "https://t.me/velmorakids" : settings.telegram_url) },
+    { label: "Facebook", short: "FB", href: safeHref(fallback ? "https://facebook.com/velmorakids" : settings.facebook_url) },
+    { label: "TikTok", short: "TT", href: safeHref(fallback ? "" : settings.tiktok_url) },
+  ].filter((s): s is { label: string; short: string; href: string } => !!s.href);
 
   const aboutLinks = [
     { href: "/catalog", label: t.nav.catalog },
@@ -75,68 +93,75 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contact — managed in Admin → Sozlamalar → Kontaktlar */}
           <div>
             <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal dark:text-white">
               {t.footer.contacts}
             </h4>
             <ul className="mt-4 space-y-3">
-              <li className="flex items-start gap-2.5">
-                <Phone className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" />
-                <div>
+              {phones.length > 0 && (
+                <li className="flex items-start gap-2.5">
+                  <Phone className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" />
+                  <div>
+                    {phones.map((phone) => (
+                      <a
+                        key={phone}
+                        href={telHref(phone) ?? undefined}
+                        className="block text-sm text-neutral-600 dark:text-neutral-400 transition-colors hover:text-primary-600"
+                      >
+                        {phone}
+                      </a>
+                    ))}
+                    {workingHours && <p className="text-xs text-neutral-400">{workingHours}</p>}
+                  </div>
+                </li>
+              )}
+              {email && (
+                <li className="flex items-start gap-2.5">
+                  <Mail className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" />
                   <a
-                    href="tel:+998712000000"
-                    className="text-sm text-neutral-600 dark:text-neutral-400 transition-colors hover:text-primary-600"
+                    href={`mailto:${email}`}
+                    className="break-all text-sm text-neutral-600 dark:text-neutral-400 transition-colors hover:text-primary-600"
                   >
-                    +998 71 200 00 00
+                    {email}
                   </a>
-                  <p className="text-xs text-neutral-400">{t.footer.workingHours}</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <Mail className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" />
-                <a
-                  href="mailto:info@velmorakids.uz"
-                  className="text-sm text-neutral-600 dark:text-neutral-400 transition-colors hover:text-primary-600"
-                >
-                  info@velmorakids.uz
-                </a>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" />
-                <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {t.layoutUi.address}
-                </span>
-              </li>
+                </li>
+              )}
+              {address && (
+                <li className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" />
+                  <span className="text-sm text-neutral-600 dark:text-neutral-400">{address}</span>
+                </li>
+              )}
             </ul>
           </div>
 
-          {/* Social */}
+          {/* Social + about */}
           <div>
-            <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal dark:text-white">
-              {t.footer.socialMedia}
-            </h4>
-            <div className="mt-4 flex gap-3">
-              {[
-                { label: "Instagram", href: "https://instagram.com/velmora.kids" },
-                { label: "Telegram", href: "https://t.me/velmorakids" },
-                { label: "Facebook", href: "https://facebook.com/velmorakids" },
-              ].map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-500 dark:text-neutral-400 transition-all hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-neutral-800 hover:text-primary-600"
-                  aria-label={social.label}
-                >
-                  {social.label.charAt(0)}
-                </a>
-              ))}
-            </div>
-            <p className="mt-6 text-xs text-neutral-400 leading-relaxed">
-              {t.footer.footerAbout}
-            </p>
+            {socials.length > 0 && (
+              <>
+                <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal dark:text-white">
+                  {t.footer.socialMedia}
+                </h4>
+                <div className="mt-4 mb-6 flex flex-wrap gap-3">
+                  {socials.map((social) => (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-500 dark:text-neutral-400 transition-all hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-neutral-800 hover:text-primary-600"
+                      aria-label={social.label}
+                      title={social.label}
+                    >
+                      {social.short}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
+            <SiteLogo variant="footer" className="h-9 max-w-[180px]" textClassName="text-lg" />
+            {about && <p className="mt-3 text-xs text-neutral-400 leading-relaxed">{about}</p>}
           </div>
         </div>
       </div>

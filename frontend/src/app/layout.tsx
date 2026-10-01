@@ -23,7 +23,7 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-export const metadata: Metadata = {
+const DEFAULT_METADATA: Metadata = {
   title: {
     default: "Velmora Kids — коляски, велосипеды, самокаты и электромобили для детей",
     template: "%s | Velmora Kids",
@@ -53,6 +53,33 @@ export const metadata: Metadata = {
     siteName: "Velmora Kids",
   },
 };
+
+/** SEO title/description and favicon come from Admin → Sozlamalar (SEO, Logotiplar). */
+export async function generateMetadata(): Promise<Metadata> {
+  let s: { meta_title?: string; meta_description?: string; logo_favicon?: string } = {};
+  try {
+    const res = await fetch(`${process.env.BACKEND_URL || "http://127.0.0.1:8000"}/api/v1/settings/site`, {
+      cache: "no-store", // admin changes must show up right away (cheap: a small JSON read)
+      signal: AbortSignal.timeout(2500),
+    });
+    if (res.ok) s = await res.json();
+  } catch {
+    // backend unreachable (e.g. during build) — keep the defaults
+  }
+  const title = s.meta_title?.trim();
+  const description = s.meta_description?.trim();
+  return {
+    ...DEFAULT_METADATA,
+    title: title ? { default: title, template: "%s | Velmora Kids" } : DEFAULT_METADATA.title,
+    description: description || DEFAULT_METADATA.description,
+    openGraph: {
+      ...DEFAULT_METADATA.openGraph,
+      ...(title ? { title } : {}),
+      ...(description ? { description } : {}),
+    },
+    icons: { icon: s.logo_favicon?.trim() || "/favicon.ico" },
+  };
+}
 
 export default function RootLayout({
   children,

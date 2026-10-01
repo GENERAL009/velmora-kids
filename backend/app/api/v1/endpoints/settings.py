@@ -24,13 +24,16 @@ SETTINGS_FILE = Path(app_settings.UPLOAD_DIR) / "data" / "site_settings.json"
 DEFAULT_SETTINGS: dict[str, Any] = {
     "phone_primary": "+998 71 200 00 00",
     "phone_secondary": "",
-    "email": "info@velmora.uz",
+    "email": "info@velmorakids.uz",
     "instagram_url": "https://instagram.com/velmora.kids",
     "telegram_url": "https://t.me/velmorakids",
     "facebook_url": "https://facebook.com/velmorakids",
     "tiktok_url": "",
-    "address": "Ташкент, Узбекистан",
-    "working_hours": "Пн-Пт: 09:00 - 18:00",
+    # text shown on the storefront exists in both languages: <key> = Russian, <key>_uz = Uzbek
+    "address": "г. Ташкент, ул. Амира Темура, 107",
+    "address_uz": "Toshkent sh., Amir Temur ko'chasi, 107",
+    "working_hours": "Пн-Сб: 9:00 - 20:00",
+    "working_hours_uz": "Du-Sha: 9:00 - 20:00",
     "hero_video_url": "",
     "hero_video_url_dark": "",
     "hero_video_poster": "",
@@ -42,7 +45,8 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "logo_header": "",
     "logo_footer": "",
     "logo_favicon": "",
-    "footer_about": "Velmora Kids — магазин детских колясок, велосипедов, самокатов и электромобилей в Узбекистане.",
+    "footer_about": "Velmora Kids — премиальный магазин детского транспорта. Самокаты, электромобили, коляски и велосипеды для ваших детей.",
+    "footer_about_uz": "Velmora Kids — bolalar transporti premium do'koni. Samokatlar, elektromobillar, aravachalar va velosipedlar bolalaringiz uchun.",
     "meta_title": "Velmora Kids — коляски, велосипеды, самокаты и электромобили для детей",
     "meta_description": "Интернет-магазин детского транспорта: коляски, велосипеды, беговелы, самокаты и детские электромобили. Доставка по всему Узбекистану.",
     "payment_card_number": "",
@@ -91,7 +95,9 @@ class SiteSettingsUpdate(BaseModel):
     facebook_url: str | None = None
     tiktok_url: str | None = None
     address: str | None = None
+    address_uz: str | None = None
     working_hours: str | None = None
+    working_hours_uz: str | None = None
     hero_video_url: str | None = None
     hero_video_url_dark: str | None = None
     hero_video_poster: str | None = None
@@ -104,6 +110,7 @@ class SiteSettingsUpdate(BaseModel):
     logo_footer: str | None = None
     logo_favicon: str | None = None
     footer_about: str | None = None
+    footer_about_uz: str | None = None
     meta_title: str | None = None
     meta_description: str | None = None
     payment_card_number: str | None = None
