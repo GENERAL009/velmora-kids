@@ -145,7 +145,7 @@ export default function BannersPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading &&
           Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="aspect-video animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-700" />

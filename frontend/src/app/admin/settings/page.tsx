@@ -165,27 +165,30 @@ function FileUploadCard({
         <div className="relative rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-800">
           <div className="flex items-center gap-3">
             {type === "image" ? (
-              <div className="relative h-16 w-24 overflow-hidden rounded-md bg-white dark:bg-neutral-700">
+              <div className="relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-md bg-white dark:bg-neutral-700 sm:h-16 sm:w-24">
                 <img src={currentUrl} alt={label} className="h-full w-full object-contain" />
               </div>
             ) : (
-              <div className="flex h-16 w-24 items-center justify-center rounded-md bg-neutral-200 dark:bg-neutral-700">
+              <div className="flex h-14 w-20 flex-shrink-0 items-center justify-center rounded-md bg-neutral-200 dark:bg-neutral-700 sm:h-16 sm:w-24">
                 <Video className="h-6 w-6 text-neutral-500" />
               </div>
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{currentUrl}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-shrink-0 gap-2">
               <button
                 onClick={() => inputRef.current?.click()}
-                className="rounded-md bg-primary-50 p-2 text-primary-600 transition-colors hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400"
+                disabled={uploading}
+                aria-label="Almashtirish"
+                className="rounded-md bg-primary-50 p-2.5 sm:p-2 text-primary-600 transition-colors hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400"
               >
-                <Upload className="h-4 w-4" />
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               </button>
               <button
                 onClick={handleClear}
-                className="rounded-md bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
+                aria-label="O'chirish"
+                className="rounded-md bg-red-50 p-2.5 sm:p-2 text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -306,13 +309,13 @@ export default function AdminSettingsPage() {
       )}
 
       {/* Upload sections */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {UPLOAD_FIELDS.map((section) => {
           const Icon = section.icon;
           return (
             <div
               key={section.title}
-              className="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900"
+              className="min-w-0 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900 sm:p-6"
             >
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/20">
@@ -339,13 +342,13 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Text settings sections */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {TEXT_SECTIONS.map((section) => {
           const Icon = section.icon;
           return (
             <div
               key={section.title}
-              className="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900"
+              className="min-w-0 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900 sm:p-6"
             >
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/20">
@@ -391,6 +394,18 @@ export default function AdminSettingsPage() {
       />
 
       <ResetDataSection />
+
+      {/* Phones: keep the save button reachable on this long page */}
+      <div className="sticky bottom-0 z-20 -mx-4 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/95 sm:hidden">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Saqlash
+        </button>
+      </div>
     </div>
   );
 }
@@ -409,7 +424,7 @@ function TrustBadgesSection({ badges, onChange }: { badges: TrustBadge[]; onChan
   };
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900">
+    <div className="min-w-0 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900 sm:p-6">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/20">
@@ -449,7 +464,7 @@ function TrustBadgesSection({ badges, onChange }: { badges: TrustBadge[]; onChan
                 !b.enabled && "opacity-60"
               )}
             >
-              <div className="grid gap-3 md:grid-cols-[auto_1fr_1fr_auto] md:items-end">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-[auto_1fr_1fr_auto] md:items-end">
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-neutral-500">Belgi</label>
                   <div className="flex items-center gap-2">
@@ -531,7 +546,7 @@ function ResetDataSection() {
   };
 
   return (
-    <div className="rounded-xl border-2 border-red-200 bg-red-50/50 p-6 dark:border-red-900/50 dark:bg-red-900/10">
+    <div className="rounded-xl border-2 border-red-200 bg-red-50/50 p-4 sm:p-6 dark:border-red-900/50 dark:bg-red-900/10">
       <div className="flex items-start gap-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
           <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />

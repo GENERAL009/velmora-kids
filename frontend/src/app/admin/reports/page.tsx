@@ -92,7 +92,7 @@ export default function ReportsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
           <div key={card.label} className={`${CARD} p-5`}>
             <div className="flex items-center justify-between gap-3">
@@ -125,7 +125,7 @@ export default function ReportsPage() {
       )}
 
       {/* Charts */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className={`${CARD} p-5 lg:col-span-2`}>
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Kunlik daromad</h2>
           <p className="mb-5 text-xs text-neutral-500">Ustunga olib boring — kun summasi va buyurtmalar soni</p>
