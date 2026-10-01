@@ -140,11 +140,11 @@ export default function ProductDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-cream pt-[4.5rem] dark:bg-neutral-950 lg:pt-20">
+      <div className="bg-cream dark:bg-neutral-950">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
             <div className="animate-pulse">
-              <div className="aspect-[3/4] rounded-md bg-neutral-200 dark:bg-neutral-800" />
+              <div className="aspect-square rounded-md bg-neutral-200 dark:bg-neutral-800 sm:aspect-[4/5] lg:aspect-[3/4]" />
               <div className="mt-3 flex gap-2 sm:mt-4">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="h-16 w-14 rounded-sm bg-neutral-200 dark:bg-neutral-800 sm:h-[100px] sm:w-[80px]" />
@@ -202,7 +202,7 @@ export default function ProductDetailPage() {
   return (
     <div className="bg-cream dark:bg-neutral-950">
       {/* Breadcrumb */}
-      <div className="border-b border-neutral-200 bg-white pt-[4.5rem] dark:border-neutral-800 dark:bg-neutral-900 lg:pt-20">
+      <div className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
           <nav className="flex items-center gap-1.5 overflow-x-auto text-xs text-neutral-600 dark:text-neutral-400 sm:gap-2 sm:text-sm">
             <Link href="/" className="flex-shrink-0 transition-colors hover:text-primary-600">
@@ -236,12 +236,13 @@ export default function ProductDetailPage() {
 
       {/* Product main section */}
       <div className="mx-auto max-w-7xl overflow-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12">
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-12">
           {/* Gallery */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            className="min-w-0"
           >
             <ProductGallery
               images={product.images}

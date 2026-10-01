@@ -44,7 +44,7 @@ export function ProductGallery({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Main image */}
-      <div className="relative aspect-[3/4] overflow-hidden rounded-md border border-neutral-100 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="relative mx-auto aspect-square w-full max-h-[60vh] overflow-hidden rounded-md border sm:aspect-[4/5] sm:max-h-none sm:max-w-lg lg:aspect-[3/4] lg:max-w-none border-neutral-100 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         {hasImages && currentImage ? (
           <>
             <Image
@@ -109,7 +109,7 @@ export function ProductGallery({
 
       {/* Thumbnails */}
       {sortedImages.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="mx-auto flex w-full gap-2 overflow-x-auto pb-2 sm:max-w-lg lg:max-w-none">
           {sortedImages.map((image, index) => (
             <motion.button
               key={image.id}

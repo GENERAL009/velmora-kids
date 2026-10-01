@@ -157,7 +157,7 @@ function CatalogContent() {
   return (
     <div className="bg-cream dark:bg-neutral-950">
       {/* Breadcrumb */}
-      <div className="border-b border-neutral-200 bg-white pt-[4.5rem] dark:border-neutral-800 dark:bg-neutral-900 lg:pt-20">
+      <div className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
           <nav className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400 sm:text-sm">
             <Link
