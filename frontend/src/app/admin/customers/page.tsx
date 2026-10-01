@@ -7,7 +7,7 @@ import { Search, Download, Phone, Mail, Eye, X, ShoppingBag } from "lucide-react
 import { DataTable, Column } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatPrice } from "@/lib/utils";
 import { useAdminCustomers, type AdminCustomer } from "@/hooks/use-admin";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
@@ -101,7 +101,7 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
           <p className="text-sm text-neutral-600 dark:text-neutral-400">Jami mijozlar</p>
           <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">{isLoading ? "..." : totalCustomers}</p>
@@ -196,7 +196,7 @@ export default function CustomersPage() {
                           </div>
                           <div className="flex items-center gap-3">
                             <StatusBadge status={order.status} />
-                            <span className="font-semibold text-sm">{Number(order.total).toLocaleString("uz-UZ")} so'm</span>
+                            <span className="font-semibold text-sm">{formatPrice(Number(order.total))}</span>
                           </div>
                         </div>
                       ))}

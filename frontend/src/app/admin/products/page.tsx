@@ -242,7 +242,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
           <p className="text-sm text-neutral-600 dark:text-neutral-400">Jami mahsulotlar</p>
           <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">

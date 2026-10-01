@@ -7,11 +7,8 @@ import { Search, Plus, Minus, Trash2, ShoppingCart, CheckCircle2 } from "lucide-
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiPost, apiGet } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
-function formatPrice(value: number): string {
-  return value.toLocaleString("uz-UZ").replace(/,/g, " ") + " so'm";
-}
 
 interface StockVariant {
   id: string;

@@ -138,7 +138,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px]">
+            <table className="table-cards w-full min-w-[480px]">
               <thead className="bg-neutral-50 dark:bg-neutral-900">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
@@ -158,19 +158,19 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
                 {recentOrders.length > 0 ? (
                   recentOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/50 cursor-pointer">
+                    <tr key={order.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
                       <td className="px-4 py-3 text-sm font-medium text-primary-600 dark:text-primary-400">
-                        {order.order_number}
+                        <Link href={`/admin/orders/${order.id}`} className="hover:underline">{order.order_number}</Link>
                       </td>
-                      <td className="px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100">
+                      <td data-label="Mijoz" className="px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100">
                         {order.customer_first_name
                           ? `${order.customer_first_name} ${order.customer_last_name || ""}`
                           : "—"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td data-label="Holat" className="px-4 py-3">
                         <StatusBadge status={order.status} />
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-right text-neutral-900 dark:text-neutral-100">
+                      <td data-label="Summa" className="px-4 py-3 text-sm font-medium text-right text-neutral-900 dark:text-neutral-100">
                         {formatPrice(order.total)}
                       </td>
                     </tr>
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px]">
+            <table className="table-cards w-full min-w-[480px]">
               <thead className="bg-neutral-50 dark:bg-neutral-900">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
@@ -223,10 +223,10 @@ export default function AdminDashboard() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-right text-neutral-900 dark:text-neutral-100">
+                      <td data-label="Sotildi" className="px-4 py-3 text-sm font-medium text-right text-neutral-900 dark:text-neutral-100">
                         {product.sold}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-right text-neutral-900 dark:text-neutral-100">
+                      <td data-label="Daromad" className="px-4 py-3 text-sm font-medium text-right text-neutral-900 dark:text-neutral-100">
                         {formatPrice(product.revenue)}
                       </td>
                     </tr>
@@ -257,7 +257,7 @@ export default function AdminDashboard() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[480px]">
+          <table className="table-cards w-full min-w-[480px]">
             <thead className="bg-neutral-50 dark:bg-neutral-900">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
@@ -286,18 +286,18 @@ export default function AdminDashboard() {
                         {idx + 1}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-label="Mahsulot" className="px-4 py-3">
                       <Link href={`/product/${product.slug}`} className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline">
                         {product.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">
+                    <td data-label="Brend" className="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">
                       {product.brand?.name ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-right text-neutral-900 dark:text-neutral-100">
+                    <td data-label="Narx" className="px-4 py-3 text-sm font-medium text-right text-neutral-900 dark:text-neutral-100">
                       {formatPrice(product.price)}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td data-label="Ko'rishlar" className="px-4 py-3 text-right">
                       <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 dark:bg-violet-900/30 px-3 py-1 text-sm font-semibold text-violet-700 dark:text-violet-300">
                         <Eye className="w-3.5 h-3.5" />
                         {product.views ?? 0}

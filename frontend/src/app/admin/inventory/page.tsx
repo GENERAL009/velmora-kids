@@ -7,7 +7,7 @@ import { Package, AlertTriangle, TrendingDown, Search, Plus, X, History, Edit3 }
 import { StatCard } from "@/components/admin/stat-card";
 import { DataTable, Column } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { useAdminInventory, useDashboardKPIs, useStockLogs, type StockItem, type StockLogItem } from "@/hooks/use-admin";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
@@ -178,7 +178,7 @@ export default function InventoryPage() {
         <p className="text-neutral-600 dark:text-neutral-400 mt-1">Mahsulot zaxiralarini boshqarish</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3">
         <StatCard title="Jami pozitsiyalar" value={isLoading ? "..." : totalItems.toString()} icon={Package} />
         <StatCard title="Kam qoldiq" value={kpis?.low_stock?.toString() ?? "..."} icon={AlertTriangle} />
         <StatCard title="Mavjud emas" value={kpis?.out_of_stock?.toString() ?? "..."} icon={TrendingDown} />
@@ -313,7 +313,7 @@ export default function InventoryPage() {
                     )}>
                       {movementTypeLabels[log.movement_type] ?? log.movement_type}
                     </span>
-                    <span className="text-xs text-neutral-400">{new Date(log.created_at).toLocaleString("ru-RU")}</span>
+                    <span className="text-xs text-neutral-400">{formatDate(log.created_at, { month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-neutral-500">{log.stock_before}</span>

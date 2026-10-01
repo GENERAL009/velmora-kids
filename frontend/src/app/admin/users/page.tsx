@@ -426,7 +426,7 @@ export default function UsersPage() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
-        <table className="w-full min-w-[560px] text-sm">
+        <table className="table-cards w-full min-w-[560px] text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Xodim</th>
@@ -460,11 +460,11 @@ export default function UsersPage() {
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400">{user.email}</td>
-                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400">
+                <td data-label="Email" className="px-4 py-3 text-neutral-600 dark:text-neutral-400">{user.email}</td>
+                <td data-label="Telefon" className="px-4 py-3 text-neutral-600 dark:text-neutral-400">
                   {user.phone || "—"}
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Rol" className="px-4 py-3">
                   <span
                     className={cn(
                       "rounded-full px-2.5 py-1 text-xs font-medium",
@@ -474,7 +474,7 @@ export default function UsersPage() {
                     {ROLE_LABELS[user.role] || user.role}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Holat" className="px-4 py-3">
                   <span
                     className={cn(
                       "rounded-full px-2.5 py-1 text-xs font-medium",
@@ -486,10 +486,10 @@ export default function UsersPage() {
                     {user.is_active ? "Faol" : "O'chirilgan"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
+                <td data-label="Sana" className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
                   {formatDate(user.created_at)}
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="" className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">
                     {/* Activate button for deactivated users */}
                     {!user.is_active && !isCurrentUser(user.id) && (

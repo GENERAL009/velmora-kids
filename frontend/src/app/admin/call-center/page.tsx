@@ -135,7 +135,7 @@ export default function CallCenterPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className={cn("h-2.5 w-2.5 rounded-full", PRIORITY_COLORS[lead.priority] || "text-neutral-400", "bg-current")} title={lead.priority} />
-                <button onClick={() => openEdit(lead)} className="p-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg">
+                <button onClick={() => openEdit(lead)} className="p-2.5 lg:p-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg">
                   <Edit2 className="h-3.5 w-3.5" />
                 </button>
               </div>

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Bell, Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
+import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
 import { SidebarNav } from "@/components/admin/sidebar-nav";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
@@ -69,7 +70,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           {/* Navigation */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div
+            className="flex-1 overflow-y-auto p-4"
+            onClick={(e) => {
+              // close the off-canvas menu on phones/tablets once a page is picked
+              if ((e.target as HTMLElement).closest("a")) setSidebarOpen(false);
+            }}
+          >
             <SidebarNav userRole={user?.role ?? "admin"} />
           </div>
 
@@ -102,22 +109,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <header className="sticky top-0 z-30 h-16 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 shadow-sm">
           <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
             {/* Left: Mobile menu button + Search */}
-            <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+                aria-label="Menyu"
+                className="lg:hidden -ml-1 p-1.5 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
               >
                 <Menu className="w-6 h-6" />
               </button>
 
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                <input
-                  type="search"
-                  placeholder="Qidirish..."
-                  className="w-full pl-10 pr-4 py-2 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-neutral-900 dark:text-white placeholder-neutral-500"
-                />
-              </div>
+              <Link href="/admin" className="font-display text-lg font-bold text-neutral-900 dark:text-white lg:hidden">
+                Velmora <span className="text-primary-500">Admin</span>
+              </Link>
             </div>
 
             {/* Right: Actions */}
@@ -129,12 +132,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 aria-label="Toggle dark mode"
               >
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-
-              {/* Notifications */}
-              <button className="relative p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
               </button>
 
               {/* User menu */}
@@ -160,12 +157,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <p className="text-sm font-medium text-neutral-900 dark:text-white">{user?.first_name} {user?.last_name}</p>
                         <p className="text-xs text-neutral-500 dark:text-neutral-400">{user?.role === "super_admin" ? "Super admin" : user?.role === "director" ? "Direktor" : user?.role === "seller" ? "Sotuvchi" : user?.role === "call_center" ? "Call markaz" : user?.role}</p>
                       </div>
-                      <button className="w-full px-4 py-2 text-left text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700">
+                      <Link href="/" onClick={() => setUserMenuOpen(false)} className="block w-full px-4 py-2 text-left text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700">
+                        Saytga o&apos;tish
+                      </Link>
+                      <Link href="/account/settings" onClick={() => setUserMenuOpen(false)} className="block w-full px-4 py-2 text-left text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700">
                         Profil
-                      </button>
-                      <button className="w-full px-4 py-2 text-left text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-                        Sozlamalar
-                      </button>
+                      </Link>
+                      {(user?.role === "super_admin" || user?.role === "director") && (
+                        <Link href="/admin/settings" onClick={() => setUserMenuOpen(false)} className="block w-full px-4 py-2 text-left text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700">
+                          Sozlamalar
+                        </Link>
+                      )}
                       <div className="border-t border-neutral-200 dark:border-neutral-700 mt-2 pt-2">
                         <button
                           onClick={() => { logout(); router.replace("/auth/login"); }}

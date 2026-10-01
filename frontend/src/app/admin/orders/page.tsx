@@ -68,7 +68,7 @@ function StatusDropdown({
         size="sm"
         disabled={isPending}
         onClick={() => setOpen((v) => !v)}
-        className="text-xs h-7 px-2"
+        className="h-9 border border-neutral-200 px-3 text-xs dark:border-neutral-700 xl:h-7 xl:border-0 xl:px-2"
         rightIcon={<ChevronDown className="w-3 h-3" />}
       >
         Amal

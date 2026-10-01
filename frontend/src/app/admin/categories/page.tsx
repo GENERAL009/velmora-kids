@@ -154,7 +154,7 @@ export default function CategoriesPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
-        <table className="w-full min-w-[560px] text-sm">
+        <table className="table-cards w-full min-w-[560px] text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Kategoriya</th>
@@ -185,14 +185,14 @@ export default function CategoriesPage() {
                       <span className="font-semibold text-neutral-900 dark:text-white">{parent.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-neutral-500">{parent.slug}</td>
-                  <td className="px-4 py-3 text-neutral-500">{parent.sort_order}</td>
-                  <td className="px-4 py-3">
+                  <td data-label="Slug" className="px-4 py-3 font-mono text-xs text-neutral-500">{parent.slug}</td>
+                  <td data-label="Tartib" className="px-4 py-3 text-neutral-500">{parent.sort_order}</td>
+                  <td data-label="Holat" className="px-4 py-3">
                     <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", parent.is_active ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400")}>
                       {parent.is_active ? "Faol" : "Yashirin"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td data-label="" className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => openEdit(parent)} className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-200">
                         <Pencil className="h-4 w-4" />
@@ -217,14 +217,14 @@ export default function CategoriesPage() {
                           <span className="text-neutral-700 dark:text-neutral-300">└ {child.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-neutral-500">{child.slug}</td>
-                      <td className="px-4 py-3 text-neutral-500">{child.sort_order}</td>
-                      <td className="px-4 py-3">
+                      <td data-label="Slug" className="px-4 py-3 font-mono text-xs text-neutral-500">{child.slug}</td>
+                      <td data-label="Tartib" className="px-4 py-3 text-neutral-500">{child.sort_order}</td>
+                      <td data-label="Holat" className="px-4 py-3">
                         <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", child.is_active ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400")}>
                           {child.is_active ? "Faol" : "Yashirin"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td data-label="" className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button onClick={() => openEdit(child)} className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-200">
                             <Pencil className="h-4 w-4" />
@@ -267,7 +267,7 @@ export default function CategoriesPage() {
                 {form.image ? (
                   <div className="relative group w-full h-32 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700">
                     <Image src={form.image} alt="Category" fill className="object-cover" unoptimized />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black/40 opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button
                         type="button"
                         onClick={() => fileRef.current?.click()}

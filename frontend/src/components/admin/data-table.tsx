@@ -10,6 +10,12 @@ export interface Column<T> {
   sortable?: boolean;
   render?: (item: T) => React.ReactNode;
   className?: string;
+  /**
+   * Phone/tablet layout (below xl the table becomes a list of cards):
+   * "title" — card heading (default: first column), "footer" — bottom action row
+   * (default for key "actions"), "hidden" — not shown on phones.
+   */
+  mobile?: "title" | "footer" | "hidden";
 }
 
 interface DataTableProps<T> {
@@ -136,8 +142,87 @@ export function DataTable<T>({
     );
   }
 
+  const mobileRole = (column: Column<T>, idx: number) =>
+    column.mobile ?? (column.key === "actions" ? "footer" : idx === 0 ? "title" : undefined);
+  const cell = (column: Column<T>, item: T) =>
+    column.render ? column.render(item) : String((item as Record<string, unknown>)[column.key] ?? "");
+
+  const mobileCards = (
+    <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:hidden">
+      {showCheckbox && (
+        <label className="flex items-center gap-2 px-1 text-xs text-neutral-500 md:col-span-2">
+          <input
+            type="checkbox"
+            checked={selectedItems.size === data.length && data.length > 0}
+            onChange={handleSelectAll}
+            className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+          />
+          Hammasini tanlash
+        </label>
+      )}
+      {sortedData.map((item) => {
+        const itemKey = keyExtractor(item);
+        const isSelected = selectedItems.has(itemKey);
+        const title = columns.filter((c, i) => mobileRole(c, i) === "title");
+        const footer = columns.filter((c, i) => mobileRole(c, i) === "footer");
+        const rows = columns.filter((c, i) => mobileRole(c, i) === undefined);
+        return (
+          <div
+            key={itemKey}
+            onClick={() => onRowClick?.(item)}
+            className={cn(
+              "rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900",
+              onRowClick && "cursor-pointer active:bg-neutral-50 dark:active:bg-neutral-800",
+              isSelected && "border-primary-300 bg-primary-50 dark:bg-primary-900/10"
+            )}
+          >
+            <div className="flex items-start gap-3">
+              <div className="min-w-0 flex-1 text-sm text-neutral-900 dark:text-neutral-100">
+                {title.map((c) => (
+                  <div key={c.key} className="min-w-0">{cell(c, item)}</div>
+                ))}
+              </div>
+              {showCheckbox && (
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => handleSelectItem(itemKey)}
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                  aria-label="Tanlash"
+                />
+              )}
+            </div>
+            {rows.length > 0 && (
+              <dl className="mt-3 space-y-2 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+                {rows.map((c) => (
+                  <div key={c.key} className="flex items-start justify-between gap-3 text-sm">
+                    <dt className="flex-shrink-0 pt-0.5 text-xs text-neutral-500 dark:text-neutral-400">{c.label}</dt>
+                    <dd className="min-w-0 text-right text-neutral-900 dark:text-neutral-100 [&>*]:ml-auto">{cell(c, item)}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+            {footer.length > 0 && (
+              <div
+                className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-100 pt-3 dark:border-neutral-800"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {footer.map((c) => (
+                  <React.Fragment key={c.key}>{cell(c, item)}</React.Fragment>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <div className={cn("overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700", className)}>
+    <>
+    {mobileCards}
+    <div className={cn("hidden overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700 xl:block", className)}>
       <table className="w-full min-w-[640px]">
         <thead className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
           <tr>
@@ -223,5 +308,6 @@ export function DataTable<T>({
         </tbody>
       </table>
     </div>
+    </>
   );
 }

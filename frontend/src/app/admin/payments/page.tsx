@@ -13,7 +13,7 @@ import {
   useRejectPayment,
   type AdminOrder,
 } from "@/hooks/use-admin";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 const PAYMENT_STATUSES = [
@@ -79,7 +79,7 @@ export default function PaymentsPage() {
       label: "Summa",
       sortable: true,
       render: (order) => (
-        <span className="font-semibold">{Number(order.total).toLocaleString("uz-UZ")} so'm</span>
+        <span className="font-semibold">{formatPrice(Number(order.total))}</span>
       ),
     },
     {
@@ -124,31 +124,31 @@ export default function PaymentsPage() {
                 <button
                   onClick={() => confirmMutation.mutate(order.id)}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2.5 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40"
+                  className="inline-flex items-center gap-1 rounded-md bg-green-50 px-3 py-2 text-xs font-medium lg:px-2.5 lg:py-1.5 text-green-700 hover:bg-green-100 disabled:opacity-50 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40"
                   title="Tasdiqlash"
                 >
                   <CheckCircle className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Tasdiqlash</span>
+                  <span>Tasdiqlash</span>
                 </button>
                 <button
                   onClick={() => suspiciousMutation.mutate(order.id)}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40"
+                  className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-3 py-2 text-xs font-medium lg:px-2.5 lg:py-1.5 text-amber-700 hover:bg-amber-100 disabled:opacity-50 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40"
                   title="Shubhali"
                 >
                   <AlertTriangle className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Shubhali</span>
+                  <span>Shubhali</span>
                 </button>
               </>
             )}
             <button
               onClick={() => rejectMutation.mutate(order.id)}
               disabled={isLoading}
-              className="inline-flex items-center gap-1 rounded-md bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+              className="inline-flex items-center gap-1 rounded-md bg-red-50 px-3 py-2 text-xs font-medium lg:px-2.5 lg:py-1.5 text-red-700 hover:bg-red-100 disabled:opacity-50 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
               title="Rad etish"
             >
               <XCircle className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Rad etish</span>
+              <span>Rad etish</span>
             </button>
           </div>
         );

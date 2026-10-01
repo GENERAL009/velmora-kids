@@ -13,6 +13,8 @@ export function cn(...inputs: ClassValue[]) {
  * Format price in Uzbek som (UZS)
  */
 function currentLocale(): "ru" | "uz" {
+  // The admin panel is Uzbek-only, whatever language the storefront is set to
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) return "uz";
   try {
     return useLanguageStore.getState().locale === "uz" ? "uz" : "ru";
   } catch {

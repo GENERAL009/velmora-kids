@@ -152,7 +152,7 @@ export default function CRMPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
         <StatCard title="Yangi lidlar" value={isLoading ? "..." : newLeads.toString()} icon={MessageSquare} />
         <StatCard title="Jarayonda" value={isLoading ? "..." : inProgress.toString()} icon={Phone} />
         <StatCard title="Jami" value={isLoading ? "..." : totalFromApi.toString()} icon={User} />

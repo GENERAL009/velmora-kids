@@ -122,7 +122,7 @@ export default function BrandsPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
-        <table className="w-full min-w-[560px] text-sm">
+        <table className="table-cards w-full min-w-[560px] text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Brend</th>
@@ -147,15 +147,15 @@ export default function BrandsPage() {
                     <span className="font-medium text-neutral-900 dark:text-white">{brand.name}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 font-mono text-xs text-neutral-500">{brand.slug}</td>
-                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400 max-w-xs truncate">{brand.description || "—"}</td>
-                <td className="px-4 py-3">
+                <td data-label="Slug" className="px-4 py-3 font-mono text-xs text-neutral-500">{brand.slug}</td>
+                <td data-label="Tavsif" className="px-4 py-3 text-neutral-600 dark:text-neutral-400 max-w-xs truncate">{brand.description || "—"}</td>
+                <td data-label="Holat" className="px-4 py-3">
                   <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", brand.is_active ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400")}>
                     {brand.is_active ? "Faol" : "Yashirin"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-neutral-500">{formatDate(brand.created_at)}</td>
-                <td className="px-4 py-3 text-right">
+                <td data-label="Qo'shilgan" className="px-4 py-3 text-neutral-500">{formatDate(brand.created_at)}</td>
+                <td data-label="" className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <button onClick={() => openEdit(brand)} className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-200">
                       <Pencil className="h-4 w-4" />

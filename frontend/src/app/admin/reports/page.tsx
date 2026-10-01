@@ -145,7 +145,7 @@ export default function ReportsPage() {
           <p className="text-xs text-neutral-500">Tasdiqlangan summa va boshqa holatdagi to&apos;lovlar soni</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
+          <table className="table-cards w-full min-w-[520px] text-sm">
             <thead className="bg-neutral-50 dark:bg-neutral-800">
               <tr>
                 <th className="px-5 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Usul</th>
@@ -160,11 +160,11 @@ export default function ReportsPage() {
                 return (
                   <tr key={p.provider}>
                     <td className="px-5 py-3 font-medium text-neutral-900 dark:text-white">{PROVIDER_LABELS[p.provider] ?? p.provider}</td>
-                    <td className="px-5 py-3 text-right tabular-nums text-neutral-900 dark:text-white">
+                    <td data-label="Tasdiqlangan" className="px-5 py-3 text-right tabular-nums text-neutral-900 dark:text-white">
                       {formatPrice(p.completed)}
                       <span className="ml-1.5 text-xs text-neutral-500">({p.completedCount})</span>
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td data-label="Ulushi" className="px-5 py-3 text-right">
                       <div className="ml-auto flex w-32 items-center gap-2">
                         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-700">
                           <div className="h-full rounded-full bg-primary-400" style={{ width: `${share}%` }} />
@@ -172,7 +172,7 @@ export default function ReportsPage() {
                         <span className="w-9 text-right text-xs tabular-nums text-neutral-600 dark:text-neutral-400">{share}%</span>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-xs text-neutral-600 dark:text-neutral-400">
+                    <td data-label="Boshqa holatlar" className="px-5 py-3 text-xs text-neutral-600 dark:text-neutral-400">
                       {Object.entries(p.other).length === 0
                         ? "—"
                         : Object.entries(p.other)
@@ -199,7 +199,7 @@ export default function ReportsPage() {
           <p className="text-xs text-neutral-500">To&apos;langan buyurtmalar bo&apos;yicha, shu davrda</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
+          <table className="table-cards w-full min-w-[520px] text-sm">
             <thead className="bg-neutral-50 dark:bg-neutral-800">
               <tr>
                 <th className="px-5 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">#</th>
@@ -212,9 +212,9 @@ export default function ReportsPage() {
               {topProducts.map((p, i) => (
                 <tr key={p.product} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
                   <td className="px-5 py-3 font-medium text-neutral-400">{i + 1}</td>
-                  <td className="px-5 py-3 font-medium text-neutral-900 dark:text-white">{p.product}</td>
-                  <td className="px-5 py-3 text-right tabular-nums text-neutral-600 dark:text-neutral-400">{p.sold} dona</td>
-                  <td className="px-5 py-3 text-right font-medium tabular-nums text-neutral-900 dark:text-white">{formatPrice(p.revenue)}</td>
+                  <td data-label="Mahsulot" className="px-5 py-3 font-medium text-neutral-900 dark:text-white">{p.product}</td>
+                  <td data-label="Sotilgan" className="px-5 py-3 text-right tabular-nums text-neutral-600 dark:text-neutral-400">{p.sold} dona</td>
+                  <td data-label="Daromad" className="px-5 py-3 text-right font-medium tabular-nums text-neutral-900 dark:text-white">{formatPrice(p.revenue)}</td>
                 </tr>
               ))}
               {topProducts.length === 0 && (

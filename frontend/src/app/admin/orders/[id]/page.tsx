@@ -190,7 +190,40 @@ export default function OrderDetailPage() {
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
           Buyurtma holati
         </h2>
-        <div className="-mx-2 overflow-x-auto px-2 pb-1">
+        {/* Phones: vertical timeline so every step is visible */}
+        <ol className="space-y-0 sm:hidden">
+          {timeline.map((step, idx) => (
+            <li key={idx} className="relative flex gap-3 pb-4 last:pb-0">
+              {idx < timeline.length - 1 && (
+                <span
+                  className={`absolute left-[15px] top-8 h-[calc(100%-2rem)] w-0.5 ${
+                    timeline[idx + 1].completed ? "bg-primary-500" : "bg-neutral-200 dark:bg-neutral-700"
+                  }`}
+                />
+              )}
+              <span
+                className={`relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
+                  step.completed
+                    ? "bg-primary-500 text-white"
+                    : "bg-neutral-200 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+                }`}
+              >
+                {step.completed ? <Check className="h-4 w-4" /> : <span className="h-2.5 w-2.5 rounded-full bg-current" />}
+              </span>
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-2 pt-1.5">
+                <p className={`text-sm font-medium ${step.completed ? "text-neutral-900 dark:text-white" : "text-neutral-500 dark:text-neutral-400"}`}>
+                  {statusLabels[step.status]}
+                </p>
+                {step.date && (
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {formatDate(step.date, { month: "short", year: undefined, hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div className="-mx-2 hidden overflow-x-auto px-2 pb-1 sm:block">
         <div className="relative flex min-w-[460px] items-center justify-between">
           <div className="absolute top-5 left-0 right-0 h-1 bg-neutral-200 dark:bg-neutral-700">
             <div

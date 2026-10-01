@@ -17,16 +17,16 @@ export function StatCard({ title, value, icon: Icon, change, className }: StatCa
   return (
     <div
       className={cn(
-        "bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-100 dark:border-neutral-700 transition-all hover:shadow-card",
+        "bg-white dark:bg-neutral-800 rounded-lg p-4 sm:p-6 shadow-soft border border-neutral-100 dark:border-neutral-700 transition-all hover:shadow-card",
         className
       )}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1 sm:text-sm">
             {title}
           </p>
-          <p className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
+          <p className="break-words text-2xl font-bold text-neutral-900 dark:text-white sm:mb-2 sm:text-3xl">
             {value}
           </p>
           {change && (
@@ -52,8 +52,8 @@ export function StatCard({ title, value, icon: Icon, change, className }: StatCa
           )}
         </div>
         <div className="flex-shrink-0">
-          <div className="w-12 h-12 rounded-lg bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center">
-            <Icon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center">
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 dark:text-primary-400" />
           </div>
         </div>
       </div>

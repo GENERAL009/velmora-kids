@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Plus, X, Save, Loader2, Upload, Trash2, Star } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPut, apiPost, apiDelete } from "@/lib/api";
@@ -223,7 +224,7 @@ function ImageManager({ productId, initialImages }: { productId: string; initial
                   <Star className="w-2.5 h-2.5" /> Asosiy
                 </span>
               )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <div className="absolute inset-0 bg-black/40 opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 {!img.is_primary && (
                   <button
                     onClick={() => handleSetPrimary(img.id!)}
@@ -847,8 +848,8 @@ export default function EditProductPage() {
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Ma'lumot</h2>
             <div className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
               <p>ID: <span className="font-mono text-xs">{productId}</span></p>
-              {product?.created_at && <p>Yaratilgan: {new Date(product.created_at).toLocaleDateString("uz-UZ")}</p>}
-              {product?.updated_at && <p>Yangilangan: {new Date(product.updated_at).toLocaleDateString("uz-UZ")}</p>}
+              {product?.created_at && <p>Yaratilgan: {formatDate(product.created_at)}</p>}
+              {product?.updated_at && <p>Yangilangan: {formatDate(product.updated_at)}</p>}
             </div>
           </div>
         </div>

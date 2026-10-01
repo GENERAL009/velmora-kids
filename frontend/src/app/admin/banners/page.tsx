@@ -178,7 +178,7 @@ export default function BannersPage() {
                 )}
               </div>
 
-              <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute right-2 top-2 flex gap-1 opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
                 <button
                   onClick={() => openEdit(banner)}
                   className="rounded-lg bg-white/90 px-2 py-1 text-xs font-medium text-neutral-700 shadow hover:bg-white"

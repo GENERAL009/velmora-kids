@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useAdminPromotions, type AdminPromotion } from "@/hooks/use-admin";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatPrice } from "@/lib/utils";
 
 export default function PromotionsPage() {
   const { data: promotions, isLoading } = useAdminPromotions();
@@ -76,7 +76,7 @@ export default function PromotionsPage() {
           {p.discount_type === "percentage" ? (
             <><Percent className="h-3.5 w-3.5 text-green-500" /><span className="font-semibold text-green-600">{p.discount_value}%</span></>
           ) : (
-            <><Hash className="h-3.5 w-3.5 text-green-500" /><span className="font-semibold text-green-600">{Number(p.discount_value).toLocaleString("uz-UZ")} so'm</span></>
+            <><Hash className="h-3.5 w-3.5 text-green-500" /><span className="font-semibold text-green-600">{formatPrice(Number(p.discount_value))}</span></>
           )}
         </div>
       ),
