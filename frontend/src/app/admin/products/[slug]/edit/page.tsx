@@ -2,16 +2,18 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Plus, X, Save, Loader2, Upload, Trash2, Star } from "lucide-react";
+import { ArrowLeft, Plus, X, Save, Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPut, apiPost, apiDelete } from "@/lib/api";
+import { apiGet, apiPut, apiPost } from "@/lib/api";
 import { useCategories, useBrands } from "@/hooks/use-products";
+import { ProductImageManager } from "@/components/admin/product-image-manager";
+
+const NO_IMAGES: never[] = [];
 
 interface ColorOption {
   id: string;
@@ -105,150 +107,6 @@ const LABEL_CLS =
 const CARD_CLS =
   "bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700";
 
-function ImageManager({ productId, initialImages }: { productId: string; initialImages: ApiImage[] }) {
-  const queryClient = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [images, setImages] = useState<ApiImage[]>(initialImages);
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-
-  useEffect(() => {
-    setImages(initialImages);
-  }, [initialImages]);
-
-  const uploadFile = async (file: File, isPrimary: boolean = false) => {
-    if (!productId) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    const url = `/products/${productId}/images${isPrimary ? "?is_primary=true" : ""}`;
-    const img = await apiPost<ApiImage>(url, formData, {
-      headers: { "Content-Type": undefined },
-    });
-    return img;
-  };
-
-  const handleFiles = async (files: FileList | File[]) => {
-    if (!productId) return;
-    setUploading(true);
-    try {
-      const fileArr = Array.from(files);
-      for (const file of fileArr) {
-        const isPrimary = images.length === 0 && fileArr.indexOf(file) === 0;
-        const img = await uploadFile(file, isPrimary);
-        if (img) setImages((prev) => [...prev, img]);
-      }
-      queryClient.invalidateQueries({ queryKey: ["product"] });
-    } catch (err) {
-      alert("Rasm yuklashda xatolik");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDelete = async (imageId: string) => {
-    if (!confirm("Rasmni o'chirmoqchimisiz?")) return;
-    try {
-      await apiDelete(`/products/${productId}/images/${imageId}`);
-      setImages((prev) => prev.filter((img) => img.id !== imageId));
-      queryClient.invalidateQueries({ queryKey: ["product"] });
-    } catch {
-      alert("O'chirishda xatolik");
-    }
-  };
-
-  const handleSetPrimary = async (imageId: string) => {
-    try {
-      await apiPost(`/products/${productId}/images/${imageId}/set-primary`);
-      setImages((prev) =>
-        prev.map((img) => ({ ...img, is_primary: img.id === imageId }))
-      );
-      queryClient.invalidateQueries({ queryKey: ["product"] });
-    } catch {
-      setImages((prev) =>
-        prev.map((img) => ({ ...img, is_primary: img.id === imageId }))
-      );
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
-  };
-
-  return (
-    <div className={CARD_CLS}>
-      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Rasmlar</h2>
-
-      {/* Upload area */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        onClick={() => fileRef.current?.click()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-          dragOver
-            ? "border-primary-500 bg-primary-50 dark:bg-primary-950/20"
-            : "border-neutral-300 dark:border-neutral-600 hover:border-primary-400"
-        }`}
-      >
-        <input
-          ref={fileRef}
-          type="file"
-          multiple
-          accept="image/jpeg,image/png,image/webp,image/avif"
-          className="hidden"
-          onChange={(e) => e.target.files && handleFiles(e.target.files)}
-        />
-        {uploading ? (
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary-500" />
-        ) : (
-          <>
-            <Upload className="mx-auto h-8 w-8 text-neutral-400 mb-2" />
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Fayllarni bu yerga tashlang yoki tanlash uchun bosing
-            </p>
-            <p className="text-xs text-neutral-400 mt-1">JPEG, PNG, WebP, AVIF</p>
-          </>
-        )}
-      </div>
-
-      {/* Image grid */}
-      {images.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mt-4">
-          {images.map((img) => (
-            <div key={img.id} className="group relative aspect-square rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700">
-              <Image src={img.file_path} alt={img.alt_text || "Product"} fill unoptimized className="object-cover" />
-              {img.is_primary && (
-                <span className="absolute top-1 left-1 bg-primary-500 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                  <Star className="w-2.5 h-2.5" /> Asosiy
-                </span>
-              )}
-              <div className="absolute inset-0 bg-black/40 opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                {!img.is_primary && (
-                  <button
-                    onClick={() => handleSetPrimary(img.id!)}
-                    className="p-1.5 bg-white rounded-full text-primary-600 hover:bg-primary-50"
-                    title="Asosiy qilish"
-                  >
-                    <Star className="w-4 h-4" />
-                  </button>
-                )}
-                <button
-                  onClick={() => handleDelete(img.id!)}
-                  className="p-1.5 bg-white rounded-full text-red-600 hover:bg-red-50"
-                  title="O'chirish"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function ColorCreator({ onCreated }: { onCreated: () => void }) {
   const [open, setOpen] = useState(false);
@@ -390,7 +248,6 @@ export default function EditProductPage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
   const [productId, setProductId] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (product && !initialized) {
@@ -798,7 +655,7 @@ export default function EditProductPage() {
           </div>
 
           {/* Images — upload, delete, set primary */}
-          <ImageManager productId={productId} initialImages={product?.images ?? []} />
+          <ProductImageManager productId={productId} initialImages={product?.images ?? NO_IMAGES} className={CARD_CLS} />
 
           {/* SEO */}
           <div className={CARD_CLS}>

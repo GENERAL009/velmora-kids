@@ -5,7 +5,8 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from sqlalchemy import select, update
+from pydantic import BaseModel, Field
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -200,6 +201,14 @@ async def upload_product_image(
 
     _, rel_path = await save_upload(file, f"products/{product_id}", IMAGE_TYPES, max_mb=10)
 
+    # New images go to the end of the gallery; the very first one becomes the main image
+    count, max_order = (await db.execute(
+        select(func.count(ProductImage.id), func.max(ProductImage.sort_order))
+        .where(ProductImage.product_id == product_id)
+    )).one()
+    if not count:
+        is_primary = True
+
     if is_primary:
         from sqlalchemy import update as sql_update
         await db.execute(
@@ -212,12 +221,13 @@ async def upload_product_image(
         product_id=product_id,
         file_path=rel_path,
         alt_text=product.name,
-        sort_order=0,
+        sort_order=(max_order + 1) if count else 0,
         is_primary=is_primary,
     )
     db.add(image)
     await db.flush()
     await db.refresh(image)
+    await cache_delete_pattern("products:*")
     return image
 
 
@@ -239,8 +249,19 @@ async def delete_product_image(
     if os.path.exists(full_path):
         os.remove(full_path)
 
+    was_primary = image.is_primary
     await db.delete(image)
     await db.flush()
+    if was_primary:
+        # keep a main image: promote the next one in order
+        nxt = (await db.execute(
+            select(ProductImage).where(ProductImage.product_id == product_id)
+            .order_by(ProductImage.sort_order, ProductImage.id).limit(1)
+        )).scalar_one_or_none()
+        if nxt:
+            nxt.is_primary = True
+            await db.flush()
+    await cache_delete_pattern("products:*")
 
 
 @router.post("/products/{product_id}/images/{image_id}/set-primary", response_model=ProductImageResponse)
@@ -263,9 +284,44 @@ async def set_primary_image(
         .values(is_primary=False)
     )
     image.is_primary = True
+    # the main image is always first in the gallery order
+    others = (await db.execute(
+        select(ProductImage).where(ProductImage.product_id == product_id, ProductImage.id != image_id)
+        .order_by(ProductImage.sort_order, ProductImage.id)
+    )).scalars().all()
+    image.sort_order = 0
+    for i, other in enumerate(others, start=1):
+        other.sort_order = i
     await db.flush()
     await db.refresh(image)
+    await cache_delete_pattern("products:*")
     return image
+
+
+class ImageOrder(BaseModel):
+    image_ids: list[UUID] = Field(..., min_length=1, max_length=50)
+
+
+@router.put("/products/{product_id}/images/order", response_model=list[ProductImageResponse])
+async def reorder_product_images(
+    product_id: UUID,
+    body: ImageOrder,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: User = Depends(RoleChecker(UserRole.SUPER_ADMIN, UserRole.DIRECTOR)),
+):
+    """Save gallery order (left to right). The first image becomes the main one."""
+    images = (await db.execute(
+        select(ProductImage).where(ProductImage.product_id == product_id)
+    )).scalars().all()
+    by_id = {img.id: img for img in images}
+    if len(set(body.image_ids)) != len(body.image_ids) or set(body.image_ids) != set(by_id):
+        raise HTTPException(status_code=400, detail="Rasmlar ro'yxati mahsulot rasmlariga mos emas")
+    for i, image_id in enumerate(body.image_ids):
+        by_id[image_id].sort_order = i
+        by_id[image_id].is_primary = i == 0
+    await db.flush()
+    await cache_delete_pattern("products:*")
+    return [by_id[i] for i in body.image_ids]
 
 
 @router.get("/categories", response_model=list[CategoryResponse])

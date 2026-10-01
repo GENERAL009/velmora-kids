@@ -341,3 +341,52 @@ async def test_trust_badges_managed_from_admin(client: AsyncClient, admin_token,
     # last: a failed request rolls back the shared test session
     forbidden = await client.put("/api/v1/settings/site", json={"trust_badges": badges}, headers=_auth(customer_token))
     assert forbidden.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_product_images_reorder(client: AsyncClient, db_session, admin_token, sample_product, tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "UPLOAD_DIR", str(tmp_path))
+    pid, slug = sample_product.id, sample_product.slug
+    from PIL import Image
+    ids = []
+    for color in ("red", "green", "blue"):
+        buf = io.BytesIO()
+        Image.new("RGB", (8, 8), color).save(buf, format="PNG")
+        r = await client.post(
+            f"/api/v1/products/{pid}/images",
+            files={"file": (f"{color}.png", io.BytesIO(buf.getvalue()), "image/png")},
+            headers=_auth(admin_token),
+        )
+        assert r.status_code == 200, r.text
+        ids.append(r.json()["id"])
+    # appended in upload order, first upload is the main image
+    db_session.expire_all()  # tests share one session; real requests each get a fresh one
+    prod = (await client.get(f"/api/v1/products/{slug}")).json()
+    assert [i["id"] for i in prod["images"]] == ids
+    assert prod["images"][0]["is_primary"] is True
+
+    new_order = [ids[2], ids[0], ids[1]]
+    r = await client.put(
+        f"/api/v1/products/{pid}/images/order",
+        json={"image_ids": new_order}, headers=_auth(admin_token),
+    )
+    assert r.status_code == 200, r.text
+    db_session.expire_all()  # tests share one session; real requests each get a fresh one
+    prod = (await client.get(f"/api/v1/products/{slug}")).json()
+    assert [i["id"] for i in prod["images"]] == new_order
+    assert [i["is_primary"] for i in prod["images"]] == [True, False, False]
+
+    # deleting the main image promotes the next one
+    d = await client.delete(f"/api/v1/products/{pid}/images/{ids[2]}", headers=_auth(admin_token))
+    assert d.status_code == 204
+    db_session.expire_all()  # tests share one session; real requests each get a fresh one
+    prod = (await client.get(f"/api/v1/products/{slug}")).json()
+    assert [i["id"] for i in prod["images"]] == [ids[0], ids[1]]
+    assert prod["images"][0]["is_primary"] is True
+
+    # an incomplete list is rejected (last: failed requests roll back the test session)
+    bad = await client.put(
+        f"/api/v1/products/{pid}/images/order",
+        json={"image_ids": [ids[0]]}, headers=_auth(admin_token),
+    )
+    assert bad.status_code == 400

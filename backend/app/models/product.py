@@ -248,7 +248,8 @@ class Product(Base):
         "ProductVariant", back_populates="product", lazy="selectin", cascade="all, delete-orphan"
     )
     images: Mapped[list["ProductImage"]] = relationship(
-        "ProductImage", back_populates="product", lazy="selectin", cascade="all, delete-orphan"
+        "ProductImage", back_populates="product", lazy="selectin", cascade="all, delete-orphan",
+        order_by="[ProductImage.is_primary.desc(), ProductImage.sort_order, ProductImage.id]",
     )
     reviews: Mapped[list["Review"]] = relationship(  # noqa: F821
         "Review", back_populates="product", lazy="noload"
