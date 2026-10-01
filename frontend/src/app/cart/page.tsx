@@ -150,7 +150,7 @@ export default function CartPage() {
                               <button
                                 onClick={() => removeItem(item.variant.id)}
                                 className="flex-shrink-0 rounded-full p-2 text-neutral-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500"
-                                aria-label="Удалить товар"
+                                aria-label={t.cart.removeItem}
                               >
                                 <Trash2 className="h-5 w-5" />
                               </button>
@@ -174,7 +174,7 @@ export default function CartPage() {
                               <button
                                 onClick={() => updateQuantity(item.variant.id, item.quantity - 1)}
                                 className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 dark:border-neutral-600 transition-colors hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30"
-                                aria-label="Уменьшить количество"
+                                aria-label={t.cart.decreaseQty}
                               >
                                 <Minus className="h-4 w-4" />
                               </button>
@@ -184,7 +184,7 @@ export default function CartPage() {
                               <button
                                 onClick={() => updateQuantity(item.variant.id, item.quantity + 1)}
                                 className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 dark:border-neutral-600 transition-colors hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30"
-                                aria-label="Увеличить количество"
+                                aria-label={t.cart.increaseQty}
                               >
                                 <Plus className="h-4 w-4" />
                               </button>

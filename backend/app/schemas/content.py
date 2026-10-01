@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import computed_field, BaseModel, ConfigDict, Field
 from typing import Optional
 
 
@@ -140,14 +140,35 @@ class UserBriefForContent(BaseModel):
     last_name: str
 
 
+class ProductImageBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    file_path: str
+    is_primary: bool = False
+    sort_order: int = 0
+
+
 class ProductBriefForContent(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
     name: str
+    name_uz: Optional[str] = None
+    name_ru: Optional[str] = None
     slug: str
     selling_price: float
     discount_price: Optional[float] = None
+    status: Optional[str] = None
+    images: list[ProductImageBrief] = []
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def image(self) -> Optional[str]:
+        """Primary image (or the first one) for list views like favorites."""
+        if not self.images:
+            return None
+        primary = next((i for i in self.images if i.is_primary), None)
+        return (primary or sorted(self.images, key=lambda i: i.sort_order)[0]).file_path
 
 
 class FavoriteResponse(BaseModel):

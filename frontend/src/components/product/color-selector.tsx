@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProductVariant, Color } from "@/types";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface ColorSelectorProps {
   variants: ProductVariant[];
@@ -19,6 +20,8 @@ export function ColorSelector({
   onColorSelect,
   className,
 }: ColorSelectorProps) {
+  const t = useTranslation();
+
   // Get unique colors with their availability
   const colorAvailability = variants.reduce((acc, variant) => {
     const colorId = variant.color_id;
@@ -49,7 +52,7 @@ export function ColorSelector({
     <div className={cn("space-y-3", className)}>
       {/* Header */}
       <h3 className="text-sm font-semibold text-charcoal dark:text-white">
-        Цвет
+        {t.cart.color}
         {selectedColor && (
           <span className="ml-2 font-normal text-neutral-500">
             ({colors.find((c) => c.id === selectedColor)?.color.name})
@@ -82,7 +85,7 @@ export function ColorSelector({
                 backgroundColor: isAvailable ? colorOption.color.hex_code : "#f5f5f5",
               }}
               title={colorOption.color.name}
-              aria-label={`Выбрать цвет ${colorOption.color.name}`}
+              aria-label={t.productPage.selectColorAria.replace("{color}", colorOption.color.name)}
             >
               {/* Checkmark for selected color */}
               {isSelected && isAvailable && (
@@ -113,7 +116,7 @@ export function ColorSelector({
           animate={{ opacity: 1, y: 0 }}
           className="text-sm text-neutral-600 dark:text-neutral-400"
         >
-          Выбран:{" "}
+          {t.productPage.selected}{" "}
           <span className="font-medium text-charcoal dark:text-white">
             {colors.find((c) => c.id === selectedColor)?.color.name}
           </span>

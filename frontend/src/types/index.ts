@@ -30,8 +30,12 @@ export interface AuthTokens {
 export interface Product {
   id: string;
   name: string;
+  name_uz?: string;
+  name_ru?: string;
   slug: string;
   description: string;
+  description_uz?: string;
+  description_ru?: string;
   short_description?: string;
   sku: string;
   brand?: Brand;

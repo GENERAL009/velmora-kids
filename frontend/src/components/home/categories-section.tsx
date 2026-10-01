@@ -4,12 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Star } from "lucide-react";
+import { useTranslation } from "@/hooks/use-translation";
+import type { TranslationKeys } from "@/lib/i18n";
 
-const categories = [
+const getCategories = (t: TranslationKeys) => [
   {
     id: "girls",
-    name: "Для девочек",
-    description: "Самокаты, коляски и электромобили для маленьких принцесс",
+    name: t.catalogUi.gender.girls,
+    description: t.catalogUi.categoriesSection.girlsDesc,
     count: 124,
     href: "/catalog?gender=girls",
     gradient: "from-primary-100 via-primary-50 to-rose-50",
@@ -17,8 +19,8 @@ const categories = [
   },
   {
     id: "boys",
-    name: "Для мальчиков",
-    description: "Электрокары, самокаты и квадроциклы для юных гонщиков",
+    name: t.catalogUi.gender.boys,
+    description: t.catalogUi.categoriesSection.boysDesc,
     count: 98,
     href: "/catalog?gender=boys",
     gradient: "from-secondary-100 via-secondary-50 to-emerald-50",
@@ -26,8 +28,8 @@ const categories = [
   },
   {
     id: "sale",
-    name: "Распродажа",
-    description: "Лучшие предложения на детский транспорт",
+    name: t.catalogUi.categoriesSection.sale,
+    description: t.catalogUi.categoriesSection.saleDesc,
     count: 76,
     href: "/catalog?is_on_sale=true",
     gradient: "from-accent-100 via-accent-50 to-amber-50",
@@ -55,6 +57,8 @@ const itemVariants = {
 };
 
 export function CategoriesSection() {
+  const t = useTranslation();
+  const categories = getCategories(t);
   return (
     <section className="relative py-16 sm:py-20 lg:py-24">
       {/* Decorative */}
@@ -72,7 +76,7 @@ export function CategoriesSection() {
             transition={{ duration: 0.6 }}
             className="font-display text-3xl font-bold text-charcoal dark:text-white sm:text-4xl"
           >
-            Категории
+            {t.catalog.categories}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -81,7 +85,7 @@ export function CategoriesSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mx-auto mt-3 max-w-md text-neutral-500"
           >
-            Откройте для себя нашу коллекцию для каждого возраста
+            {t.catalogUi.categoriesSection.subtitle}
           </motion.p>
         </div>
 
@@ -114,7 +118,7 @@ export function CategoriesSection() {
                       <span
                         className={`flex items-center gap-1 text-sm font-medium ${category.accent} transition-all group-hover:gap-2`}
                       >
-                        Смотреть
+                        {t.catalogUi.categoriesSection.view}
                         <ArrowRight className="h-4 w-4" />
                       </span>
                     </div>

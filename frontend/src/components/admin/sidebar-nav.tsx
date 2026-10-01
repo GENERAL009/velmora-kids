@@ -86,7 +86,7 @@ const navItems: NavItem[] = [
     roles: ["director", "admin", "sales", "crm"],
   },
   {
-    label: "Call markaz",
+    label: "Koll-markaz",
     href: "/admin/call-center",
     icon: Headphones,
     roles: ["director", "admin", "call_center"],

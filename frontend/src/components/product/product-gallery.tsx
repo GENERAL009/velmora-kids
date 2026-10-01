@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProductImage } from "@/types";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface ProductGalleryProps {
   images: ProductImage[];
@@ -19,6 +20,7 @@ export function ProductGallery({
   className,
 }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const t = useTranslation();
   const [isZoomed, setIsZoomed] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -83,14 +85,14 @@ export function ProductGallery({
             <button
               onClick={handlePrevious}
               className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:scale-110"
-              aria-label="Предыдущее изображение"
+              aria-label={t.productPage.gallery.prev}
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={handleNext}
               className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:scale-110"
-              aria-label="Следующее изображение"
+              aria-label={t.productPage.gallery.next}
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -123,7 +125,7 @@ export function ProductGallery({
             >
               <Image
                 src={image.file_path}
-                alt={`${productName} - миниатюра ${index + 1}`}
+                alt={t.productPage.gallery.thumbnail.replace("{name}", productName).replace("{n}", String(index + 1))}
                 fill
                 unoptimized
                 sizes="80px"

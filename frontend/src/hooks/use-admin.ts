@@ -1,24 +1,28 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPatch } from "@/lib/api";
 
-interface DashboardKPIs {
+export interface DashboardKPIs {
   revenue: number;
   orders: number;
+  paid_orders: number;
+  cancelled_orders: number;
   average_order_value: number;
+  gross_profit: number;
   pending_orders: number;
+  awaiting_payment: number;
   low_stock: number;
   out_of_stock: number;
   total_products: number;
   period_days: number;
 }
 
-interface RevenueDataPoint {
+export interface RevenueDataPoint {
   date: string;
   revenue: number;
   orders: number;
 }
 
-interface TopProduct {
+export interface TopProduct {
   product: string;
   sold: number;
   revenue: number;
@@ -71,10 +75,39 @@ export function useRevenueData(days: number = 7) {
   });
 }
 
-export function useTopProducts(limit: number = 5) {
+export function useTopProducts(limit: number = 5, days?: number) {
   return useQuery({
-    queryKey: ["admin", "top-products", limit],
-    queryFn: () => apiGet<TopProduct[]>(`/reports/top-products?limit=${limit}`),
+    queryKey: ["admin", "top-products", limit, days ?? "all"],
+    queryFn: () =>
+      apiGet<TopProduct[]>(`/reports/top-products?limit=${limit}${days ? `&days=${days}` : ""}`),
+    retry: 1,
+  });
+}
+
+export interface StatusCount {
+  status: string;
+  count: number;
+}
+
+export function useOrdersByStatus(days: number = 30) {
+  return useQuery({
+    queryKey: ["admin", "orders-by-status", days],
+    queryFn: () => apiGet<StatusCount[]>(`/reports/orders-by-status?days=${days}`),
+    retry: 1,
+  });
+}
+
+export interface PaymentAnalyticsRow {
+  provider: string;
+  status: string;
+  count: number;
+  total: number;
+}
+
+export function usePaymentAnalytics(days: number = 30) {
+  return useQuery({
+    queryKey: ["admin", "payment-analytics", days],
+    queryFn: () => apiGet<PaymentAnalyticsRow[]>(`/reports/payments?days=${days}`),
     retry: 1,
   });
 }

@@ -207,12 +207,13 @@ function CatalogContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={`${t.catalog.title}...`}
+                placeholder={t.searchUi.placeholder}
                 className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-10 pr-10 text-sm text-charcoal placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500 sm:h-11"
               />
               {searchQuery && (
                 <button
                   onClick={() => { setSearchQuery(""); setDebouncedSearch(""); }}
+                  aria-label={t.catalogUi.clearSearch}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-700"
                 >
                   <X className="h-4 w-4" />

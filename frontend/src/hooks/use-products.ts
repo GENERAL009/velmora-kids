@@ -25,10 +25,14 @@ interface ApiVariant {
 interface ApiProduct {
   id: string;
   name: string;
+  name_uz?: string | null;
+  name_ru?: string | null;
   slug: string;
   sku: string;
   description?: string | null;
   short_description?: string | null;
+  description_uz?: string | null;
+  description_ru?: string | null;
   selling_price: number | string;
   discount_price?: number | string | null;
   discount_percent: number;
@@ -116,8 +120,12 @@ export function mapApiProduct(p: ApiProduct): Product {
   return {
     id: p.id,
     name: p.name,
+    name_uz: p.name_uz || undefined,
+    name_ru: p.name_ru || undefined,
     slug: p.slug,
     description: p.description || "",
+    description_uz: p.description_uz || undefined,
+    description_ru: p.description_ru || undefined,
     short_description: p.short_description || undefined,
     sku: p.sku,
     brand_id: p.brand_id,

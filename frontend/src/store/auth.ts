@@ -19,6 +19,8 @@ interface AuthState {
     phone?: string;
     city?: string;
     address?: string;
+    latitude?: number;
+    longitude?: number;
   }) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;

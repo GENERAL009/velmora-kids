@@ -29,11 +29,15 @@ import { apiPost, apiDelete } from "@/lib/api";
 import { saveDeferredAction } from "@/store/deferred-action";
 import toast from "react-hot-toast";
 import { cn, formatPrice, getDiscountPercentage } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/store/language";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
+  const t = useTranslation();
+  const locale = useLanguageStore((s) => s.locale);
 
   const { data: product, isLoading, error } = useProduct(slug);
   const addItem = useCartStore((state) => state.addItem);
@@ -62,7 +66,7 @@ export default function ProductDetailPage() {
         productId: product.id,
         returnUrl: `/product/${slug}`,
       });
-      toast("Войдите, чтобы сохранить в избранное", { icon: "❤️" });
+      toast(t.productPage.loginToFavorite, { icon: "❤️" });
       router.push("/auth/login");
       return;
     }
@@ -80,10 +84,10 @@ export default function ProductDetailPage() {
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      try { await navigator.share({ title: product?.name, url }); } catch {}
+      try { await navigator.share({ title: productName, url }); } catch {}
     } else {
       await navigator.clipboard.writeText(url);
-      setShareMessage("Ссылка скопирована!");
+      setShareMessage(t.productPage.linkCopied);
       setTimeout(() => setShareMessage(""), 2000);
     }
   };
@@ -123,6 +127,13 @@ export default function ProductDetailPage() {
 
   const canAddToCart = !!selectedColor;
 
+  const productName = product
+    ? (locale === "uz" ? product.name_uz : product.name_ru) || product.name
+    : "";
+  const productDescription = product
+    ? (locale === "uz" ? product.description_uz : product.description_ru) || product.description
+    : "";
+
   if (isLoading) {
     return (
       <div className="bg-cream pt-[4.5rem] dark:bg-neutral-950 lg:pt-20">
@@ -154,33 +165,34 @@ export default function ProductDetailPage() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center bg-cream dark:bg-neutral-950 px-4 text-center">
         <div className="mb-4 text-6xl dark:text-neutral-400">404</div>
         <h1 className="mb-2 font-display text-3xl font-bold text-charcoal dark:text-white">
-          Товар не найден
+          {t.productPage.notFoundTitle}
         </h1>
         <p className="mb-6 text-neutral-600 dark:text-neutral-400">
-          Возможно, товар был удалён или перемещён
+          {t.productPage.notFoundDesc}
         </p>
         <Link href="/catalog">
-          <Button variant="default">Перейти в каталог</Button>
+          <Button variant="default">{t.cart.goToCatalog}</Button>
         </Link>
       </div>
     );
   }
 
+  const sp = t.productPage.specs;
   const specifications: Record<string, string> = {
-    Артикул: product.sku,
-    ...(product.gender ? { Пол: product.gender === "girls" ? "Для девочек" : product.gender === "boys" ? "Для мальчиков" : "Для мальчиков и девочек" } : {}),
-    ...(product.age_min ? { "Возраст от": `${product.age_min} мес` } : {}),
-    ...(product.age_max ? { "Возраст до": `${product.age_max} мес` } : {}),
-    ...(product.max_weight_kg ? { "Макс. нагрузка": `${product.max_weight_kg} кг` } : {}),
-    ...(product.product_weight_kg ? { "Вес изделия": `${product.product_weight_kg} кг` } : {}),
-    ...(product.dimensions ? { Габариты: product.dimensions } : {}),
-    ...(product.wheel_type ? { "Тип колёс": product.wheel_type } : {}),
-    ...(product.wheel_count ? { "Кол-во колёс": String(product.wheel_count) } : {}),
-    ...(product.max_speed_kmh ? { "Макс. скорость": `${product.max_speed_kmh} км/ч` } : {}),
-    ...(product.battery_type ? { Аккумулятор: product.battery_type } : {}),
-    ...(product.has_remote_control ? { "Пульт управления": "Да" } : {}),
-    ...(product.has_lights ? { Подсветка: "Да" } : {}),
-    ...(product.has_music ? { "Музыка/звуки": "Да" } : {}),
+    [t.product.sku]: product.sku,
+    ...(product.gender ? { [t.catalog.gender]: product.gender === "girls" ? t.catalog.girls : product.gender === "boys" ? t.catalog.boys : sp.genderBoth } : {}),
+    ...(product.age_min ? { [sp.ageFrom]: sp.months.replace("{n}", String(product.age_min)) } : {}),
+    ...(product.age_max ? { [sp.ageTo]: sp.months.replace("{n}", String(product.age_max)) } : {}),
+    ...(product.max_weight_kg ? { [sp.maxWeight]: sp.kg.replace("{n}", String(product.max_weight_kg)) } : {}),
+    ...(product.product_weight_kg ? { [sp.productWeight]: sp.kg.replace("{n}", String(product.product_weight_kg)) } : {}),
+    ...(product.dimensions ? { [t.product.dimensions]: product.dimensions } : {}),
+    ...(product.wheel_type ? { [t.product.wheelType]: product.wheel_type } : {}),
+    ...(product.wheel_count ? { [t.product.wheelCount]: String(product.wheel_count) } : {}),
+    ...(product.max_speed_kmh ? { [sp.maxSpeed]: sp.kmh.replace("{n}", String(product.max_speed_kmh)) } : {}),
+    ...(product.battery_type ? { [sp.battery]: product.battery_type } : {}),
+    ...(product.has_remote_control ? { [t.product.remoteControl]: sp.yes } : {}),
+    ...(product.has_lights ? { [t.product.lights]: sp.yes } : {}),
+    ...(product.has_music ? { [sp.music]: sp.yes } : {}),
   };
 
   return (
@@ -190,14 +202,14 @@ export default function ProductDetailPage() {
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
           <nav className="flex items-center gap-1.5 overflow-x-auto text-xs text-neutral-600 dark:text-neutral-400 sm:gap-2 sm:text-sm">
             <Link href="/" className="flex-shrink-0 transition-colors hover:text-primary-600">
-              Главная
+              {t.productPage.home}
             </Link>
             <ChevronRight className="h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4" />
             <Link
               href="/catalog"
               className="flex-shrink-0 transition-colors hover:text-primary-600"
             >
-              Каталог
+              {t.catalog.title}
             </Link>
             {product.category && (
               <>
@@ -212,7 +224,7 @@ export default function ProductDetailPage() {
             )}
             <ChevronRight className="h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4" />
             <span className="truncate font-medium text-charcoal dark:text-white">
-              {product.name}
+              {productName}
             </span>
           </nav>
         </div>
@@ -229,7 +241,7 @@ export default function ProductDetailPage() {
           >
             <ProductGallery
               images={product.images}
-              productName={product.name}
+              productName={productName}
             />
           </motion.div>
 
@@ -248,9 +260,9 @@ export default function ProductDetailPage() {
                 </span>
               )}
               <div className="flex gap-2">
-                {product.is_new && <Badge variant="new">New</Badge>}
+                {product.is_new && <Badge variant="new">{t.common.new}</Badge>}
                 {product.is_bestseller && (
-                  <Badge variant="bestseller">Bestseller</Badge>
+                  <Badge variant="bestseller">{t.productPage.bestseller}</Badge>
                 )}
                 {discount > 0 && (
                   <Badge variant="sale">-{discount}%</Badge>
@@ -260,12 +272,12 @@ export default function ProductDetailPage() {
 
             {/* Name */}
             <h1 className="font-display text-2xl font-bold text-charcoal dark:text-white sm:text-3xl">
-              {product.name}
+              {productName}
             </h1>
 
             {/* SKU */}
             <p className="text-xs text-neutral-400">
-              Артикул: {product.sku}
+              {t.product.sku}: {product.sku}
             </p>
 
             {/* Price */}
@@ -325,7 +337,7 @@ export default function ProductDetailPage() {
                         quantity,
                         returnUrl: `/product/${slug}`,
                       });
-                      toast("Войдите, чтобы добавить в корзину", { icon: "🛒" });
+                      toast(t.productPage.loginToCart, { icon: "🛒" });
                       router.push("/auth/login");
                       return;
                     }
@@ -333,7 +345,7 @@ export default function ProductDetailPage() {
                   }
                 }}
               >
-                {canAddToCart ? "В корзину" : "Выберите цвет"}
+                {canAddToCart ? t.catalog.addToCart : t.product.selectColor}
               </Button>
 
               <div className="flex gap-3 overflow-hidden">
@@ -346,13 +358,13 @@ export default function ProductDetailPage() {
                   <Heart
                     className={cn("h-5 w-5 flex-shrink-0", isFavorite && "fill-primary-500 text-primary-500")}
                   />
-                  <span className="ml-2 truncate sm:hidden">Sevimli</span>
+                  <span className="ml-2 truncate sm:hidden">{t.nav.favorites}</span>
                 </Button>
 
                 <div className="relative min-w-0 flex-1 sm:flex-initial">
                   <Button variant="outline" size="lg" className="w-full" onClick={handleShare}>
                     <Share2 className="h-5 w-5 flex-shrink-0" />
-                    <span className="ml-2 truncate sm:hidden">Ulashish</span>
+                    <span className="ml-2 truncate sm:hidden">{t.productPage.share}</span>
                   </Button>
                   {shareMessage && (
                     <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-charcoal px-2 py-1 text-xs text-white">
@@ -366,9 +378,9 @@ export default function ProductDetailPage() {
             {/* Trust indicators */}
             <div className="grid grid-cols-3 gap-2 rounded-md border border-neutral-100 bg-white p-3 shadow-sm sm:gap-4 sm:p-4 dark:border-neutral-800 dark:bg-neutral-900">
               {[
-                { icon: Truck, label: "Бесплатная доставка" },
-                { icon: RotateCcw, label: "Возврат 14 дней" },
-                { icon: Shield, label: "Гарантия качества" },
+                { icon: Truck, label: t.productPage.trust.freeDelivery },
+                { icon: RotateCcw, label: t.productPage.trust.returns },
+                { icon: Shield, label: t.productPage.trust.quality },
               ].map((item) => (
                 <div key={item.label} className="flex flex-col items-center gap-1.5 text-center sm:gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-50 dark:bg-secondary-950/30 sm:h-10 sm:w-10">
@@ -386,7 +398,7 @@ export default function ProductDetailPage() {
         {/* Product tabs */}
         <div className="mt-16">
           <ProductTabs
-            description={product.description}
+            description={productDescription}
             specifications={specifications}
           />
         </div>
@@ -395,7 +407,7 @@ export default function ProductDetailPage() {
         {relatedProducts.length > 0 && (
           <div className="mt-16">
             <h2 className="mb-8 font-display text-2xl font-bold text-charcoal dark:text-white">
-              Похожие товары
+              {t.productPage.relatedProducts}
             </h2>
             <ProductGrid products={relatedProducts} />
           </div>

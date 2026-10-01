@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -16,18 +16,21 @@ import { apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/hooks/use-translation";
+import type { TranslationKeys } from "@/lib/i18n";
 import toast from "react-hot-toast";
 
-const loginSchema = z.object({
-  email: z.string().email("Введите корректный email"),
-  password: z.string().min(6, "Пароль должен содержать минимум 6 символов"),
-});
+const createLoginSchema = (t: TranslationKeys) =>
+  z.object({
+    email: z.string().email(t.auth.invalidEmail),
+    password: z.string().min(6, t.auth.passwordMin),
+  });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<ReturnType<typeof createLoginSchema>>;
 
 export default function LoginPage() {
   const router = useRouter();
   const t = useTranslation();
+  const loginSchema = useMemo(() => createLoginSchema(t), [t]);
   const { login, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -52,7 +55,7 @@ export default function LoginPage() {
         clearDeferredAction();
         if (deferred.type === "favorite") {
           apiPost(`/favorites/${deferred.productId}`).catch(() => {});
-          toast.success("Товар добавлен в избранное");
+          toast.success(t.authForms.favoriteAdded);
           router.push(deferred.returnUrl);
           return;
         }
@@ -105,7 +108,7 @@ export default function LoginPage() {
           {/* Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Email"
+              label={t.auth.email}
               type="email"
               {...register("email")}
               error={errors.email?.message}

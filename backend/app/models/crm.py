@@ -100,6 +100,8 @@ class CustomerAddress(Base):
     label: Mapped[str] = mapped_column(String(100), nullable=False)
     city: Mapped[str] = mapped_column(String(100), nullable=False)
     address: Mapped[str] = mapped_column(Text, nullable=False)
+    latitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 8), nullable=True)
+    longitude: Mapped[Decimal | None] = mapped_column(Numeric(11, 8), nullable=True)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     user: Mapped["User"] = relationship(  # noqa: F821

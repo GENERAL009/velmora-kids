@@ -4,19 +4,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
 
 export type SortOption = {
   value: string;
   label: string;
 };
-
-const sortOptions: SortOption[] = [
-  { value: "newest", label: "Новинки" },
-  { value: "popular", label: "Популярные" },
-  { value: "price_asc", label: "Цена: от низкой" },
-  { value: "price_desc", label: "Цена: от высокой" },
-  { value: "rating", label: "По рейтингу" },
-];
 
 interface SortSelectProps {
   value: string;
@@ -25,6 +18,14 @@ interface SortSelectProps {
 }
 
 export function SortSelect({ value, onChange, className }: SortSelectProps) {
+  const t = useTranslation();
+  const sortOptions: SortOption[] = [
+    { value: "newest", label: t.catalogUi.sort.newest },
+    { value: "popular", label: t.catalogUi.sort.popular },
+    { value: "price_asc", label: t.catalogUi.sort.priceLow },
+    { value: "price_desc", label: t.catalogUi.sort.priceHigh },
+    { value: "rating", label: t.catalogUi.sort.rating },
+  ];
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 

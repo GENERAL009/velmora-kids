@@ -3,6 +3,7 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface PaginationProps {
   currentPage: number;
@@ -17,6 +18,8 @@ export function Pagination({
   onPageChange,
   className,
 }: PaginationProps) {
+  const t = useTranslation();
+
   if (totalPages <= 1) {
     return null;
   }
@@ -61,7 +64,7 @@ export function Pagination({
   return (
     <nav
       className={cn("flex items-center justify-center gap-1", className)}
-      aria-label="Pagination"
+      aria-label={t.catalogUi.pagination.label}
     >
       {/* Previous button */}
       <button
@@ -73,7 +76,7 @@ export function Pagination({
             ? "cursor-not-allowed border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 text-neutral-300 dark:text-neutral-600"
             : "border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-950/20 hover:text-primary-600"
         )}
-        aria-label="Предыдущая страница"
+        aria-label={t.catalogUi.pagination.prev}
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
@@ -105,7 +108,7 @@ export function Pagination({
                   ? "border-primary-500 bg-primary-500 text-white shadow-sm"
                   : "border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-950/20 hover:text-primary-600"
               )}
-              aria-label={`Страница ${pageNumber}`}
+              aria-label={t.catalogUi.pagination.page.replace("{page}", String(pageNumber))}
               aria-current={isActive ? "page" : undefined}
             >
               {pageNumber}
@@ -124,7 +127,7 @@ export function Pagination({
             ? "cursor-not-allowed border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 text-neutral-300 dark:text-neutral-600"
             : "border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-950/20 hover:text-primary-600"
         )}
-        aria-label="Следующая страница"
+        aria-label={t.catalogUi.pagination.next}
       >
         <ChevronRight className="h-4 w-4" />
       </button>

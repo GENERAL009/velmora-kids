@@ -3,7 +3,7 @@ from app.api.v1.endpoints import (
     auth, products, orders, inventory, cart, favorites,
     crm, reviews, questions, payments, banners, promotions,
     notifications, reports, users, audit, customers,
-    settings, bot_webhook,
+    settings, bot_webhook, account,
 )
 
 api_router = APIRouter()
@@ -27,3 +27,4 @@ api_router.include_router(audit.router)
 api_router.include_router(customers.router)
 api_router.include_router(settings.router)
 api_router.include_router(bot_webhook.router)
+api_router.include_router(account.router)

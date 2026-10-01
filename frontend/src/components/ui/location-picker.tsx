@@ -4,16 +4,22 @@ import React, { useState } from "react";
 import { YMaps, Map, Placemark, GeolocationControl, SearchControl } from "@pbe/react-yandex-maps";
 import { MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/store/language";
 
 interface LocationPickerProps {
   onAddressChange: (address: string, city: string) => void;
   /** Called with the exact point the customer chose on the map */
   onLocationChange?: (lat: number, lon: number) => void;
   initialAddress?: string;
+  /** Pre-selected point, e.g. when editing a saved address */
+  initialCoords?: [number, number] | null;
 }
 
-export function LocationPicker({ onAddressChange, onLocationChange, initialAddress }: LocationPickerProps) {
-  const [coordinates, setCoordinates] = useState<[number, number]>([41.311081, 69.240562]); // Default Tashkent
+export function LocationPicker({ onAddressChange, onLocationChange, initialAddress, initialCoords }: LocationPickerProps) {
+  const t = useTranslation();
+  const locale = useLanguageStore((s) => s.locale);
+  const [coordinates, setCoordinates] = useState<[number, number]>(initialCoords ?? [41.311081, 69.240562]); // Default Tashkent
   const [address, setAddress] = useState(initialAddress || "");
   const [loading, setLoading] = useState(false);
 
@@ -22,12 +28,12 @@ export function LocationPicker({ onAddressChange, onLocationChange, initialAddre
     setLoading(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ru`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=${locale}`
       );
       const data = await response.json();
       if (data && data.address) {
         const fullAddress = data.display_name;
-        const city = data.address.city || data.address.town || data.address.state || "Ташкент";
+        const city = data.address.city || data.address.town || data.address.state || t.checkoutPage.cities.tashkent;
         setAddress(fullAddress);
         onAddressChange(fullAddress, city);
       }
@@ -80,12 +86,12 @@ export function LocationPicker({ onAddressChange, onLocationChange, initialAddre
             type="text"
             readOnly
             value={address}
-            placeholder="Выберите на карте или определите геолокацию"
+            placeholder={t.checkoutPage.location.placeholder}
             className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 pl-10 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:placeholder:text-neutral-500"
           />
         </div>
         <Button type="button" onClick={detectLocation} variant="outline" disabled={loading}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Мое местоположение"}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t.checkoutPage.location.myLocation}
         </Button>
       </div>
 

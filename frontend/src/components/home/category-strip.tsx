@@ -6,6 +6,8 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCategories } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/store/language";
 
 const CATEGORY_COLORS = [
   "from-pink-100 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/10",
@@ -27,10 +29,12 @@ function CategoryItem({
   gender,
   colorIdx,
 }: {
-  cat: { id: string; name: string; image?: string };
+  cat: { id: string; name: string; name_uz?: string; name_ru?: string; image?: string };
   gender: string;
   colorIdx: number;
 }) {
+  const locale = useLanguageStore((s) => s.locale);
+  const name = (locale === "uz" ? cat.name_uz : cat.name_ru) || cat.name;
   return (
     <Link
       href={`/catalog?category_id=${cat.id}&gender=${gender}`}
@@ -45,24 +49,25 @@ function CategoryItem({
         {cat.image ? (
           <Image
             src={cat.image}
-            alt={cat.name}
+            alt={name}
             width={48}
             height={48}
             className="h-10 w-10 object-contain sm:h-11 sm:w-11"
             unoptimized
           />
         ) : (
-          <span className="text-2xl sm:text-3xl">{cat.name.slice(0, 1)}</span>
+          <span className="text-2xl sm:text-3xl">{name.slice(0, 1)}</span>
         )}
       </div>
       <span className="max-w-[76px] text-center text-[11px] font-medium leading-tight text-neutral-600 dark:text-neutral-400 sm:max-w-[88px] sm:text-xs line-clamp-2">
-        {cat.name}
+        {name}
       </span>
     </Link>
   );
 }
 
 export function CategoryStrip({ gender }: CategoryStripProps) {
+  const t = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { data: categories = [] } = useCategories();
   const [desktopPage, setDesktopPage] = useState(0);
@@ -108,12 +113,14 @@ export function CategoryStrip({ gender }: CategoryStripProps) {
             <>
               <button
                 onClick={() => goDesktop("prev")}
+                aria-label={t.catalogUi.strip.prev}
                 className="absolute -left-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:shadow-lg dark:bg-neutral-800"
               >
                 <ChevronLeft className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
               </button>
               <button
                 onClick={() => goDesktop("next")}
+                aria-label={t.catalogUi.strip.next}
                 className="absolute -right-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:shadow-lg dark:bg-neutral-800"
               >
                 <ChevronRight className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
@@ -150,6 +157,7 @@ export function CategoryStrip({ gender }: CategoryStripProps) {
                 <button
                   key={i}
                   onClick={() => setDesktopPage(i)}
+                  aria-label={t.catalogUi.strip.page.replace("{page}", String(i + 1))}
                   className={cn(
                     "h-1.5 rounded-full transition-all",
                     i === desktopPage
@@ -167,6 +175,7 @@ export function CategoryStrip({ gender }: CategoryStripProps) {
       <div className="relative lg:hidden">
         <button
           onClick={() => scroll("left")}
+          aria-label={t.catalogUi.strip.prev}
           className="absolute -left-2 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:shadow-lg dark:bg-neutral-800 sm:flex h-8 w-8"
         >
           <ChevronLeft className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
@@ -185,6 +194,7 @@ export function CategoryStrip({ gender }: CategoryStripProps) {
 
         <button
           onClick={() => scroll("right")}
+          aria-label={t.catalogUi.strip.next}
           className="absolute -right-2 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:shadow-lg dark:bg-neutral-800 sm:flex h-8 w-8"
         >
           <ChevronRight className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />

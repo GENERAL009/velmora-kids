@@ -4,6 +4,8 @@ import React from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Category, Brand } from "@/types";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/store/language";
 
 interface ActiveFilter {
   type: "category" | "brand" | "gender" | "price" | "sale";
@@ -27,11 +29,6 @@ interface ActiveFiltersProps {
   className?: string;
 }
 
-const genderLabels: Record<string, string> = {
-  girls: "Для девочек",
-  boys: "Для мальчиков",
-};
-
 export function ActiveFilters({
   filters,
   categories,
@@ -40,6 +37,15 @@ export function ActiveFilters({
   onClearAll,
   className,
 }: ActiveFiltersProps) {
+  const t = useTranslation();
+  const locale = useLanguageStore((s) => s.locale);
+  const localizedName = (c: { name: string; name_uz?: string; name_ru?: string }) =>
+    (locale === "uz" ? c.name_uz : c.name_ru) || c.name;
+  const genderLabels: Record<string, string> = {
+    girls: t.catalogUi.gender.girls,
+    boys: t.catalogUi.gender.boys,
+    both: t.catalogUi.gender.both,
+  };
   const activeFilters: ActiveFilter[] = [];
 
   // Add category filters
@@ -49,7 +55,7 @@ export function ActiveFilters({
       activeFilters.push({
         type: "category",
         value: id,
-        label: category.name,
+        label: localizedName(category),
       });
     }
   });
@@ -78,8 +84,8 @@ export function ActiveFilters({
   // Add price filter
   if (filters.min_price !== undefined || filters.max_price !== undefined) {
     const priceLabel = [];
-    if (filters.min_price) priceLabel.push(`от ${filters.min_price.toLocaleString()}`);
-    if (filters.max_price) priceLabel.push(`до ${filters.max_price.toLocaleString()}`);
+    if (filters.min_price) priceLabel.push(t.catalogUi.priceFrom.replace("{value}", filters.min_price.toLocaleString()));
+    if (filters.max_price) priceLabel.push(t.catalogUi.priceTo.replace("{value}", filters.max_price.toLocaleString()));
 
     activeFilters.push({
       type: "price",
@@ -93,7 +99,7 @@ export function ActiveFilters({
     activeFilters.push({
       type: "sale",
       value: "sale",
-      label: "Со скидкой",
+      label: t.catalog.onSale,
     });
   }
 
@@ -104,7 +110,7 @@ export function ActiveFilters({
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-        Активные фильтры:
+        {t.catalogUi.activeFilters}
       </span>
 
       {activeFilters.map((filter, index) => (
@@ -116,7 +122,7 @@ export function ActiveFilters({
           <button
             onClick={() => onRemoveFilter(filter.type, filter.value)}
             className="flex h-4 w-4 items-center justify-center rounded-full text-primary-600 transition-colors hover:bg-primary-200"
-            aria-label={`Удалить фильтр ${filter.label}`}
+            aria-label={t.catalogUi.removeFilter.replace("{label}", filter.label)}
           >
             <X className="h-3 w-3" />
           </button>
@@ -128,7 +134,7 @@ export function ActiveFilters({
           onClick={onClearAll}
           className="ml-2 text-sm font-medium text-neutral-500 underline-offset-2 transition-colors hover:text-primary-600 hover:underline"
         >
-          Сбросить все
+          {t.catalog.clearAll}
         </button>
       )}
     </div>

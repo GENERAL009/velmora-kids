@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Clock, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface SearchResult {
   id: string;
@@ -21,43 +22,45 @@ interface SearchModalProps {
 }
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
+  const t = useTranslation();
+  const s = t.searchUi;
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([
-    "Самокат трёхколёсный",
-    "Электромобиль",
-    "Коляска прогулочная",
+    s.defaultRecent.r1,
+    s.defaultRecent.r2,
+    s.defaultRecent.r3,
   ]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const trendingSearches = [
-    "Самокаты",
-    "Электрокары",
-    "Беговелы",
-    "Квадроциклы",
+    s.trendingItems.t1,
+    s.trendingItems.t2,
+    s.trendingItems.t3,
+    s.trendingItems.t4,
   ];
 
   const dummyResults: SearchResult[] = [
     {
       id: "1",
-      name: "Самокат трёхколёсный со светящимися колёсами",
+      name: s.demo.scooterName,
       slug: "samokat-tryokhkolyosnyy",
       price: 450000,
-      category: "Самокаты",
+      category: s.demo.scooterCategory,
     },
     {
       id: "2",
-      name: "Электромобиль Mercedes-Benz для детей",
+      name: s.demo.carName,
       slug: "elektromobil-mercedes",
       price: 3500000,
-      category: "Электромобили",
+      category: s.demo.carCategory,
     },
     {
       id: "3",
-      name: "Беговел алюминиевый 12 дюймов",
+      name: s.demo.balanceBikeName,
       slug: "begovel-alyuminievyy",
       price: 650000,
-      category: "Велосипеды",
+      category: s.demo.balanceBikeCategory,
     },
   ];
 
@@ -141,12 +144,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Поиск товаров..."
+                  placeholder={s.placeholder}
                   className="flex-1 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
                 />
                 {query && (
                   <button
                     onClick={() => setQuery("")}
+                    aria-label={s.clearQuery}
                     className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
                   >
                     <X className="h-4 w-4" />
@@ -154,6 +158,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 )}
                 <button
                   onClick={onClose}
+                  aria-label={t.common.close}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100"
                 >
                   <X className="h-5 w-5" />
@@ -201,13 +206,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                           onClick={onClose}
                           className="mt-2 flex items-center justify-center rounded-sm border border-neutral-200 py-3 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
                         >
-                          Показать все результаты ({results.length})
+                          {s.showAllResults.replace("{count}", String(results.length))}
                         </Link>
                       </>
                     ) : (
                       <div className="py-12 text-center">
                         <p className="text-sm text-neutral-500">
-                          По запросу &quot;{query}&quot; ничего не найдено
+                          {s.noResultsFor.replace("{query}", query)}
                         </p>
                       </div>
                     )}
@@ -221,13 +226,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         <div className="mb-3 flex items-center justify-between">
                           <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
                             <Clock className="h-3.5 w-3.5" />
-                            Недавние
+                            {s.recent}
                           </h3>
                           <button
                             onClick={clearRecent}
                             className="text-xs text-neutral-400 transition-colors hover:text-neutral-600"
                           >
-                            Очистить
+                            {s.clear}
                           </button>
                         </div>
                         <div className="space-y-1">
@@ -249,7 +254,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     <div className="pt-4">
                       <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
                         <TrendingUp className="h-3.5 w-3.5" />
-                        Популярные запросы
+                        {s.trending}
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {trendingSearches.map((search, index) => (

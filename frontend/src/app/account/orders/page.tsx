@@ -15,18 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { useAdminOrders } from "@/hooks/use-admin";
-
-const STATUS_LABELS: Record<string, string> = {
-  new: "Новый",
-  pending: "В ожидании",
-  confirmed: "Подтвержден",
-  processing: "В обработке",
-  shipped: "Отправлен",
-  delivered: "Доставлен",
-  cancelled: "Отменен",
-  returned: "Возвращен",
-  refunded: "Возврат средств",
-};
+import { useTranslation } from "@/hooks/use-translation";
 
 const STATUS_COLORS: Record<string, string> = {
   new: "bg-blue-100 text-blue-700 border-blue-200",
@@ -41,6 +30,18 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+  const t = useTranslation();
+  const STATUS_LABELS: Record<string, string> = {
+    new: t.ordersUi.status.new,
+    pending: t.orderStatus.pending,
+    confirmed: t.orderStatus.confirmed,
+    processing: t.orderStatus.processing,
+    shipped: t.orderStatus.shipped,
+    delivered: t.orderStatus.delivered,
+    cancelled: t.orderStatus.cancelled,
+    returned: t.ordersUi.status.returned,
+    refunded: t.ordersUi.status.refunded,
+  };
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -69,10 +70,10 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 shadow-sm">
         <h1 className="mb-2 font-display text-2xl text-charcoal dark:text-white lg:text-3xl">
-          Мои заказы
+          {t.nav.myOrders}
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400">
-          Отслеживайте статус ваших заказов и историю покупок
+          {t.ordersUi.subtitle}
         </p>
       </div>
 
@@ -124,7 +125,7 @@ export default function OrdersPage() {
                       <button
                         onClick={() => toggleOrder(order.id)}
                         className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-600 dark:text-neutral-400 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
-                        aria-label={isExpanded ? "Свернуть" : "Развернуть"}
+                        aria-label={isExpanded ? t.ordersUi.collapse : t.ordersUi.expand}
                       >
                         {isExpanded ? (
                           <ChevronUp className="h-5 w-5" />
@@ -147,7 +148,7 @@ export default function OrdersPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">Итого</p>
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400">{t.cart.summary}</p>
                       <p className="font-display text-xl font-semibold text-charcoal dark:text-white">
                         {formatPrice(order.total)}
                       </p>
@@ -161,11 +162,11 @@ export default function OrdersPage() {
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" size="sm">
                         <ExternalLink className="mr-2 h-4 w-4" />
-                        Подробнее
+                        {t.ordersUi.details}
                       </Button>
                       {order.status === "delivered" && (
                         <Button variant="outline" size="sm">
-                          Оставить отзыв
+                          {t.ordersUi.leaveReview}
                         </Button>
                       )}
                     </div>
@@ -184,7 +185,7 @@ export default function OrdersPage() {
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
-                Назад
+                {t.common.back}
               </Button>
               <span className="text-sm text-neutral-600 dark:text-neutral-400">
                 {currentPage} / {totalPages}
@@ -195,7 +196,7 @@ export default function OrdersPage() {
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => p + 1)}
               >
-                Вперёд
+                {t.ordersUi.forward}
               </Button>
             </div>
           )}
@@ -204,13 +205,13 @@ export default function OrdersPage() {
         <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-12 text-center shadow-sm">
           <Package className="mx-auto mb-4 h-16 w-16 text-neutral-300 dark:text-neutral-600" />
           <h2 className="mb-2 font-display text-xl text-charcoal dark:text-white">
-            У вас пока нет заказов
+            {t.account.noOrders}
           </h2>
           <p className="mb-6 text-neutral-600 dark:text-neutral-400">
-            Начните делать покупки прямо сейчас
+            {t.ordersUi.emptyDesc}
           </p>
           <Link href="/catalog">
-            <Button size="lg">Перейти в каталог</Button>
+            <Button size="lg">{t.cart.goToCatalog}</Button>
           </Link>
         </div>
       )}

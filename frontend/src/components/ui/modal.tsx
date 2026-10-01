@@ -4,6 +4,7 @@ import React, { useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface ModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export function Modal({
   className,
   size = "md",
 }: ModalProps) {
+  const t = useTranslation();
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -88,7 +90,7 @@ export function Modal({
             <button
               onClick={onClose}
               className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
-              aria-label="Закрыть"
+              aria-label={t.common.close}
             >
               <X className="h-5 w-5" />
             </button>

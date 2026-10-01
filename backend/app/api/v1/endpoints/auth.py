@@ -69,12 +69,16 @@ async def register(
 
     if user_in.city and user_in.address:
         from app.models.crm import CustomerAddress
+        from decimal import Decimal
+        has_coords = user_in.latitude is not None and user_in.longitude is not None
         addr = CustomerAddress(
             user_id=user.id,
-            label="Дом",
+            label="Uy",
             city=user_in.city,
             address=user_in.address,
-            is_default=True
+            latitude=Decimal(str(round(user_in.latitude, 8))) if has_coords else None,
+            longitude=Decimal(str(round(user_in.longitude, 8))) if has_coords else None,
+            is_default=True,
         )
         db.add(addr)
         await db.flush()

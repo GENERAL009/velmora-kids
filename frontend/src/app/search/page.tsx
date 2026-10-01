@@ -13,9 +13,13 @@ import { Footer } from "@/components/layout/footer";
 import { useProducts, useCategories, useBrands } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
 import type { Category, Brand } from "@/types";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/store/language";
 
 function SearchContent() {
   const searchParams = useSearchParams();
+  const t = useTranslation();
+  const locale = useLanguageStore((s) => s.locale);
 
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [activeQuery, setActiveQuery] = useState(searchParams.get("q") || "");
@@ -63,10 +67,18 @@ function SearchContent() {
   const hasFilters = selectedCategory || selectedBrand || selectedGender || minPrice || maxPrice;
 
   const genderOptions = [
-    { value: "", label: "Все" },
-    { value: "girls", label: "Для девочек" },
-    { value: "boys", label: "Для мальчиков" },
+    { value: "", label: t.searchUi.all },
+    { value: "girls", label: t.catalog.girls },
+    { value: "boys", label: t.catalog.boys },
   ];
+
+  const pluralCategory = new Intl.PluralRules(locale === "uz" ? "uz" : "ru").select(totalProducts);
+  const itemsWord =
+    pluralCategory === "one" ? t.cart.item_one : pluralCategory === "few" ? t.cart.item_few : t.cart.item_many;
+  const foundText = t.searchUi.found
+    .replace("{query}", activeQuery)
+    .replace("{count}", String(totalProducts))
+    .replace("{items}", itemsWord);
 
   return (
     <>
@@ -76,7 +88,7 @@ function SearchContent() {
           {/* Search header */}
           <div className="mb-6 sm:mb-8">
             <h1 className="mb-3 font-display text-2xl font-bold text-charcoal dark:text-white sm:mb-4 sm:text-3xl">
-              Поиск
+              {t.searchUi.title}
             </h1>
 
             {/* Search bar */}
@@ -87,13 +99,13 @@ function SearchContent() {
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Поиск товаров..."
+                  placeholder={t.searchUi.placeholder}
                   className="h-10 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-primary-600 sm:h-12 sm:pl-12"
                   autoFocus
                 />
               </div>
               <Button type="submit" size="lg" className="hidden sm:flex">
-                Найти
+                {t.searchUi.find}
               </Button>
               <Button type="submit" size="sm" className="sm:hidden">
                 <Search className="h-4 w-4" />
@@ -141,11 +153,11 @@ function SearchContent() {
               {showFilters && (
                 <div className="h-full w-[280px] space-y-6 overflow-y-auto rounded-none border-l border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900 lg:h-auto lg:rounded-xl lg:border">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-display text-lg font-semibold text-charcoal dark:text-white">Фильтры</h3>
+                    <h3 className="font-display text-lg font-semibold text-charcoal dark:text-white">{t.catalog.filters}</h3>
                     <div className="flex items-center gap-2">
                       {hasFilters && (
                         <button onClick={clearFilters} className="text-xs text-primary-600 hover:underline">
-                          Сбросить
+                          {t.searchUi.reset}
                         </button>
                       )}
                       <button onClick={() => setShowFilters(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 lg:hidden">
@@ -156,7 +168,7 @@ function SearchContent() {
 
                   {/* Gender */}
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Пол</label>
+                    <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.catalog.gender}</label>
                     <div className="flex flex-wrap gap-2">
                       {genderOptions.map((opt) => (
                         <button
@@ -177,7 +189,7 @@ function SearchContent() {
 
                   {/* Categories */}
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Категория</label>
+                    <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.searchUi.category}</label>
                     <div className="max-h-48 space-y-1 overflow-y-auto">
                       <button
                         onClick={() => setSelectedCategory("")}
@@ -188,7 +200,7 @@ function SearchContent() {
                             : "text-neutral-600 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
                         )}
                       >
-                        Все категории
+                        {t.searchUi.allCategories}
                       </button>
                       {categories.map((cat: Category) => (
                         <button
@@ -209,7 +221,7 @@ function SearchContent() {
 
                   {/* Brands */}
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Бренд</label>
+                    <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.product.brand}</label>
                     <div className="max-h-48 space-y-1 overflow-y-auto">
                       <button
                         onClick={() => setSelectedBrand("")}
@@ -220,7 +232,7 @@ function SearchContent() {
                             : "text-neutral-600 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
                         )}
                       >
-                        Все бренды
+                        {t.searchUi.allBrands}
                       </button>
                       {brands.map((brand: Brand) => (
                         <button
@@ -241,11 +253,11 @@ function SearchContent() {
 
                   {/* Price range */}
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Цена (сум)</label>
+                    <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.searchUi.priceLabel}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
-                        placeholder="от"
+                        placeholder={t.searchUi.priceFrom}
                         value={minPrice}
                         onChange={(e) => setMinPrice(e.target.value)}
                         className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500 dark:focus:ring-primary-900"
@@ -253,7 +265,7 @@ function SearchContent() {
                       <span className="text-neutral-400">—</span>
                       <input
                         type="number"
-                        placeholder="до"
+                        placeholder={t.searchUi.priceTo}
                         value={maxPrice}
                         onChange={(e) => setMaxPrice(e.target.value)}
                         className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500 dark:focus:ring-primary-900"
@@ -268,7 +280,7 @@ function SearchContent() {
             <div className="flex-1">
               {activeQuery && (
                 <p className="mb-4 text-sm text-neutral-500 dark:text-neutral-400">
-                  {isLoading ? "Ищем..." : `Найдено ${totalProducts} товаров по запросу «${activeQuery}»`}
+                  {isLoading ? t.searchUi.searching : foundText}
                 </p>
               )}
 
@@ -276,7 +288,7 @@ function SearchContent() {
                 <div className="space-y-6">
                   {/* Category quick links */}
                   <div>
-                    <h2 className="mb-4 font-display text-xl font-semibold text-charcoal dark:text-white">Категории</h2>
+                    <h2 className="mb-4 font-display text-xl font-semibold text-charcoal dark:text-white">{t.catalog.categories}</h2>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                       {categories.map((cat: Category) => (
                         <button
@@ -292,11 +304,11 @@ function SearchContent() {
 
                   {/* Gender quick links */}
                   <div>
-                    <h2 className="mb-4 font-display text-xl font-semibold text-charcoal dark:text-white">По полу</h2>
+                    <h2 className="mb-4 font-display text-xl font-semibold text-charcoal dark:text-white">{t.searchUi.byGender}</h2>
                     <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       {[
-                        { value: "girls", label: "Для девочек", emoji: "👧", gradient: "from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 border-pink-200 dark:border-pink-800" },
-                        { value: "boys", label: "Для мальчиков", emoji: "👦", gradient: "from-blue-50 to-sky-50 dark:from-blue-950/30 dark:to-sky-950/30 border-blue-200 dark:border-blue-800" },
+                        { value: "girls", label: t.catalog.girls, emoji: "👧", gradient: "from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30 border-pink-200 dark:border-pink-800" },
+                        { value: "boys", label: t.catalog.boys, emoji: "👦", gradient: "from-blue-50 to-sky-50 dark:from-blue-950/30 dark:to-sky-950/30 border-blue-200 dark:border-blue-800" },
                       ].map((g) => (
                         <button
                           key={g.value}
@@ -323,13 +335,13 @@ function SearchContent() {
                 <div className="flex min-h-[300px] flex-col items-center justify-center rounded-xl bg-white p-12 text-center dark:bg-neutral-900">
                   <div className="mb-4 text-5xl">🔍</div>
                   <h3 className="mb-2 font-display text-xl font-semibold text-charcoal dark:text-white">
-                    Ничего не найдено
+                    {t.searchUi.nothingFound}
                   </h3>
                   <p className="mb-4 text-sm text-neutral-500">
-                    Попробуйте изменить запрос или фильтры
+                    {t.searchUi.nothingFoundDesc}
                   </p>
                   <Button variant="outline" onClick={clearFilters}>
-                    Сбросить все
+                    {t.catalog.clearAll}
                   </Button>
                 </div>
               )}

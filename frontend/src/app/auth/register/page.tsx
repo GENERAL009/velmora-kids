@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -16,37 +16,41 @@ import { apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/hooks/use-translation";
+import type { TranslationKeys } from "@/lib/i18n";
 import toast from "react-hot-toast";
 import { LocationPicker } from "@/components/ui/location-picker";
 
-const registerSchema = z
-  .object({
-    first_name: z.string().min(2, "Введите имя"),
-    last_name: z.string().min(2, "Введите фамилию"),
-    email: z.string().email("Введите корректный email"),
-    phone: z.string().min(9, "Введите корректный номер телефона").optional(),
-    password: z.string().min(8, "Пароль должен содержать минимум 8 символов"),
-    confirm_password: z.string(),
-    agree_terms: z.boolean().refine((val) => val === true, {
-      message: "Необходимо принять условия",
-    }),
-  })
-  .refine((data) => data.password === data.confirm_password, {
-    message: "Пароли не совпадают",
-    path: ["confirm_password"],
-  });
+const createRegisterSchema = (t: TranslationKeys) =>
+  z
+    .object({
+      first_name: z.string().min(2, t.authForms.validation.firstNameRequired),
+      last_name: z.string().min(2, t.authForms.validation.lastNameRequired),
+      email: z.string().email(t.auth.invalidEmail),
+      phone: z.string().min(9, t.authForms.validation.phoneInvalid).optional(),
+      password: z.string().min(8, t.authForms.validation.passwordMin8),
+      confirm_password: z.string(),
+      agree_terms: z.boolean().refine((val) => val === true, {
+        message: t.authForms.validation.termsRequired,
+      }),
+    })
+    .refine((data) => data.password === data.confirm_password, {
+      message: t.auth.passwordMismatch,
+      path: ["confirm_password"],
+    });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>;
 
 export default function RegisterPage() {
   const router = useRouter();
   const t = useTranslation();
+  const registerSchema = useMemo(() => createRegisterSchema(t), [t]);
   const { register: registerUser, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
 
   const {
     register,
@@ -80,6 +84,8 @@ export default function RegisterPage() {
         phone: data.phone,
         city,
         address,
+        latitude: coords?.lat,
+        longitude: coords?.lon,
       });
 
       const deferred = getDeferredAction();
@@ -87,7 +93,7 @@ export default function RegisterPage() {
         clearDeferredAction();
         if (deferred.type === "favorite") {
           apiPost(`/favorites/${deferred.productId}`).catch(() => {});
-          toast.success("Товар добавлен в избранное");
+          toast.success(t.authForms.favoriteAdded);
           router.push(deferred.returnUrl);
           return;
         }
@@ -102,7 +108,7 @@ export default function RegisterPage() {
     } catch (error) {
       const err = error as { response?: { data?: { detail?: string } } };
       setServerError(
-        err.response?.data?.detail || "Ошибка регистрации. Попробуйте снова."
+        err.response?.data?.detail || t.authForms.registerError
       );
     }
   };
@@ -157,7 +163,7 @@ export default function RegisterPage() {
             </div>
 
             <Input
-              label="Email"
+              label={t.auth.email}
               type="email"
               {...register("email")}
               error={errors.email?.message}
@@ -230,7 +236,7 @@ export default function RegisterPage() {
                           : "text-neutral-500"
                       }
                     >
-                      Минимум 8 символов
+                      {t.authForms.strength.minLength}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -246,7 +252,7 @@ export default function RegisterPage() {
                           : "text-neutral-500"
                       }
                     >
-                      Содержит цифру
+                      {t.authForms.strength.hasNumber}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -262,7 +268,7 @@ export default function RegisterPage() {
                           : "text-neutral-500"
                       }
                     >
-                      Содержит букву
+                      {t.authForms.strength.hasLetter}
                     </span>
                   </div>
                 </div>
@@ -293,12 +299,13 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Адрес доставки (необязательно)</p>
+              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.authForms.addressOptional}</p>
               <LocationPicker 
                 onAddressChange={(newAddress, newCity) => {
                   setAddress(newAddress);
                   setCity(newCity);
-                }} 
+                }}
+                onLocationChange={(lat, lon) => setCoords({ lat, lon })}
               />
             </div>
 
@@ -311,14 +318,15 @@ export default function RegisterPage() {
                   className="mt-1 h-4 w-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-400"
                 />
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Я согласен с{" "}
+                  {t.authForms.agreeBefore && `${t.authForms.agreeBefore} `}
                   <span className="text-primary-600">
-                    условиями использования
+                    {t.authForms.agreeTerms}
                   </span>{" "}
-                  и{" "}
+                  {t.authForms.agreeAnd}{" "}
                   <span className="text-primary-600">
-                    политикой конфиденциальности
+                    {t.authForms.agreePrivacy}
                   </span>
+                  {t.authForms.agreeAfter && ` ${t.authForms.agreeAfter}`}
                 </span>
               </label>
               {errors.agree_terms && (

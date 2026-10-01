@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { ProductGrid } from "@/components/product/product-grid";
 import type { Product } from "@/types";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface FeaturedProductsProps {
   title: string;
@@ -21,9 +22,11 @@ export function FeaturedProducts({
   subtitle,
   products,
   viewAllHref = "/catalog",
-  viewAllLabel = "Смотреть все",
+  viewAllLabel: viewAllLabelProp,
   isLoading = false,
 }: FeaturedProductsProps) {
+  const t = useTranslation();
+  const viewAllLabel = viewAllLabelProp ?? t.common.viewAll;
   return (
     <section className="py-10 sm:py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

@@ -134,13 +134,13 @@ export default function ProductsPage() {
       render: (product) => (
         <div className="flex gap-1 flex-wrap">
           {product.is_featured && (
-            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">Featured</span>
+            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">Tavsiya</span>
           )}
           {product.is_new && (
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">New</span>
           )}
           {product.is_bestseller && (
-            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">Best</span>
+            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">Xit</span>
           )}
         </div>
       ),

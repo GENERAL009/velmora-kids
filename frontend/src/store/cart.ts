@@ -5,6 +5,10 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import toast from "react-hot-toast";
 import { apiPost } from "@/lib/api";
 import type { CartItem, Product, ProductVariant } from "@/types";
+import { getTranslations } from "@/lib/i18n";
+import { useLanguageStore } from "@/store/language";
+
+const cartToasts = () => getTranslations(useLanguageStore.getState().locale).checkoutPage.toast;
 
 /** Coupon as validated by the backend (/promotions/validate-coupon) */
 export interface AppliedPromo {
@@ -54,11 +58,11 @@ export const useCartStore = create<CartState>()(
               ...updatedItems[existingIndex],
               quantity: newQty,
             };
-            toast.success(`${product.name} — количество обновлено`);
+            toast.success(cartToasts().quantityUpdated.replace("{name}", product.name));
             return { items: updatedItems };
           }
 
-          toast.success(`${product.name} добавлен в корзину`);
+          toast.success(cartToasts().addedToCart.replace("{name}", product.name));
           return {
             items: [...state.items, { product, variant, quantity }],
           };

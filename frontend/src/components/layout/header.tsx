@@ -16,8 +16,10 @@ import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { useNotificationStore } from "@/store/notification";
 import { MobileMenu } from "./mobile-menu";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function Header() {
+  const t = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -60,7 +62,7 @@ export function Header() {
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-700 dark:text-neutral-300 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 lg:hidden"
-              aria-label="Открыть меню"
+              aria-label={t.nav.openMenu}
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -82,7 +84,7 @@ export function Header() {
               <Link
                 href="/catalog"
                 className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-primary-600"
-                aria-label="Каталог"
+                aria-label={t.nav.search}
               >
                 <Search className="h-5 w-5" />
               </Link>
@@ -92,7 +94,7 @@ export function Header() {
                 <Link
                   href="/account/notifications"
                   className="relative flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-primary-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                  aria-label="Уведомления"
+                  aria-label={t.nav.notifications}
                 >
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
@@ -111,7 +113,7 @@ export function Header() {
               <Link
                 href="/account"
                 className="hidden h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-primary-600 dark:text-neutral-300 dark:hover:bg-neutral-800 sm:flex"
-                aria-label="Личный кабинет"
+                aria-label={t.nav.account}
               >
                 <User className="h-5 w-5" />
               </Link>
@@ -120,7 +122,7 @@ export function Header() {
               <Link
                 href="/account/favorites"
                 className="relative hidden h-10 w-10 items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-primary-600 sm:flex"
-                aria-label="Избранное"
+                aria-label={t.nav.favorites}
               >
                 <Heart className="h-5 w-5" />
               </Link>
@@ -129,7 +131,7 @@ export function Header() {
               <Link
                 href="/cart"
                 className="relative flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-primary-600"
-                aria-label="Корзина"
+                aria-label={t.nav.cart}
               >
                 <ShoppingBag className="h-5 w-5" />
                 {mounted && itemCount > 0 && (

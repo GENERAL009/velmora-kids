@@ -150,7 +150,7 @@ export function Footer() {
               <li className="flex items-start gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" />
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                  г. Ташкент, ул. Амира Темура, 107
+                  {t.layoutUi.address}
                 </span>
               </li>
             </ul>

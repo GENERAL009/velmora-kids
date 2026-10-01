@@ -3,6 +3,7 @@
 Both the admin panel and the Telegram bot go through these functions, so stock,
 customer stats, notifications and audit logs are always handled the same way.
 """
+import json
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -34,6 +35,21 @@ async def lock_order(db: AsyncSession, order_id: uuid.UUID) -> Order | None:
         .with_for_update(of=Order)
     )
     return result.scalar_one_or_none()
+
+
+def _i18n_notification(order: Order, code: str, **params: str) -> Notification:
+    """Customer notification rendered in the viewer's language by the storefront.
+
+    title = "i18n:<code>", message = JSON params. The frontend has the templates
+    (t.profile.notificationTemplates) and falls back to plain text for old rows.
+    """
+    return Notification(
+        user_id=order.customer_id,
+        title=f"i18n:{code}",
+        message=json.dumps({"order": order.order_number, **params}, ensure_ascii=False),
+        type="order",
+        link=f"/account/orders/{order.id}",
+    )
 
 
 async def _update_customer_stats(db: AsyncSession, order: Order) -> None:
@@ -86,16 +102,7 @@ async def apply_paid(
     await _update_customer_stats(db, order)
 
     if notify_customer:
-        db.add(Notification(
-            user_id=order.customer_id,
-            title="To'lov tasdiqlandi",
-            message=(
-                f"#{order.order_number} buyurtmangiz bo'yicha {order.total:,.0f} so'm to'lov tasdiqlandi. "
-                f"Buyurtma yig'ishga topshirildi."
-            ),
-            type="order",
-            link=f"/account/orders/{order.id}",
-        ))
+        db.add(_i18n_notification(order, "payment_confirmed", amount=f"{order.total:,.0f}"))
 
     await log_audit(
         db, by_user_id, "payment_confirmed", "order", str(order.id),
@@ -123,14 +130,7 @@ async def apply_rejected(
             payment.rejection_reason = reason
             payment.verified_at = now
             payment.verified_by = by_user_id
-    db.add(Notification(
-        user_id=order.customer_id,
-        title="To'lov rad etildi",
-        message=f"#{order.order_number} buyurtma bo'yicha to'lov rad etildi."
-        + (f" Sabab: {reason}" if reason else ""),
-        type="order",
-        link=f"/account/orders/{order.id}",
-    ))
+    db.add(_i18n_notification(order, "payment_rejected", reason=reason or ""))
     await log_audit(
         db, by_user_id, "payment_rejected", "order", str(order.id),
         new_value={"source": source, "by": by_name, "reason": reason},
@@ -156,13 +156,7 @@ async def apply_suspicious(
             changed = True
     if not changed:
         return False
-    db.add(Notification(
-        user_id=order.customer_id,
-        title="Qo'shimcha tekshiruv",
-        message=f"#{order.order_number} buyurtma bo'yicha to'lov qo'shimcha tekshiruvdan o'tmoqda. Iltimos, kuting.",
-        type="order",
-        link=f"/account/orders/{order.id}",
-    ))
+    db.add(_i18n_notification(order, "payment_review"))
     await log_audit(
         db, by_user_id, "payment_suspicious", "order", str(order.id),
         new_value={"source": source, "by": by_name},

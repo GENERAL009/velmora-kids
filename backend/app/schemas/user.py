@@ -15,6 +15,8 @@ class UserCreate(BaseModel):
     phone: Optional[str] = Field(None, max_length=20)
     city: Optional[str] = Field(None, max_length=100)
     address: Optional[str] = Field(None, max_length=500)
+    latitude: Optional[float] = Field(None, ge=-90, le=90)
+    longitude: Optional[float] = Field(None, ge=-180, le=180)
     role: Optional[str] = None
 
     @field_validator("email")

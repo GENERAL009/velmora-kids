@@ -5,21 +5,22 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { 
-  CheckCircle2, 
-  ShoppingBag, 
-  Package, 
-  XCircle, 
-  AlertCircle, 
-  ShieldAlert, 
-  ShieldCheck, 
-  Receipt, 
-  Send, 
-  Cpu, 
+import {
+  CheckCircle2,
+  ShoppingBag,
+  Package,
+  XCircle,
+  AlertCircle,
+  ShieldAlert,
+  ShieldCheck,
+  Receipt,
+  Send,
   Sparkles,
   Lock,
-  ArrowRight
+  ArrowRight,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useTranslation } from "@/hooks/use-translation";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
@@ -32,155 +33,138 @@ interface PaymentStatus {
   uploaded_at?: string;
 }
 
-// Creative & Modern Payment Verification Animation Component
-function PremiumPaymentAnimation() {
-  const [activeStep, setActiveStep] = useState(2);
+// Payment verification animation — in the site's soft rose / sage / cream style
+function PaymentVerificationAnimation({ hasReceipt }: { hasReceipt: boolean }) {
+  const t = useTranslation();
+  const w = t.paymentWait;
   const [secondsElapsed, setSecondsElapsed] = useState(0);
-  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-
-  const statusMessages = [
-    "Бот отправил чек 2 администраторам...",
-    "Сверка реквизитов и суммы платежа...",
-    "Проверка отклика от Telegram бота...",
-    "Заказ готовится к автоматическому подтверждению..."
-  ];
+  const [messageIndex, setMessageIndex] = useState(0);
+  const messages = [w.messages.m1, w.messages.m2, w.messages.m3, w.messages.m4];
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsElapsed((prev) => prev + 1);
-    }, 1000);
-
-    const msgTimer = setInterval(() => {
-      setCurrentMessageIndex((prev) => (prev + 1) % statusMessages.length);
-    }, 3500);
-
-    const stepTimer = setInterval(() => {
-      setActiveStep((prev) => (prev < 3 ? prev + 1 : prev));
-    }, 4000);
-
+    const timer = setInterval(() => setSecondsElapsed((s) => s + 1), 1000);
+    const msgTimer = setInterval(() => setMessageIndex((i) => (i + 1) % 4), 4000);
     return () => {
       clearInterval(timer);
       clearInterval(msgTimer);
-      clearInterval(stepTimer);
     };
   }, []);
 
-  const formatTimer = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  const mm = Math.floor(secondsElapsed / 60).toString().padStart(2, "0");
+  const ss = (secondsElapsed % 60).toString().padStart(2, "0");
+
+  // 1 = receipt uploaded, 2 = sent to admins, 3 = verification (current)
+  const activeStep = hasReceipt ? 3 : 2;
+  const steps = [
+    { step: 1, icon: Receipt, title: w.steps.uploadedTitle, desc: w.steps.uploadedDesc },
+    { step: 2, icon: Send, title: w.steps.sentTitle, desc: w.steps.sentDesc },
+    { step: 3, icon: ShieldCheck, title: w.steps.verifyTitle, desc: w.steps.verifyDesc },
+  ];
 
   return (
-    <div className="w-full space-y-6">
-      {/* Animated Visual Card & Scanner Box */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-2xl border border-indigo-500/30">
-        
-        {/* Dynamic Background Glow Rings */}
-        <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-cyan-500/20 blur-3xl animate-pulse" />
-        <div className="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl animate-pulse" />
-        
-        {/* Scanning Beam (Laser Line) */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#38bdf8] animate-payment-scan" />
+    <div className="w-full space-y-5">
+      <div className="relative overflow-hidden rounded-2xl border border-primary-100 bg-gradient-to-br from-primary-50 via-cream to-accent-50 p-6 shadow-sm dark:border-primary-900/40 dark:from-neutral-900 dark:via-neutral-900 dark:to-primary-950/30 sm:p-8">
+        {/* soft background blobs */}
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary-200/40 blur-3xl dark:bg-primary-700/20" />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-secondary-200/50 blur-3xl dark:bg-secondary-700/10" />
 
-        <div className="relative z-10 flex flex-col items-center text-center">
-          
-          {/* Holographic Security Shield Radar */}
-          <div className="relative mb-5 flex h-24 w-24 items-center justify-center">
-            {/* Concentric Pulse Rings */}
-            <div className="absolute inset-0 animate-ping rounded-full border border-cyan-400/40" />
-            <div className="absolute -inset-2 animate-[spin_8s_linear_infinite] rounded-full border border-dashed border-indigo-400/30" />
-            
-            <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_0_25px_rgba(6,182,212,0.5)]">
-              <ShieldCheck className="h-10 w-10 text-white animate-pulse" />
-              <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold shadow">
-                <Sparkles className="h-3 w-3 text-white" />
-              </div>
-            </div>
-          </div>
-
-          <div className="inline-flex items-center gap-2 rounded-full bg-cyan-950/80 px-3.5 py-1 text-xs font-medium text-cyan-300 border border-cyan-500/30 mb-3">
-            <Lock className="h-3.5 w-3.5 text-cyan-400" />
-            <span>Защищенная верификация платежа</span>
-          </div>
-
-          <h3 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
-            Проверка чека и оплаты
-          </h3>
-
-          <p className="mt-1 text-xs text-indigo-200/80 max-w-md">
-            Администраторы получили ваш чек и подтверждают проведение транзакции.
-          </p>
-
-          {/* Animated Progress Shimmer Bar */}
-          <div className="mt-5 w-full max-w-md">
-            <div className="flex justify-between text-xs text-cyan-200/90 mb-1.5 font-mono">
-              <span className="flex items-center gap-1">
-                <Cpu className="h-3.5 w-3.5 text-cyan-400 animate-spin" />
-                Обработка...
-              </span>
-              <span className="font-bold text-cyan-300">Время: {formatTimer(secondsElapsed)}</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800 border border-indigo-900">
-              <div className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-400 animate-payment-shimmer shadow-[0_0_12px_#38bdf8]" style={{ width: "85%" }} />
-            </div>
-          </div>
-
-          {/* Live Micro Status Ticker */}
-          <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-slate-900/90 px-4 py-2 text-xs text-cyan-300/90 border border-slate-800">
-            <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping flex-shrink-0" />
-            <span className="italic font-medium transition-all duration-300">
-              {statusMessages[currentMessageIndex]}
+        <div className="relative flex flex-col items-center text-center">
+          {/* Emblem: breathing rings + orbiting dot around a shield */}
+          <div className="relative mb-6 flex h-28 w-28 items-center justify-center">
+            <span className="absolute inset-0 rounded-full bg-primary-200/50 animate-payment-breathe dark:bg-primary-800/30" />
+            <span className="absolute inset-3 rounded-full bg-primary-100/80 animate-payment-breathe [animation-delay:600ms] dark:bg-primary-900/40" />
+            <span className="absolute -inset-1 rounded-full border border-dashed border-primary-300/70 animate-[spin_14s_linear_infinite] dark:border-primary-700/60" />
+            <span className="absolute inset-0 animate-payment-orbit">
+              <span className="absolute left-1/2 top-0 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-400 shadow-[0_0_10px_rgba(217,173,90,0.8)]" />
             </span>
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-400 to-rose-400 shadow-lg shadow-primary-400/30">
+              <ShieldCheck className="h-8 w-8 text-white" strokeWidth={1.75} />
+            </div>
           </div>
 
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white/70 px-3 py-1 text-xs font-medium text-primary-700 backdrop-blur dark:border-primary-800 dark:bg-neutral-900/60 dark:text-primary-300">
+            <Lock className="h-3.5 w-3.5" />
+            {w.badge}
+          </div>
+
+          <p className="max-w-md text-sm text-neutral-600 dark:text-neutral-400">{w.subtitle}</p>
+
+          {/* Indeterminate progress */}
+          <div className="mt-6 w-full max-w-md">
+            <div className="mb-1.5 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+              <span className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
+                </span>
+                {w.stepsTitle}
+              </span>
+              <span className="font-mono tabular-nums">
+                {w.elapsed}: {mm}:{ss}
+              </span>
+            </div>
+            <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-primary-100 dark:bg-neutral-800">
+              <div className="absolute inset-y-0 w-2/5 rounded-full bg-gradient-to-r from-primary-300 via-rose-400 to-accent-400 animate-payment-progress" />
+            </div>
+          </div>
+
+          {/* Rotating status message */}
+          <div className="mt-4 h-10 w-full max-w-md overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={messageIndex}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35 }}
+                className="text-sm text-neutral-600 dark:text-neutral-300"
+              >
+                {messages[messageIndex]}
+              </motion.p>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
-      {/* Step-by-Step Live Status Tracker */}
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-900/60 p-4 sm:p-5">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-4">
-          Этапы обработки заказа
-        </h4>
-
-        <div className="space-y-3">
-          {[
-            { step: 1, icon: Receipt, title: "Чек загружен", desc: "Файл чека успешно прикреплен клиентом" },
-            { step: 2, icon: Send, title: "Уведомление отправлено", desc: "Уведомление передано обеим администраторам в Telegram" },
-            { step: 3, icon: ShieldCheck, title: "Сверка платежа", desc: "Подтверждение поступления средств на карту" },
-          ].map((item) => {
-            const isDone = item.step <= activeStep;
+      {/* Steps */}
+      <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900/60 sm:p-5">
+        <div className="relative space-y-1">
+          {steps.map((item, idx) => {
+            const isDone = item.step < activeStep;
             const isCurrent = item.step === activeStep;
-
+            const Icon = item.icon;
             return (
-              <div 
-                key={item.step} 
-                className={`flex items-start gap-3 rounded-lg p-3 transition-all ${
-                  isCurrent 
-                    ? "bg-white dark:bg-neutral-800 shadow-sm border border-blue-200 dark:border-blue-900/50" 
-                    : "opacity-80"
-                }`}
-              >
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold flex-shrink-0 ${
-                  isDone 
-                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20" 
-                    : "bg-neutral-200 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300"
-                }`}>
-                  {isDone ? <CheckCircle2 className="h-5 w-5 text-white" /> : item.step}
+              <div key={item.step} className="relative flex items-start gap-3 rounded-lg p-2.5">
+                {idx < steps.length - 1 && (
+                  <span
+                    className={`absolute left-[26px] top-11 h-[calc(100%-28px)] w-px ${
+                      isDone ? "bg-secondary-300 dark:bg-secondary-700" : "bg-neutral-200 dark:bg-neutral-700"
+                    }`}
+                  />
+                )}
+                <div
+                  className={`relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
+                    isDone
+                      ? "bg-secondary-500 text-white"
+                      : isCurrent
+                        ? "bg-primary-100 text-primary-600 ring-4 ring-primary-50 dark:bg-primary-900/50 dark:text-primary-300 dark:ring-primary-950/40"
+                        : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800"
+                  }`}
+                >
+                  {isDone ? <CheckCircle2 className="h-5 w-5" /> : <Icon className={`h-4 w-4 ${isCurrent ? "animate-pulse" : ""}`} />}
                 </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className={`text-sm font-semibold ${isDone ? "text-charcoal dark:text-white" : "text-neutral-500"}`}>
+                <div className="min-w-0 flex-1 pt-0.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-sm font-semibold ${isDone || isCurrent ? "text-charcoal dark:text-white" : "text-neutral-500"}`}>
                       {item.title}
                     </p>
                     {isCurrent && (
-                      <span className="inline-flex items-center rounded bg-blue-100 dark:bg-blue-950 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-300">
-                        Выполняется
+                      <span className="rounded-full bg-primary-50 px-2 py-0.5 text-[10px] font-medium text-primary-700 dark:bg-primary-950/50 dark:text-primary-300">
+                        {w.inProgress}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-neutral-500 truncate mt-0.5">{item.desc}</p>
+                  <p className="mt-0.5 text-xs text-neutral-500">{item.desc}</p>
                 </div>
               </div>
             );
@@ -192,6 +176,8 @@ function PremiumPaymentAnimation() {
 }
 
 function SuccessContent() {
+  const t = useTranslation();
+  const w = t.paymentWait;
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("order") || "VK00000000";
   const orderId = searchParams.get("id");
@@ -279,22 +265,25 @@ function SuccessContent() {
                 {/* Main Message Title */}
                 <div className="mb-6 text-center">
                   <h1 className="mb-2 font-display text-2xl text-charcoal dark:text-white sm:text-3xl lg:text-4xl">
-                    {paymentStatus?.status === "completed" 
-                      ? "Оплата подтверждена!" 
+                    {paymentStatus?.status === "completed"
+                      ? w.titles.completed
                       : paymentStatus?.status === "failed"
-                        ? "Оплата отклонена"
+                        ? w.titles.failed
                         : paymentStatus?.status === "suspicious"
-                          ? "Дополнительная проверка"
+                          ? w.titles.suspicious
                           : paymentMethod === "card_transfer"
-                            ? "Обработка платежа"
-                            : "Заказ успешно оформлен!"}
+                            ? w.titles.processing
+                            : w.titles.placed}
                   </h1>
                   <p className="text-base text-neutral-600 dark:text-neutral-400">
-                    Заказ:{" "}
+                    {w.orderLabel}{" "}
                     <span className="font-semibold font-mono text-charcoal dark:text-white bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-700">
                       #{orderNumber}
                     </span>
                   </p>
+                  {paymentMethod !== "card_transfer" && (
+                    <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">{w.placedDesc}</p>
+                  )}
                 </div>
 
                 {/* Card Transfer Payment States */}
@@ -306,10 +295,10 @@ function SuccessContent() {
                           <Sparkles className="h-6 w-6" />
                         </div>
                         <h3 className="font-display text-xl text-emerald-900 dark:text-emerald-200">
-                          Большое спасибо за заказ!
+                          {w.completedTitle}
                         </h3>
                         <p className="text-sm text-emerald-800 dark:text-emerald-300 max-w-md mx-auto">
-                          Ваш платеж полностью подтвержден администрацией. Товар передается на комплектацию и отправку.
+                          {w.completedDesc}
                         </p>
                       </div>
                     ) : paymentStatus?.status === "failed" ? (
@@ -317,12 +306,12 @@ function SuccessContent() {
                         <div className="flex items-start gap-3">
                           <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
                           <div>
-                            <h3 className="font-semibold text-red-900 dark:text-red-200">Чек отклонен администратором</h3>
+                            <h3 className="font-semibold text-red-900 dark:text-red-200">{w.failedTitle}</h3>
                             <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                              Причина: <span className="font-medium">{paymentStatus.rejection_reason || "Не совпадает сумма или дата в чеке"}</span>
+                              {w.reason} <span className="font-medium">{paymentStatus.rejection_reason || w.defaultReason}</span>
                             </p>
                             <p className="text-xs text-red-600 dark:text-red-400 mt-3 font-medium">
-                              Пожалуйста, обратитесь в службу поддержки или попробуйте оформить заказ заново.
+                              {w.failedHint}
                             </p>
                           </div>
                         </div>
@@ -330,15 +319,14 @@ function SuccessContent() {
                     ) : paymentStatus?.status === "suspicious" ? (
                       <div className="rounded-2xl border-2 border-amber-200 bg-amber-50/90 p-6 dark:border-amber-900 dark:bg-amber-950/30 text-center space-y-3 shadow-sm">
                         <p className="font-semibold text-amber-900 dark:text-amber-200">
-                          Дополнительная проверка чека
+                          {w.suspiciousTitle}
                         </p>
                         <p className="text-xs text-amber-800 dark:text-amber-300 max-w-md mx-auto">
-                          Наши менеджеры проводят повторную сверку документа. Пожалуйста, ожидайте короткое время.
+                          {w.suspiciousDesc}
                         </p>
                       </div>
                     ) : (
-                      /* Creative Modern Payment Processing Animation */
-                      <PremiumPaymentAnimation />
+                      <PaymentVerificationAnimation hasReceipt={paymentStatus?.has_receipt ?? true} />
                     )}
                   </div>
                 )}
@@ -347,20 +335,20 @@ function SuccessContent() {
                 <div className="flex flex-col gap-3 sm:flex-row mt-6">
                   <Button 
                     size="lg" 
-                    className="w-full group flex-1 bg-primary-600 hover:bg-primary-700 text-white font-medium"
+                    className="w-full group sm:flex-1 bg-primary-600 hover:bg-primary-700 text-white font-medium"
                     onClick={() => window.location.href = "/catalog"}
                   >
                     <ShoppingBag className="mr-2 h-5 w-5" />
-                    Продолжить покупки
+                    {w.continueShopping}
                   </Button>
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="w-full group flex-1 border-neutral-300 dark:border-neutral-700"
+                    className="w-full group sm:flex-1 border-neutral-300 dark:border-neutral-700"
                     onClick={() => window.location.href = "/account/orders"}
                   >
                     <Package className="mr-2 h-5 w-5" />
-                    Мои заказы
+                    {w.myOrders}
                     <ArrowRight className="ml-2 h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </div>
@@ -381,7 +369,7 @@ export default function CheckoutSuccessPage() {
         <div className="flex min-h-screen items-center justify-center bg-cream dark:bg-neutral-950">
           <div className="text-center">
             <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
-            <p className="text-neutral-600">Загрузка...</p>
+            <p className="text-neutral-600">…</p>
           </div>
         </div>
       }

@@ -39,6 +39,7 @@ export default function AccountLayout({
     { name: t.nav.notifications, href: "/account/notifications", icon: Bell },
     { name: t.nav.myOrders, href: "/account/orders", icon: Package },
     { name: t.nav.favorites, href: "/account/favorites", icon: Heart },
+    { name: t.profile.addresses.nav, href: "/account/addresses", icon: MapPin },
     { name: t.account.settings, href: "/account/settings", icon: Settings },
   ];
 

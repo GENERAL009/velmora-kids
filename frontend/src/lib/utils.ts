@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useLanguageStore } from "@/store/language";
 
 /**
  * Merge Tailwind CSS classes with clsx and tailwind-merge
@@ -11,29 +12,52 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Format price in Uzbek som (UZS)
  */
+function currentLocale(): "ru" | "uz" {
+  try {
+    return useLanguageStore.getState().locale === "uz" ? "uz" : "ru";
+  } catch {
+    return "ru";
+  }
+}
+
 export function formatPrice(amount: number, currency: string = "UZS"): string {
   const formatted = new Intl.NumberFormat("ru-UZ", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(Number(amount) || 0);
 
-  return `${formatted} ${currency === "UZS" ? "сум" : currency}`;
+  const unit = currentLocale() === "uz" ? "so'm" : "сум";
+  return `${formatted} ${currency === "UZS" ? unit : currency}`;
 }
 
 /**
- * Format date in Russian locale
+ * Format date in the current UI language
  */
+const UZ_MONTHS_LONG = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"];
+const UZ_MONTHS_SHORT = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avg", "sen", "okt", "noy", "dek"];
+
 export function formatDate(
   date: string | Date,
   options?: Intl.DateTimeFormatOptions
 ): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("ru-RU", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    ...options,
-  });
+  const opts: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric", ...options };
+  if (currentLocale() !== "uz") {
+    return d.toLocaleDateString("ru-RU", opts);
+  }
+  // Browsers render "uz" dates inconsistently (e.g. "2026 M09 30"), so build them by hand:
+  // "30-sentabr, 2026" / "30-sen, 14:05"
+  const month = d.getMonth();
+  const monthName =
+    opts.month === "short" ? UZ_MONTHS_SHORT[month] :
+    opts.month === "numeric" || opts.month === "2-digit" ? String(month + 1).padStart(2, "0") :
+    UZ_MONTHS_LONG[month];
+  let out = opts.day ? `${d.getDate()}-${monthName}` : monthName;
+  if (opts.year) out += `, ${d.getFullYear()}`;
+  if (opts.hour) {
+    out += `, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+  return out;
 }
 
 /**

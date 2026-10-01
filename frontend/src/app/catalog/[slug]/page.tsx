@@ -9,20 +9,27 @@ import { ChevronRight, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/product/product-grid";
 import { useProducts, useCategories, useBrands } from "@/hooks/use-products";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/store/language";
 
-const GENDER_MAP: Record<string, { label: string; gender: string }> = {
-  girls: { label: "Для девочек", gender: "girls" },
-  boys: { label: "Для мальчиков", gender: "boys" },
+const GENDER_MAP: Record<string, { gender: "girls" | "boys" }> = {
+  girls: { gender: "girls" },
+  boys: { gender: "boys" },
 };
 
-const SORT_OPTIONS = [
-  { value: "newest", label: "Новинки" },
-  { value: "price_asc", label: "Цена: по возрастанию" },
-  { value: "price_desc", label: "Цена: по убыванию" },
-  { value: "name_asc", label: "По названию" },
-];
-
 export default function CatalogSlugPage() {
+  const t = useTranslation();
+  const locale = useLanguageStore((s) => s.locale);
+  const localizedName = (c: { name: string; name_uz?: string; name_ru?: string }) =>
+    (locale === "uz" ? c.name_uz : c.name_ru) || c.name;
+
+  const SORT_OPTIONS = [
+    { value: "newest", label: t.catalogUi.sort.newest },
+    { value: "price_asc", label: t.catalogUi.sort.priceAsc },
+    { value: "price_desc", label: t.catalogUi.sort.priceDesc },
+    { value: "name_asc", label: t.catalogUi.sort.nameAsc },
+  ];
+
   const params = useParams();
   const slug = params.slug as string;
 
@@ -57,8 +64,8 @@ export default function CatalogSlugPage() {
   const totalPages = productsData?.pages ?? 1;
 
   const pageTitle = isGenderPage
-    ? genderInfo.label
-    : matchedCategory?.name || slug;
+    ? t.catalogUi.gender[genderInfo.gender]
+    : (matchedCategory && localizedName(matchedCategory)) || slug;
 
   return (
     <div className="bg-cream min-h-screen">
@@ -67,11 +74,11 @@ export default function CatalogSlugPage() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <nav className="flex items-center gap-2 text-sm text-neutral-600">
             <Link href="/" className="transition-colors hover:text-primary-600">
-              Главная
+              {t.catalogUi.home}
             </Link>
             <ChevronRight className="h-4 w-4" />
             <Link href="/catalog" className="transition-colors hover:text-primary-600">
-              Каталог
+              {t.catalog.title}
             </Link>
             <ChevronRight className="h-4 w-4" />
             <span className="font-medium text-charcoal">{pageTitle}</span>
@@ -86,7 +93,7 @@ export default function CatalogSlugPage() {
             {pageTitle}
           </h1>
           <p className="mt-2 text-neutral-600">
-            {isLoading ? "Загрузка..." : `${totalProducts} товаров`}
+            {isLoading ? t.common.loading : `${totalProducts} ${t.cart.item_many}`}
           </p>
         </div>
 
@@ -96,22 +103,22 @@ export default function CatalogSlugPage() {
             <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm space-y-5">
               <div className="flex items-center gap-2 text-sm font-semibold text-charcoal">
                 <SlidersHorizontal className="h-4 w-4" />
-                Фильтры
+                {t.catalog.filters}
               </div>
 
               {isGenderPage && categories.length > 0 && (
                 <div>
                   <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-neutral-500">
-                    Категория
+                    {t.catalogUi.category}
                   </label>
                   <select
                     value={categoryFilter}
                     onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
                     className="w-full rounded border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"
                   >
-                    <option value="">Все категории</option>
+                    <option value="">{t.catalogUi.allCategories}</option>
                     {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>{localizedName(c)}</option>
                     ))}
                   </select>
                 </div>
@@ -120,14 +127,14 @@ export default function CatalogSlugPage() {
               {brands.length > 0 && (
                 <div>
                   <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-neutral-500">
-                    Бренд
+                    {t.catalogUi.brand}
                   </label>
                   <select
                     value={brandFilter}
                     onChange={(e) => { setBrandFilter(e.target.value); setCurrentPage(1); }}
                     className="w-full rounded border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"
                   >
-                    <option value="">Все бренды</option>
+                    <option value="">{t.catalogUi.allBrands}</option>
                     {brands.map((b) => (
                       <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
@@ -137,7 +144,7 @@ export default function CatalogSlugPage() {
 
               <div>
                 <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-neutral-500">
-                  Сортировка
+                  {t.catalog.sortBy}
                 </label>
                 <select
                   value={sortBy}
@@ -179,7 +186,7 @@ export default function CatalogSlugPage() {
                       disabled={currentPage <= 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     >
-                      Назад
+                      {t.common.back}
                     </Button>
                     <span className="text-sm text-neutral-600">
                       {currentPage} / {totalPages}
@@ -190,17 +197,17 @@ export default function CatalogSlugPage() {
                       disabled={currentPage >= totalPages}
                       onClick={() => setCurrentPage((p) => p + 1)}
                     >
-                      Вперёд
+                      {t.catalogUi.pagination.forward}
                     </Button>
                   </div>
                 )}
               </>
             ) : (
               <div className="rounded-lg border border-neutral-200 bg-white p-12 text-center">
-                <p className="mb-2 font-display text-xl text-charcoal">Товары не найдены</p>
-                <p className="mb-6 text-neutral-600">Попробуйте изменить параметры фильтрации</p>
+                <p className="mb-2 font-display text-xl text-charcoal">{t.catalog.noResults}</p>
+                <p className="mb-6 text-neutral-600">{t.catalogUi.noResultsFilterDesc}</p>
                 <Link href="/catalog">
-                  <Button>Весь каталог</Button>
+                  <Button>{t.catalogUi.wholeCatalog}</Button>
                 </Link>
               </div>
             )}

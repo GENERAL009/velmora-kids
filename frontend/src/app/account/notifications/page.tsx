@@ -18,6 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNotificationStore } from "@/store/notification";
 import { formatDate } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
+import { renderNotification } from "@/lib/notification-text";
 
 const typeConfig: Record<string, { icon: typeof Bell; color: string; bg: string }> = {
   order: {
@@ -42,14 +44,14 @@ const typeConfig: Record<string, { icon: typeof Bell; color: string; bg: string 
   },
 };
 
-function getStatusIcon(title: string) {
-  if (title.includes("подтвержден")) return { icon: CheckCircle2, color: "text-emerald-600" };
-  if (title.includes("отклонен")) return { icon: XCircle, color: "text-red-600" };
-  if (title.includes("проверк")) return { icon: AlertTriangle, color: "text-amber-600" };
-  return null;
-}
+const KIND_ICONS = {
+  success: { icon: CheckCircle2, color: "text-emerald-600" },
+  error: { icon: XCircle, color: "text-red-600" },
+  warning: { icon: AlertTriangle, color: "text-amber-600" },
+} as const;
 
 export default function NotificationsPage() {
+  const t = useTranslation();
   const {
     notifications,
     isLoading,
@@ -68,11 +70,11 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl text-charcoal dark:text-white">
-            Уведомления
+            {t.notifications.title}
           </h1>
           {unreadCount > 0 && (
             <p className="mt-1 text-sm text-neutral-500">
-              {unreadCount} непрочитанных
+              {t.profile.notifications.unread.replace("{count}", String(unreadCount))}
             </p>
           )}
         </div>
@@ -84,7 +86,7 @@ export default function NotificationsPage() {
             className="gap-2"
           >
             <CheckCheck className="h-4 w-4" />
-            Прочитать все
+            {t.notifications.markAllRead}
           </Button>
         )}
       </div>
@@ -110,10 +112,10 @@ export default function NotificationsPage() {
         <div className="rounded-lg border border-neutral-200 bg-white p-12 text-center dark:border-neutral-700 dark:bg-neutral-900">
           <BellOff className="mx-auto mb-4 h-12 w-12 text-neutral-300 dark:text-neutral-600" />
           <h3 className="mb-1 font-display text-lg text-charcoal dark:text-white">
-            Нет уведомлений
+            {t.notifications.empty}
           </h3>
           <p className="text-sm text-neutral-500">
-            Здесь будут появляться уведомления о статусе ваших заказов и платежей
+            {t.profile.notifications.emptyDesc}
           </p>
         </div>
       ) : (
@@ -121,7 +123,8 @@ export default function NotificationsPage() {
           {notifications.map((notif) => {
             const config = typeConfig[notif.type] || typeConfig.system;
             const Icon = config.icon;
-            const statusIcon = getStatusIcon(notif.title);
+            const rendered = renderNotification(notif, t);
+            const statusIcon = rendered.kind ? KIND_ICONS[rendered.kind] : null;
 
             return (
               <div
@@ -152,7 +155,7 @@ export default function NotificationsPage() {
                             : "text-charcoal dark:text-white"
                         }`}
                       >
-                        {notif.title}
+                        {rendered.title}
                         {!notif.is_read && (
                           <span className="ml-2 inline-block h-2 w-2 rounded-full bg-blue-500" />
                         )}
@@ -168,7 +171,7 @@ export default function NotificationsPage() {
                     </div>
 
                     <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-                      {notif.message}
+                      {rendered.message}
                     </p>
 
                     <div className="mt-2 flex items-center gap-3">
@@ -177,7 +180,7 @@ export default function NotificationsPage() {
                           href={notif.link}
                           className="text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
                         >
-                          Подробнее
+                          {t.profile.notifications.details}
                         </Link>
                       )}
                       {!notif.is_read && (
@@ -185,7 +188,7 @@ export default function NotificationsPage() {
                           onClick={() => markAsRead(notif.id)}
                           className="text-xs font-medium text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
                         >
-                          Отметить прочитанным
+                          {t.notifications.markRead}
                         </button>
                       )}
                     </div>

@@ -15,6 +15,8 @@ import { apiPost, apiDelete } from "@/lib/api";
 import { saveDeferredAction } from "@/store/deferred-action";
 import toast from "react-hot-toast";
 import type { Product } from "@/types";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/store/language";
 
 interface ProductCardProps {
   product: Product;
@@ -25,6 +27,9 @@ interface ProductCardProps {
 export function ProductCard({ product, className, isLoading }: ProductCardProps) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const t = useTranslation();
+  const locale = useLanguageStore((s) => s.locale);
+  const productName = (locale === "uz" ? product.name_uz : product.name_ru) || product.name;
   const [isHovered, setIsHovered] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -41,7 +46,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
         productId: product.id,
         returnUrl: window.location.pathname,
       });
-      toast("Войдите, чтобы сохранить в избранное", { icon: "❤️" });
+      toast(t.productPage.loginToFavorite, { icon: "❤️" });
       router.push("/auth/login");
       return;
     }
@@ -90,7 +95,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
           {primaryImage && !imageError ? (
             <Image
               src={primaryImage.file_path}
-              alt={primaryImage.alt_text || product.name}
+              alt={primaryImage.alt_text || productName}
               fill
               unoptimized
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -112,7 +117,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
           {secondaryImage && !imageError && (
             <Image
               src={secondaryImage.file_path}
-              alt={product.name}
+              alt={productName}
               fill
               unoptimized
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -133,9 +138,9 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
 
           {/* Badges */}
           <div className="absolute left-2.5 top-2.5 flex flex-col gap-1.5">
-            {product.is_new && <Badge variant="new">New</Badge>}
+            {product.is_new && <Badge variant="new">{t.common.new}</Badge>}
             {product.is_bestseller && (
-              <Badge variant="bestseller">Bestseller</Badge>
+              <Badge variant="bestseller">{t.productPage.bestseller}</Badge>
             )}
             {discount > 0 && <Badge variant="sale">-{discount}%</Badge>}
           </div>
@@ -153,7 +158,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
                 ? "bg-primary-500 text-white shadow-sm"
                 : "bg-white/80 text-neutral-500 backdrop-blur-sm hover:bg-white hover:text-primary-500"
             )}
-            aria-label={isFavorite ? "Удалить из избранного" : "В избранное"}
+            aria-label={isFavorite ? t.product.removeFromFavorites : t.product.addToFavorites}
           >
             <Heart
               className={cn("h-4 w-4", isFavorite && "fill-current")}
@@ -178,7 +183,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
               className="flex w-full items-center justify-center gap-2 rounded-sm bg-white/90 px-4 py-2.5 text-xs font-medium text-charcoal backdrop-blur-sm transition-colors hover:bg-white"
             >
               <Eye className="h-3.5 w-3.5" />
-              Подробнее
+              {t.productPage.details}
             </button>
           </div>
         </div>
@@ -196,7 +201,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
         {/* Name */}
         <Link href={`/product/${product.slug}`}>
           <h3 className="text-sm font-medium text-neutral-800 transition-colors hover:text-primary-600 dark:text-neutral-200 line-clamp-2">
-            {product.name}
+            {productName}
           </h3>
         </Link>
 

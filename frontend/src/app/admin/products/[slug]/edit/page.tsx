@@ -697,7 +697,7 @@ export default function EditProductPage() {
                 <input type="number" className={INPUT_CLS} min={0} value={wheelCount} onChange={(e) => setWheelCount(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div>
-                <label className={LABEL_CLS}>Maks. tezlik (km/s)</label>
+                <label className={LABEL_CLS}>Maks. tezlik (km/soat)</label>
                 <input type="number" className={INPUT_CLS} min={0} value={maxSpeedKmh} onChange={(e) => setMaxSpeedKmh(e.target.value ? Number(e.target.value) : "")} />
               </div>
               <div className="md:col-span-3">

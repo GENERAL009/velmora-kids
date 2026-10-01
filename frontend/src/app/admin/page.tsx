@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState } from "react";
-import { DollarSign, ShoppingCart, TrendingUp, Users, AlertTriangle, Package, Eye } from "lucide-react";
+import { DollarSign, ShoppingCart, TrendingUp, Wallet, AlertTriangle, Package, Eye } from "lucide-react";
 import Link from "next/link";
 import { StatCard } from "@/components/admin/stat-card";
 import { StatusBadge } from "@/components/admin/status-badge";
@@ -14,38 +14,35 @@ import {
   useTopProducts,
   useRecentOrders,
   useLowStockItems,
+  useOrdersByStatus,
 } from "@/hooks/use-admin";
+import { RevenueBarChart, StatusBreakdown } from "@/components/admin/report-charts";
 import { useMostViewedProducts } from "@/hooks/use-products";
 
-const PERIOD_MAP = {
-  today: 1,
-  "7days": 7,
-  "30days": 30,
-  month: 30,
-} as const;
+// Calendar days in the shop timezone; "month" = since the 1st of the current month
+const periodDays = (range: "today" | "7days" | "30days" | "month") => {
+  if (range === "today") return 1;
+  if (range === "7days") return 7;
+  if (range === "30days") return 30;
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tashkent" }));
+  return now.getDate();
+};
 
 export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState<"today" | "7days" | "30days" | "month">("7days");
 
-  const days = PERIOD_MAP[dateRange];
+  const days = periodDays(dateRange);
 
   const { data: kpis, isLoading: kpisLoading } = useDashboardKPIs(days);
   const { data: revenueData } = useRevenueData(days);
-  const { data: topProducts } = useTopProducts(5);
+  const { data: topProducts } = useTopProducts(5, days);
+  const { data: statusCounts } = useOrdersByStatus(days);
   const { data: ordersData } = useRecentOrders(5);
   const { data: lowStockItems } = useLowStockItems(5);
   const { data: mostViewed } = useMostViewedProducts(10);
 
   const recentOrders = ordersData?.items ?? [];
   const revenue = revenueData ?? [];
-  const maxRevenue = revenue.length > 0 ? Math.max(...revenue.map((d) => d.revenue)) : 1;
-
-  const ordersByStatus = [
-    { status: "new", count: kpis?.pending_orders ?? 0, color: "bg-blue-500" },
-    { status: "processing", count: kpis?.orders ? Math.floor(kpis.orders * 0.2) : 0, color: "bg-amber-500" },
-    { status: "shipped", count: kpis?.orders ? Math.floor(kpis.orders * 0.1) : 0, color: "bg-purple-500" },
-    { status: "delivered", count: kpis?.orders ? Math.floor(kpis.orders * 0.5) : 0, color: "bg-green-500" },
-  ];
 
   return (
     <div className="space-y-8">
@@ -71,7 +68,7 @@ export default function AdminDashboard() {
               {range === "today" && "Bugun"}
               {range === "7days" && "7 kun"}
               {range === "30days" && "30 kun"}
-              {range === "month" && "Oy"}
+              {range === "month" && "Shu oy"}
             </button>
           ))}
         </div>
@@ -80,13 +77,13 @@ export default function AdminDashboard() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Daromad"
+          title="Daromad (to'langan)"
           value={kpisLoading ? "..." : formatPrice(kpis?.revenue ?? 0)}
           icon={DollarSign}
         />
         <StatCard
           title="Buyurtmalar"
-          value={kpisLoading ? "..." : String(kpis?.orders ?? 0)}
+          value={kpisLoading ? "..." : `${kpis?.orders ?? 0}`}
           icon={ShoppingCart}
         />
         <StatCard
@@ -95,74 +92,36 @@ export default function AdminDashboard() {
           icon={TrendingUp}
         />
         <StatCard
-          title="Mahsulotlar"
-          value={kpisLoading ? "..." : String(kpis?.total_products ?? 0)}
-          icon={Users}
+          title="Yalpi foyda"
+          value={kpisLoading ? "..." : formatPrice(kpis?.gross_profit ?? 0)}
+          icon={Wallet}
         />
       </div>
+      {kpis && (
+        <p className="-mt-4 text-xs text-neutral-500 dark:text-neutral-400">
+          {kpis.paid_orders} ta to'langan · {kpis.cancelled_orders} ta bekor/qaytarilgan · {kpis.awaiting_payment} ta to'lov kutilmoqda.
+          Yalpi foyda = tovarlar savdosi − sotib olish narxi (joriy narx bo'yicha), yetkazish haqisiz.
+        </p>
+      )}
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
-            Daromad: {days === 1 ? "bugun" : `${days} kun`}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+            Kunlik daromad
           </h3>
-          {revenue.length > 0 ? (
-            <div className="flex items-end justify-between h-48 gap-2">
-              {revenue.map((item, idx) => (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full flex items-end h-40">
-                    <div
-                      className="w-full bg-gradient-to-t from-primary-500 to-primary-400 rounded-t-lg transition-all hover:from-primary-600 hover:to-primary-500 cursor-pointer"
-                      style={{ height: `${(item.revenue / maxRevenue) * 100}%` }}
-                      title={`${item.date}: ${formatPrice(item.revenue)}`}
-                    />
-                  </div>
-                  <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 truncate max-w-full">
-                    {new Date(item.date).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-48 text-neutral-400">
-              Tanlangan davr uchun ma'lumot yo'q
-            </div>
-          )}
+          <p className="mb-5 text-xs text-neutral-500">
+            {days === 1 ? "Bugun" : `Oxirgi ${days} kun`} · to'lov sanasi bo'yicha, Toshkent vaqti
+          </p>
+          <RevenueBarChart data={revenue} />
         </div>
 
-        {/* Orders by Status */}
         <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-soft border border-neutral-200 dark:border-neutral-700">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
             Buyurtmalar holati
           </h3>
-          <div className="space-y-4">
-            {ordersByStatus.map((item) => {
-              const total = ordersByStatus.reduce((sum, i) => sum + i.count, 0);
-              const percentage = total > 0 ? (item.count / total) * 100 : 0;
-
-              return (
-                <div key={item.status}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                      <StatusBadge status={item.status} />
-                    </div>
-                    <span className="text-sm font-semibold text-neutral-900 dark:text-white">
-                      {item.count}
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${item.color} transition-all duration-500`}
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <p className="mb-5 text-xs text-neutral-500">Tanlangan davrda yaratilgan buyurtmalar</p>
+          <StatusBreakdown data={statusCounts ?? []} />
         </div>
       </div>
 

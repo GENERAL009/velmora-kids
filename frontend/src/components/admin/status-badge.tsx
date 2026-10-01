@@ -6,13 +6,17 @@ interface StatusBadgeProps {
   className?: string;
 }
 
-const statusConfig: Record<string, { label: string; className: string }> = {
+export const statusConfig: Record<string, { label: string; className: string }> = {
   // Order statuses
   new: { label: "Yangi", className: "bg-blue-100 text-blue-700 border-blue-200" },
   pending: { label: "Kutilmoqda", className: "bg-blue-100 text-blue-700 border-blue-200" },
   confirmed: { label: "Tasdiqlangan", className: "bg-amber-100 text-amber-700 border-amber-200" },
   processing: { label: "Jarayonda", className: "bg-amber-100 text-amber-700 border-amber-200" },
   packed: { label: "Yig'ilgan", className: "bg-purple-100 text-purple-700 border-purple-200" },
+  packing: { label: "Yig'ilmoqda", className: "bg-purple-100 text-purple-700 border-purple-200" },
+  ready: { label: "Tayyor", className: "bg-teal-100 text-teal-700 border-teal-200" },
+  returned: { label: "Qaytarilgan", className: "bg-orange-100 text-orange-700 border-orange-200" },
+  suspicious: { label: "Shubhali", className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
   shipped: { label: "Jo'natilgan", className: "bg-purple-100 text-purple-700 border-purple-200" },
   delivered: { label: "Yetkazilgan", className: "bg-green-100 text-green-700 border-green-200" },
   completed: { label: "Yakunlangan", className: "bg-green-100 text-green-700 border-green-200" },

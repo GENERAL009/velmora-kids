@@ -61,7 +61,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 <button
                   onClick={onClose}
                   className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-500 dark:text-neutral-400 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                  aria-label="Закрыть меню"
+                  aria-label={t.nav.closeMenu}
                 >
                   <X className="h-5 w-5" />
                 </button>

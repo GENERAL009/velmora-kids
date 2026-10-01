@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +18,9 @@ import api, { apiGet, apiPost } from "@/lib/api";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { LocationPicker } from "@/components/ui/location-picker";
+import { useAddresses, type SavedAddress } from "@/hooks/use-account";
+import { useTranslation } from "@/hooks/use-translation";
+import { getTranslations } from "@/lib/i18n";
 
 interface SiteSettings {
   payment_card_number?: string;
@@ -27,32 +30,38 @@ interface SiteSettings {
   [key: string]: unknown;
 }
 
-const checkoutSchema = z.object({
-  first_name: z.string().min(2, "Введите имя"),
-  last_name: z.string().min(2, "Введите фамилию"),
-  phone: z.string().min(9, "Введите корректный номер телефона"),
-  email: z.string().email("Введите корректный email").optional().or(z.literal("")),
-  city: z.string().min(2, "Выберите город"),
-  address: z.string().min(10, "Введите полный адрес"),
-  delivery_method: z.enum(["pickup", "courier"]),
-  payment_method: z.enum(["cash", "card_transfer"]),
-  comment: z.string().optional(),
-});
+const createCheckoutSchema = (t: ReturnType<typeof getTranslations>) =>
+  z.object({
+    first_name: z.string().min(2, t.checkoutPage.validation.firstNameRequired),
+    last_name: z.string().min(2, t.checkoutPage.validation.lastNameRequired),
+    phone: z.string().min(9, t.checkoutPage.validation.phoneInvalid),
+    email: z.string().email(t.auth.invalidEmail).optional().or(z.literal("")),
+    city: z.string().min(2, t.checkoutPage.validation.cityRequired),
+    address: z.string().min(10, t.checkoutPage.validation.addressFull),
+    delivery_method: z.enum(["pickup", "courier"]),
+    payment_method: z.enum(["cash", "card_transfer"]),
+    comment: z.string().optional(),
+  });
 
-type CheckoutFormData = z.infer<typeof checkoutSchema>;
+type CheckoutFormData = z.infer<ReturnType<typeof createCheckoutSchema>>;
 
-const CITIES = [
-  "Ташкент",
-  "Самарканд",
-  "Бухара",
-  "Андижан",
-  "Наманган",
-  "Фергана",
-  "Нукус",
-];
+const CITY_KEYS = [
+  "tashkent",
+  "samarkand",
+  "bukhara",
+  "andijan",
+  "namangan",
+  "fergana",
+  "nukus",
+] as const;
+
+const ALL_LOCALE_TRANSLATIONS = [getTranslations("ru"), getTranslations("uz")];
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const t = useTranslation();
+  const checkoutSchema = useMemo(() => createCheckoutSchema(t), [t]);
+  const cities = CITY_KEYS.map((key) => t.checkoutPage.cities[key]);
   const { items, getTotal, clearCart } = useCartStore();
   const { user } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +69,8 @@ export default function CheckoutPage() {
   const [uploadError, setUploadError] = useState("");
   const [copied, setCopied] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [mapKey, setMapKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isNavigating = useRef(false);
 
@@ -84,7 +95,7 @@ export default function CheckoutPage() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.size > 5 * 1024 * 1024) {
-        setUploadError("Файл слишком большой (макс 5MB)");
+        setUploadError(t.checkoutPage.fileTooLarge);
         return;
       }
       setFile(selectedFile);
@@ -105,13 +116,41 @@ export default function CheckoutPage() {
       last_name: user?.last_name || "",
       phone: user?.phone || "",
       email: user?.email || "",
-      city: "Ташкент",
+      city: t.checkoutPage.cities.tashkent,
       delivery_method: "courier",
       payment_method: "cash",
     },
   });
 
   const deliveryMethod = watch("delivery_method");
+  const selectedCity = watch("city");
+
+  // Saved addresses from the profile: one tap fills city, address and map point
+  const { data: savedAddresses = [] } = useAddresses(!!user);
+  const applySavedAddress = (addr: SavedAddress) => {
+    setSelectedAddressId(addr.id);
+    setValue("city", addr.city, { shouldValidate: true });
+    setValue("address", addr.address, { shouldValidate: true });
+    setCoords(addr.latitude != null && addr.longitude != null ? { lat: addr.latitude, lon: addr.longitude } : null);
+    setMapKey((k) => k + 1);
+  };
+  const appliedDefault = useRef(false);
+  useEffect(() => {
+    if (appliedDefault.current || savedAddresses.length === 0) return;
+    appliedDefault.current = true;
+    applySavedAddress(savedAddresses.find((a) => a.is_default) ?? savedAddresses[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedAddresses]);
+
+  // Keep the selected city in sync with the interface language
+  useEffect(() => {
+    const key = CITY_KEYS.find((k) =>
+      ALL_LOCALE_TRANSLATIONS.some((tr) => tr.checkoutPage.cities[k] === selectedCity)
+    );
+    if (key && t.checkoutPage.cities[key] !== selectedCity) {
+      setValue("city", t.checkoutPage.cities[key]);
+    }
+  }, [t, selectedCity, setValue]);
 
   useEffect(() => {
     if (items.length === 0 && !isNavigating.current) {
@@ -132,7 +171,7 @@ export default function CheckoutPage() {
 
   const onSubmit = async (formData: CheckoutFormData) => {
     if (formData.payment_method === "card_transfer" && !file) {
-      setErrorMessage("Пожалуйста, загрузите чек об оплате");
+      setErrorMessage(t.checkoutPage.receiptRequired);
       return;
     }
 
@@ -173,7 +212,7 @@ export default function CheckoutPage() {
       router.push(`/checkout/success?order=${order.order_number}&id=${order.id}&method=${formData.payment_method}`);
     } catch (error) {
       const err = error as { response?: { data?: { detail?: string } } };
-      setErrorMessage(err.response?.data?.detail || "Произошла ошибка. Попробуйте снова.");
+      setErrorMessage(err.response?.data?.detail || t.checkoutPage.genericError);
     } finally {
       setIsSubmitting(false);
     }
@@ -199,9 +238,9 @@ export default function CheckoutPage() {
           {/* Steps Indicator */}
           <div className="mb-6 flex items-center justify-center gap-2 sm:mb-8 sm:gap-4">
             {[
-              { step: 1, label: "Данные" },
-              { step: 2, label: "Доставка" },
-              { step: 3, label: "Оплата" },
+              { step: 1, label: t.checkoutPage.steps.details },
+              { step: 2, label: t.checkoutPage.steps.delivery },
+              { step: 3, label: t.checkoutPage.steps.payment },
             ].map((item, index) => (
               <div key={item.step} className="flex items-center">
                 <div className="flex items-center">
@@ -226,29 +265,29 @@ export default function CheckoutPage() {
                 {/* Contact Information */}
                 <div className="rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 p-4 shadow-sm sm:p-6">
                   <h2 className="mb-3 font-display text-lg text-charcoal dark:text-white sm:mb-4 sm:text-xl">
-                    1. Контактные данные
+                    {t.checkoutPage.contactTitle}
                   </h2>
                   <div className="grid gap-4 md:grid-cols-2">
                     <Input
-                      label="Имя"
+                      label={t.auth.firstName}
                       {...register("first_name")}
                       error={errors.first_name?.message}
-                      placeholder="Введите ваше имя"
+                      placeholder={t.checkoutPage.firstNamePlaceholder}
                     />
                     <Input
-                      label="Фамилия"
+                      label={t.auth.lastName}
                       {...register("last_name")}
                       error={errors.last_name?.message}
-                      placeholder="Введите вашу фамилию"
+                      placeholder={t.checkoutPage.lastNamePlaceholder}
                     />
                     <Input
-                      label="Телефон"
+                      label={t.auth.phone}
                       {...register("phone")}
                       error={errors.phone?.message}
                       placeholder="+998 90 123 45 67"
                     />
                     <Input
-                      label="Email (необязательно)"
+                      label={t.checkoutPage.emailOptional}
                       {...register("email")}
                       error={errors.email?.message}
                       placeholder="email@example.com"
@@ -260,23 +299,56 @@ export default function CheckoutPage() {
                 {/* Delivery */}
                 <div className="rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 p-4 shadow-sm sm:p-6">
                   <h2 className="mb-3 font-display text-lg text-charcoal dark:text-white sm:mb-4 sm:text-xl">
-                    2. Доставка
+                    {t.checkoutPage.deliveryTitle}
                   </h2>
                   <div className="space-y-4">
+                    {savedAddresses.length > 0 && (
+                      <div>
+                        <p className="mb-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                          {t.checkoutPage.savedAddresses}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {savedAddresses.map((addr) => (
+                            <button
+                              key={addr.id}
+                              type="button"
+                              onClick={() => applySavedAddress(addr)}
+                              className={`max-w-full rounded-full border px-3 py-1.5 text-left text-xs transition-colors sm:text-sm ${
+                                selectedAddressId === addr.id
+                                  ? "border-primary-400 bg-primary-50 text-primary-700 dark:border-primary-600 dark:bg-primary-950/30 dark:text-primary-300"
+                                  : "border-neutral-200 text-neutral-700 hover:border-neutral-300 dark:border-neutral-700 dark:text-neutral-300"
+                              }`}
+                            >
+                              <span className="font-medium">{addr.label}</span>
+                              <span className="ml-1 text-neutral-500">· {addr.address.length > 32 ? `${addr.address.slice(0, 32)}…` : addr.address}</span>
+                            </button>
+                          ))}
+                          <Link
+                            href="/account/addresses"
+                            className="rounded-full border border-dashed border-neutral-300 px-3 py-1.5 text-xs text-neutral-500 hover:text-primary-600 dark:border-neutral-600 sm:text-sm"
+                          >
+                            {t.checkoutPage.manageAddresses}
+                          </Link>
+                        </div>
+                      </div>
+                    )}
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                          Город
+                          {t.checkoutPage.city}
                         </label>
                         <select
                           {...register("city")}
                           className="h-11 w-full rounded border border-neutral-200 bg-white px-4 text-sm text-neutral-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-primary-600 dark:focus:ring-primary-900"
                         >
-                          {CITIES.map((city) => (
+                          {cities.map((city) => (
                             <option key={city} value={city}>
                               {city}
                             </option>
                           ))}
+                          {selectedCity && !cities.includes(selectedCity) && (
+                            <option value={selectedCity}>{selectedCity}</option>
+                          )}
                         </select>
                         {errors.city && (
                           <p className="mt-1.5 text-xs text-red-500">
@@ -288,9 +360,12 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                        Локация на карте
+                        {t.checkoutPage.mapLocation}
                       </label>
-                      <LocationPicker 
+                      <LocationPicker
+                        key={mapKey}
+                        initialAddress={watch("address")}
+                        initialCoords={coords ? [coords.lat, coords.lon] : null}
                         onAddressChange={(address, city) => {
                           setValue("address", address, { shouldValidate: true });
                           setValue("city", city, { shouldValidate: true });
@@ -301,12 +376,12 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="mb-1.5 mt-4 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                        Адрес доставки (ориентир, подъезд)
+                        {t.checkoutPage.addressLabel}
                       </label>
                       <textarea
                         {...register("address")}
                         rows={3}
-                        placeholder="Улица, дом, квартира"
+                        placeholder={t.checkoutPage.addressPlaceholder}
                         className="w-full rounded border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:placeholder:text-neutral-500 dark:focus:ring-primary-900"
                       />
                       {errors.address && (
@@ -318,7 +393,7 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="mb-3 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                        Способ доставки
+                        {t.checkoutPage.deliveryMethod}
                       </label>
                       <div className="grid gap-3 md:grid-cols-2">
                         <label className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-neutral-200 dark:border-neutral-700 p-4 transition-colors hover:border-primary-300">
@@ -329,8 +404,8 @@ export default function CheckoutPage() {
                             className="h-4 w-4 text-primary-500"
                           />
                           <div>
-                            <div className="font-medium text-charcoal dark:text-neutral-100">Самовывоз</div>
-                            <div className="text-xs text-neutral-500">Бесплатно</div>
+                            <div className="font-medium text-charcoal dark:text-neutral-100">{t.checkoutPage.pickup}</div>
+                            <div className="text-xs text-neutral-500">{t.cart.free}</div>
                           </div>
                         </label>
                         <label className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-neutral-200 dark:border-neutral-700 p-4 transition-colors hover:border-primary-300">
@@ -341,7 +416,7 @@ export default function CheckoutPage() {
                             className="h-4 w-4 text-primary-500"
                           />
                           <div>
-                            <div className="font-medium text-charcoal dark:text-neutral-100">Курьер</div>
+                            <div className="font-medium text-charcoal dark:text-neutral-100">{t.checkoutPage.courier}</div>
                             <div className="text-xs text-neutral-500">
                               {formatPrice(30000)}
                             </div>
@@ -355,7 +430,7 @@ export default function CheckoutPage() {
                 {/* Payment */}
                 <div className="rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 p-4 shadow-sm sm:p-6">
                   <h2 className="mb-3 font-display text-lg text-charcoal dark:text-white sm:mb-4 sm:text-xl">
-                    3. Оплата
+                    {t.checkoutPage.paymentTitle}
                   </h2>
                   <div className="space-y-3">
                     <label className={`flex cursor-pointer items-start gap-3 rounded-lg border-2 p-4 transition-colors ${paymentMethod === 'card_transfer' ? 'border-primary-400 bg-primary-50/50 dark:bg-primary-950/20' : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-300'}`}>
@@ -367,13 +442,13 @@ export default function CheckoutPage() {
                       />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-charcoal dark:text-white">Перевод на карту</span>
+                          <span className="font-medium text-charcoal dark:text-white">{t.checkoutPage.cardTransfer}</span>
                           <div className="rounded bg-gradient-to-r from-blue-600 to-blue-800 px-3 py-1 text-xs font-bold text-white">
                             UZCARD / HUMO
                           </div>
                         </div>
                         <div className="text-xs text-neutral-500 mt-1 mb-4">
-                          Переведите на нашу карту и загрузите чек для подтверждения
+                          {t.checkoutPage.cardTransferHint}
                         </div>
                         
                         {paymentMethod === "card_transfer" && (
@@ -382,7 +457,7 @@ export default function CheckoutPage() {
                               <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
                                 <div className="flex flex-col gap-2 bg-white dark:bg-neutral-800 p-3 rounded-md mb-2 border border-neutral-100 dark:border-neutral-700 sm:flex-row sm:items-center sm:justify-between">
                                   <div className="min-w-0">
-                                    <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-0.5">Номер карты ({cardBank})</p>
+                                    <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-0.5">{t.checkoutPage.cardNumber.replace("{bank}", cardBank)}</p>
                                     <p className="text-sm font-mono font-bold tracking-wider text-charcoal dark:text-white sm:text-base">
                                       {cardNumber}
                                     </p>
@@ -396,12 +471,12 @@ export default function CheckoutPage() {
                                     className="flex h-10 flex-shrink-0 items-center gap-1.5 self-start rounded-md bg-blue-100 px-3 text-xs font-medium text-blue-700 hover:bg-blue-200 transition-colors"
                                   >
                                     <Copy className="h-3 w-3" />
-                                    {copied ? "Скопировано!" : "Копировать"}
+                                    {copied ? t.checkoutPage.copied : t.checkoutPage.copy}
                                   </button>
                                 </div>
                                 {cardHolder && (
                                   <p className="text-xs text-blue-800 dark:text-blue-300">
-                                    <span className="font-medium">Получатель:</span> {cardHolder}
+                                    <span className="font-medium">{t.checkoutPage.recipient}</span> {cardHolder}
                                   </p>
                                 )}
                               </div>
@@ -410,7 +485,7 @@ export default function CheckoutPage() {
                             {/* Receipt Upload Box directly under Card Number */}
                             <div>
                               <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
-                                Чек об оплате <span className="text-red-500">*</span>
+                                {t.checkoutPage.receipt} <span className="text-red-500">*</span>
                               </label>
                               <div 
                                 onClick={() => fileInputRef.current?.click()}
@@ -434,10 +509,10 @@ export default function CheckoutPage() {
                                     </div>
                                     <div>
                                       <p className="text-sm font-medium text-charcoal dark:text-white">
-                                        Загрузить квитанцию / чек
+                                        {t.checkoutPage.uploadReceipt}
                                       </p>
                                       <p className="text-xs text-neutral-500 mt-0.5">
-                                        Нажмите для выбора файла (PNG, JPG до 5 MB)
+                                        {t.checkoutPage.uploadHint}
                                       </p>
                                     </div>
                                     {uploadError && <p className="text-xs text-red-500 font-medium">{uploadError}</p>}
@@ -453,7 +528,7 @@ export default function CheckoutPage() {
                                           {file.name}
                                         </p>
                                         <p className="text-[10px] text-emerald-600 font-medium">
-                                          {(file.size / (1024 * 1024)).toFixed(2)} MB • Чек прикреплен
+                                          {(file.size / (1024 * 1024)).toFixed(2)} MB • {t.checkoutPage.receiptAttached}
                                         </p>
                                       </div>
                                     </div>
@@ -464,7 +539,8 @@ export default function CheckoutPage() {
                                         setFile(null);
                                       }}
                                       className="h-9 w-9 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-red-500 dark:hover:bg-neutral-700 transition-colors"
-                                      title="Удалить файл"
+                                      title={t.checkoutPage.removeFile}
+                                      aria-label={t.checkoutPage.removeFile}
                                     >
                                       ✕
                                     </button>
@@ -485,9 +561,9 @@ export default function CheckoutPage() {
                         className="h-4 w-4 text-primary-500"
                       />
                       <div className="flex-1">
-                        <span className="font-medium text-charcoal dark:text-white">Наличные</span>
+                        <span className="font-medium text-charcoal dark:text-white">{t.checkoutPage.cash}</span>
                         <div className="text-xs text-neutral-500">
-                          Оплата при получении
+                          {t.checkoutPage.cashHint}
                         </div>
                       </div>
                     </label>
@@ -495,12 +571,12 @@ export default function CheckoutPage() {
 
                   <div className="mt-4">
                     <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                      Комментарий к заказу (необязательно)
+                      {t.checkoutPage.comment}
                     </label>
                     <textarea
                       {...register("comment")}
                       rows={3}
-                      placeholder="Укажите пожелания к заказу"
+                      placeholder={t.checkoutPage.commentPlaceholder}
                       className="w-full rounded border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:placeholder:text-neutral-500 dark:focus:ring-primary-900"
                     />
                   </div>
@@ -511,7 +587,7 @@ export default function CheckoutPage() {
               <div className="order-first lg:order-last lg:col-span-1">
                 <div className="rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 p-4 shadow-sm sm:p-6 lg:sticky lg:top-24">
                   <h2 className="mb-4 font-display text-xl text-charcoal dark:text-white">
-                    Ваш заказ
+                    {t.checkoutPage.yourOrder}
                   </h2>
 
                   {/* Items Mini List */}
@@ -551,7 +627,7 @@ export default function CheckoutPage() {
                     })}
                     {items.length > 3 && (
                       <p className="text-xs text-neutral-500">
-                        и еще {items.length - 3} товар(ов)
+                        {t.checkoutPage.moreItems.replace("{count}", String(items.length - 3))}
                       </p>
                     )}
                   </div>
@@ -559,20 +635,20 @@ export default function CheckoutPage() {
                   {/* Totals */}
                   <div className="space-y-2 border-b border-neutral-200 dark:border-neutral-700 pb-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-neutral-600 dark:text-neutral-400">Сумма товаров</span>
+                      <span className="text-neutral-600 dark:text-neutral-400">{t.cart.subtotal}</span>
                       <span className="font-medium dark:text-neutral-200">{formatPrice(subtotal)}</span>
                     </div>
                     {discount > 0 && (
                       <div className="flex justify-between text-sm text-secondary-600">
-                        <span>Скидка {storePromo && `(${storePromo})`}</span>
+                        <span>{t.cart.discount} {storePromo && `(${storePromo})`}</span>
                         <span className="font-medium">-{formatPrice(discount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-neutral-600 dark:text-neutral-400">Доставка</span>
+                      <span className="text-neutral-600 dark:text-neutral-400">{t.cart.delivery}</span>
                       <span className="font-medium dark:text-neutral-200">
                         {deliveryFee === 0 ? (
-                          <span className="text-secondary-600">Бесплатно</span>
+                          <span className="text-secondary-600">{t.cart.free}</span>
                         ) : (
                           formatPrice(deliveryFee)
                         )}
@@ -582,7 +658,7 @@ export default function CheckoutPage() {
 
                   <div className="py-4">
                     <div className="flex justify-between">
-                      <span className="font-display text-lg text-charcoal dark:text-white">Всего</span>
+                      <span className="font-display text-lg text-charcoal dark:text-white">{t.cart.total}</span>
                       <span className="font-display text-2xl font-semibold text-charcoal dark:text-white">
                         {formatPrice(total)}
                       </span>
@@ -595,7 +671,7 @@ export default function CheckoutPage() {
                     className="w-full"
                     isLoading={isSubmitting}
                   >
-                    {isSubmitting ? "Оформление..." : "Подтвердить заказ"}
+                    {isSubmitting ? t.checkoutPage.submitting : t.checkoutPage.confirmOrder}
                   </Button>
 
                   {errorMessage && (
@@ -605,10 +681,11 @@ export default function CheckoutPage() {
                   )}
 
                   <p className="mt-4 text-center text-xs text-neutral-500">
-                    Нажимая на кнопку, вы соглашаетесь с{" "}
+                    {t.checkoutPage.agreeBefore}{" "}
                     <span className="text-primary-600">
-                      условиями обработки данных
+                      {t.checkoutPage.agreeLink}
                     </span>
+                    {t.checkoutPage.agreeAfter && ` ${t.checkoutPage.agreeAfter}`}
                   </p>
                 </div>
               </div>

@@ -6,6 +6,8 @@ import { X, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { Category, Brand } from "@/types";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/store/language";
 
 interface FiltersSidebarProps {
   isMobile?: boolean;
@@ -37,6 +39,10 @@ export function FiltersSidebar({
   onApply,
   onReset,
 }: FiltersSidebarProps) {
+  const t = useTranslation();
+  const locale = useLanguageStore((s) => s.locale);
+  const localizedName = (c: { name: string; name_uz?: string; name_ru?: string }) =>
+    (locale === "uz" ? c.name_uz : c.name_ru) || c.name;
   const [localFilters, setLocalFilters] = useState(filters);
 
   const handleCategoryToggle = (categoryId: string) => {
@@ -109,10 +115,11 @@ export function FiltersSidebar({
         <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 p-4">
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
-            <h2 className="text-lg font-semibold text-charcoal dark:text-white">Фильтры</h2>
+            <h2 className="text-lg font-semibold text-charcoal dark:text-white">{t.catalog.filters}</h2>
           </div>
           <button
             onClick={onClose}
+            aria-label={t.catalogUi.closeFilters}
             className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             <X className="h-5 w-5" />
@@ -126,7 +133,7 @@ export function FiltersSidebar({
           {/* Categories */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-400">
-              Категория
+              {t.catalogUi.category}
             </h3>
             <div className="space-y-2">
               {categories.slice(0, 8).map((category) => (
@@ -141,7 +148,7 @@ export function FiltersSidebar({
                     className="h-4 w-4 rounded border-neutral-300 text-primary-500 transition-colors focus:ring-2 focus:ring-primary-200 focus:ring-offset-0"
                   />
                   <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                    {category.name}
+                    {localizedName(category)}
                   </span>
                   {category.product_count !== undefined && (
                     <span className="ml-auto text-xs text-neutral-400">
@@ -156,12 +163,12 @@ export function FiltersSidebar({
           {/* Gender */}
           <div className="space-y-3 border-t border-neutral-100 dark:border-neutral-800 pt-6">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-400">
-              Пол
+              {t.catalog.gender}
             </h3>
             <div className="space-y-2">
               {[
-                { value: "girls", label: "Для девочек" },
-                { value: "boys", label: "Для мальчиков" },
+                { value: "girls", label: t.catalogUi.gender.girls },
+                { value: "boys", label: t.catalogUi.gender.boys },
               ].map((gender) => (
                 <label
                   key={gender.value}
@@ -182,12 +189,12 @@ export function FiltersSidebar({
           {/* Price Range */}
           <div className="space-y-3 border-t border-neutral-100 dark:border-neutral-800 pt-6">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-400">
-              Цена
+              {t.catalog.priceRange}
             </h3>
             <div className="flex items-center gap-2">
               <input
                 type="number"
-                placeholder="От"
+                placeholder={t.catalogUi.pricePlaceholderFrom}
                 value={localFilters.min_price || ""}
                 onChange={(e) => handlePriceChange("min_price", e.target.value)}
                 className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500"
@@ -195,7 +202,7 @@ export function FiltersSidebar({
               <span className="text-neutral-400">—</span>
               <input
                 type="number"
-                placeholder="До"
+                placeholder={t.catalogUi.pricePlaceholderTo}
                 value={localFilters.max_price || ""}
                 onChange={(e) => handlePriceChange("max_price", e.target.value)}
                 className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500"
@@ -206,7 +213,7 @@ export function FiltersSidebar({
           {/* Brands */}
           <div className="space-y-3 border-t border-neutral-100 dark:border-neutral-800 pt-6">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-400">
-              Бренд
+              {t.catalogUi.brand}
             </h3>
             <div className="space-y-2">
               {brands.slice(0, 10).map((brand) => (
@@ -230,7 +237,7 @@ export function FiltersSidebar({
           <div className="space-y-3 border-t border-neutral-100 dark:border-neutral-800 pt-6">
             <label className="flex cursor-pointer items-center justify-between">
               <span className="text-sm font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-400">
-                Со скидкой
+                {t.catalog.onSale}
               </span>
               <div
                 onClick={handleSaleToggle}
@@ -260,7 +267,7 @@ export function FiltersSidebar({
             onClick={handleReset}
             className="flex-1"
           >
-            Сбросить
+            {t.catalogUi.reset}
           </Button>
           <Button
             variant="default"
@@ -268,7 +275,7 @@ export function FiltersSidebar({
             onClick={handleApply}
             className="flex-1"
           >
-            Применить
+            {t.catalogUi.apply}
           </Button>
         </div>
       </div>
@@ -280,7 +287,7 @@ export function FiltersSidebar({
             onClick={handleReset}
             className="text-sm text-primary-600 transition-colors hover:text-primary-700 hover:underline"
           >
-            Сбросить все фильтры
+            {t.catalogUi.resetAllFilters}
           </button>
         </div>
       )}

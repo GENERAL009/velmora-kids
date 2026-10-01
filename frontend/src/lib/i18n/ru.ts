@@ -1,3 +1,13 @@
+import { ru as profileRu } from "./sections/profile";
+import { ru as paymentWaitRu } from "./sections/paymentWait";
+import { ru as checkoutPageRu } from "./sections/checkoutPage";
+import { ru as authFormsRu } from "./sections/authForms";
+import { ru as productPageRu } from "./sections/productPage";
+import { ru as searchUiRu } from "./sections/searchUi";
+import { ru as catalogUiRu } from "./sections/catalogUi";
+import { ru as layoutUiRu } from "./sections/layoutUi";
+import { ru as ordersUiRu } from "./sections/ordersUi";
+
 export const ru = {
   // Nav & Header
   nav: {
@@ -9,7 +19,7 @@ export const ru = {
     favorites: "Избранное",
     cart: "Корзина",
     myOrders: "Мои заказы",
-    search: "Каталог",
+    search: "Поиск",
   },
 
   // Hero section
@@ -36,7 +46,7 @@ export const ru = {
     createAccount: "Создать аккаунт",
     backToHome: "← Вернуться на главную",
     invalidEmail: "Введите корректный email",
-    passwordMin: "Пароль должен содержать минимум 6 символов",
+    passwordMin: "Пароль должен содержать минимум 8 символов",
     invalidCredentials: "Неверный email или пароль",
     registerTitle: "Создать аккаунт",
     registerSubtitle: "Зарегистрируйтесь для покупок",
@@ -200,8 +210,8 @@ export const ru = {
   notifications: {
     title: "Уведомления",
     empty: "Нет уведомлений",
-    markAllRead: "Прочитать все",
-    markRead: "Прочитать",
+    markAllRead: "Отметить все как прочитанные",
+    markRead: "Отметить как прочитанное",
   },
 
   // Common
@@ -240,10 +250,17 @@ export const ru = {
     discounts: "Скидки до 50% на избранные коллекции",
     shopNow: "Купить сейчас",
   },
+  profile: profileRu,
+  paymentWait: paymentWaitRu,
+  checkoutPage: checkoutPageRu,
+  authForms: authFormsRu,
+  productPage: productPageRu,
+  searchUi: searchUiRu,
+  catalogUi: catalogUiRu,
+  layoutUi: layoutUiRu,
+  ordersUi: ordersUiRu,
 };
 
-type DeepStringify<T> = {
-  [K in keyof T]: T[K] extends string ? string : DeepStringify<T[K]>;
-};
+import type { DeepStringify } from "./types";
 
 export type TranslationKeys = DeepStringify<typeof ru>;

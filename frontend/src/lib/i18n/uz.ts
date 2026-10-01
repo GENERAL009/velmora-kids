@@ -1,4 +1,13 @@
 import type { TranslationKeys } from "./ru";
+import { uz as profileUz } from "./sections/profile";
+import { uz as paymentWaitUz } from "./sections/paymentWait";
+import { uz as checkoutPageUz } from "./sections/checkoutPage";
+import { uz as authFormsUz } from "./sections/authForms";
+import { uz as productPageUz } from "./sections/productPage";
+import { uz as searchUiUz } from "./sections/searchUi";
+import { uz as catalogUiUz } from "./sections/catalogUi";
+import { uz as layoutUiUz } from "./sections/layoutUi";
+import { uz as ordersUiUz } from "./sections/ordersUi";
 
 export const uz: TranslationKeys = {
   nav: {
@@ -10,7 +19,7 @@ export const uz: TranslationKeys = {
     favorites: "Sevimlilar",
     cart: "Savat",
     myOrders: "Buyurtmalarim",
-    search: "Katalog",
+    search: "Qidirish",
   },
 
   hero: {
@@ -35,7 +44,7 @@ export const uz: TranslationKeys = {
     createAccount: "Hisob yaratish",
     backToHome: "← Bosh sahifaga qaytish",
     invalidEmail: "To'g'ri email kiriting",
-    passwordMin: "Parol kamida 6 ta belgidan iborat bo'lishi kerak",
+    passwordMin: "Parol kamida 8 ta belgidan iborat bo'lishi kerak",
     invalidCredentials: "Noto'g'ri email yoki parol",
     registerTitle: "Hisob yaratish",
     registerSubtitle: "Xarid qilish uchun ro'yxatdan o'ting",
@@ -83,7 +92,7 @@ export const uz: TranslationKeys = {
     allProducts: "Barcha mahsulotlar",
     filters: "Filtrlar",
     sortBy: "Saralash",
-    newest: "Yangiliklар",
+    newest: "Avval yangilari",
     priceAsc: "Narx: o'sish tartibida",
     priceDesc: "Narx: kamayish tartibida",
     popular: "Ommabop",
@@ -102,7 +111,7 @@ export const uz: TranslationKeys = {
     onSale: "Chegirmada",
     inStock: "Mavjud",
     clearAll: "Hammasini tozalash",
-    addToCart: "Savatga",
+    addToCart: "Savatga qo'shish",
     addedToCart: "Savatda",
     quickView: "Tezkor ko'rish",
   },
@@ -127,7 +136,7 @@ export const uz: TranslationKeys = {
     dimensions: "O'lchamlari",
     wheelType: "G'ildirak turi",
     wheelCount: "G'ildiraklar soni",
-    maxSpeed: "Maks. tezlik (km/s)",
+    maxSpeed: "Maks. tezlik (km/soat)",
     batteryType: "Akkumulyator turi",
     remoteControl: "Masofadan boshqarish",
     lights: "Yoritish",
@@ -176,7 +185,7 @@ export const uz: TranslationKeys = {
   footer: {
     stayUpdated: "Yangiliklardan xabardor bo'ling",
     subscribeOffer: "Obuna bo'ling va birinchi buyurtmangizga 10% chegirma oling",
-    yourEmail: "Sizning email",
+    yourEmail: "Email manzilingiz",
     subscribe: "Obuna bo'lish",
     thanksSubscribe: "Obuna uchun rahmat!",
     aboutCompany: "Kompaniya haqida",
@@ -192,8 +201,8 @@ export const uz: TranslationKeys = {
   notifications: {
     title: "Bildirishnomalar",
     empty: "Bildirishnomalar yo'q",
-    markAllRead: "Hammasini o'qish",
-    markRead: "O'qish",
+    markAllRead: "Hammasini o'qilgan deb belgilash",
+    markRead: "O'qilgan deb belgilash",
   },
 
   common: {
@@ -229,4 +238,13 @@ export const uz: TranslationKeys = {
     discounts: "Tanlangan kolleksiyalarga 50% gacha chegirma",
     shopNow: "Hozir xarid qilish",
   },
+  profile: profileUz,
+  paymentWait: paymentWaitUz,
+  checkoutPage: checkoutPageUz,
+  authForms: authFormsUz,
+  productPage: productPageUz,
+  searchUi: searchUiUz,
+  catalogUi: catalogUiUz,
+  layoutUi: layoutUiUz,
+  ordersUi: ordersUiUz,
 } as const;

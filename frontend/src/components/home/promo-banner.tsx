@@ -5,8 +5,10 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star } from "lucide-react";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function PromoBanner() {
+  const t = useTranslation();
   return (
     <section className="py-8 sm:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -56,7 +58,7 @@ export function PromoBanner() {
                 viewport={{ once: true }}
                 className="inline-block text-xs font-semibold uppercase tracking-widest text-secondary-600"
               >
-                Специальное предложение
+                {t.catalogUi.promoBanner.badge}
               </motion.span>
 
               <motion.h2
@@ -66,7 +68,7 @@ export function PromoBanner() {
                 transition={{ delay: 0.1 }}
                 className="mt-3 font-display text-2xl font-bold text-charcoal dark:text-white sm:text-3xl lg:text-4xl"
               >
-                Осенняя распродажа
+                {t.catalogUi.promoBanner.title}
               </motion.h2>
 
               <motion.p
@@ -76,8 +78,7 @@ export function PromoBanner() {
                 transition={{ delay: 0.2 }}
                 className="mt-3 max-w-md text-neutral-600 dark:text-neutral-400 leading-relaxed"
               >
-                Скидки до 30% на осеннюю коллекцию. Тёплые куртки, уютные
-                свитера и стильные аксессуары для вашего ребёнка.
+                {t.catalogUi.promoBanner.description}
               </motion.p>
 
               <motion.div
@@ -93,7 +94,7 @@ export function PromoBanner() {
                     size="lg"
                     rightIcon={<ArrowRight className="h-4 w-4" />}
                   >
-                    Перейти к распродаже
+                    {t.catalogUi.promoBanner.cta}
                   </Button>
                 </Link>
               </motion.div>

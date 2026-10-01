@@ -45,7 +45,7 @@ const ROLE_LABELS: Record<string, string> = {
   super_admin: "Super admin",
   director: "Direktor",
   seller: "Sotuvchi",
-  call_center: "Call markaz",
+  call_center: "Koll-markaz",
   customer: "Mijoz",
 };
 
@@ -62,14 +62,14 @@ const ROLE_FILTERS = [
   { value: "super_admin", label: "Adminlar", icon: ShieldCheck },
   { value: "director", label: "Direktorlar", icon: ShieldCheck },
   { value: "seller", label: "Sotuvchilar", icon: ShoppingBag },
-  { value: "call_center", label: "Call markaz", icon: Headphones },
+  { value: "call_center", label: "Koll-markaz", icon: Headphones },
 ];
 
 const ASSIGNABLE_ROLES = [
   { value: "super_admin", label: "Super admin" },
   { value: "director", label: "Direktor" },
   { value: "seller", label: "Sotuvchi" },
-  { value: "call_center", label: "Call markaz" },
+  { value: "call_center", label: "Koll-markaz" },
 ];
 
 const emptyForm: UserFormData = {

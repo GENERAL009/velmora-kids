@@ -141,7 +141,7 @@ export default function POSPage() {
       searchInputRef.current?.focus();
     },
     onError: (err: any) => {
-      setError(err?.response?.data?.detail || "Sotuvni rasmiylashtrishda xatolik");
+      setError(err?.response?.data?.detail || "Sotuvni rasmiylashtirishda xatolik");
     },
   });
 
@@ -167,7 +167,7 @@ export default function POSPage() {
       <div>
         <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Kassa</h1>
         <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-          Offlayn sotuv — tovar qidirish, chekka qo'shish, rasmiylashtirish
+          Offlayn sotuv — tovar qidirish, savatga qo'shish, rasmiylashtirish
         </p>
       </div>
 

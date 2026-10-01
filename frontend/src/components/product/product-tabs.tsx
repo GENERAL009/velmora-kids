@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Package, Truck, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
 
 type TabId = "description" | "specs" | "shipping" | "reviews";
 
@@ -19,19 +20,21 @@ interface ProductTabsProps {
   className?: string;
 }
 
-const tabs: Tab[] = [
-  { id: "description", label: "Описание" },
-  { id: "specs", label: "Характеристики" },
-  { id: "shipping", label: "Доставка" },
-  { id: "reviews", label: "Отзывы" },
-];
-
 export function ProductTabs({
   description,
   specifications = {},
   className,
 }: ProductTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("description");
+  const t = useTranslation();
+  const tp = t.productPage;
+
+  const tabs: Tab[] = [
+    { id: "description", label: t.product.description },
+    { id: "specs", label: t.product.characteristics },
+    { id: "shipping", label: t.cart.delivery },
+    { id: "reviews", label: t.product.reviews },
+  ];
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -101,7 +104,7 @@ export function ProductTabs({
               <div className="rounded-md bg-neutral-50 dark:bg-neutral-800/50 p-6 text-center">
                 <Package className="mx-auto mb-2 h-8 w-8 text-neutral-300 dark:text-neutral-600" />
                 <p className="text-sm text-neutral-500">
-                  Характеристики скоро будут добавлены
+                  {tp.specs.empty}
                 </p>
               </div>
             )}
@@ -116,10 +119,10 @@ export function ProductTabs({
               </div>
               <div>
                 <h4 className="mb-1 font-semibold text-charcoal dark:text-white">
-                  Бесплатная доставка
+                  {tp.trust.freeDelivery}
                 </h4>
                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Для заказов от 500 000 сум по Ташкенту
+                  {tp.shipping.freeDeliveryDesc}
                 </p>
               </div>
             </div>
@@ -127,43 +130,42 @@ export function ProductTabs({
             <div className="space-y-4">
               <div>
                 <h4 className="mb-2 font-semibold text-charcoal dark:text-white">
-                  Сроки доставки
+                  {tp.shipping.deliveryTimes}
                 </h4>
                 <ul className="space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
                   <li className="flex items-start gap-2">
                     <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary-500" />
-                    <span>По Ташкенту: 1-2 рабочих дня</span>
+                    <span>{tp.shipping.tashkent}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary-500" />
-                    <span>По регионам: 3-5 рабочих дней</span>
+                    <span>{tp.shipping.regions}</span>
                   </li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="mb-2 font-semibold text-charcoal dark:text-white">
-                  Способы доставки
+                  {tp.shipping.methods}
                 </h4>
                 <ul className="space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
                   <li className="flex items-start gap-2">
                     <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary-500" />
-                    <span>Курьерская доставка</span>
+                    <span>{tp.shipping.courier}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary-500" />
-                    <span>Самовывоз из магазина</span>
+                    <span>{tp.shipping.pickup}</span>
                   </li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="mb-2 font-semibold text-charcoal dark:text-white">
-                  Возврат и обмен
+                  {tp.shipping.returnsTitle}
                 </h4>
                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Вы можете вернуть товар в течение 14 дней с момента покупки,
-                  если он не был в использовании и сохранен товарный вид.
+                  {tp.shipping.returnsText}
                 </p>
               </div>
             </div>
@@ -174,13 +176,13 @@ export function ProductTabs({
           <div className="rounded-md bg-neutral-50 dark:bg-neutral-800/50 p-8 text-center">
             <MessageCircle className="mx-auto mb-3 h-10 w-10 text-neutral-300 dark:text-neutral-600" />
             <h4 className="mb-2 font-semibold text-charcoal dark:text-white">
-              Пока нет отзывов
+              {t.product.noReviews}
             </h4>
             <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
-              Будьте первым, кто оставит отзыв об этом товаре
+              {tp.beFirstReview}
             </p>
             <button className="rounded-sm bg-primary-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600">
-              Написать отзыв
+              {t.product.writeReview}
             </button>
           </div>
         )}

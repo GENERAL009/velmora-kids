@@ -1,0 +1,88 @@
+import type { DeepStringify } from "../types";
+
+// Russian is the source of truth for the key structure; Uzbek must mirror it.
+export const ru = {
+  badge: "Защищённая проверка оплаты",
+  title: "Проверяем ваш платёж",
+  subtitle: "Чек передан администраторам. Обычно проверка занимает несколько минут.",
+  elapsed: "Прошло",
+  messages: {
+    m1: "Чек отправлен администраторам магазина",
+    m2: "Сверяем сумму и дату перевода",
+    m3: "Ожидаем подтверждение поступления на карту",
+    m4: "Можно закрыть страницу — результат придёт в уведомлениях",
+  },
+  stepsTitle: "Этапы проверки",
+  inProgress: "Выполняется",
+  steps: {
+    uploadedTitle: "Чек загружен",
+    uploadedDesc: "Файл чека успешно прикреплён к заказу",
+    sentTitle: "Передан администраторам",
+    sentDesc: "Чек отправлен администраторам в Telegram",
+    verifyTitle: "Сверка платежа",
+    verifyDesc: "Подтверждаем поступление средств на карту",
+  },
+
+  titles: {
+    completed: "Оплата подтверждена!",
+    failed: "Оплата отклонена",
+    suspicious: "Дополнительная проверка",
+    processing: "Обработка платежа",
+    placed: "Заказ успешно оформлен!",
+  },
+  orderLabel: "Заказ:",
+  completedTitle: "Большое спасибо за заказ!",
+  completedDesc: "Платёж подтверждён. Заказ передан на сборку и доставку.",
+  failedTitle: "Чек отклонён администратором",
+  reason: "Причина:",
+  defaultReason: "Сумма или дата в чеке не совпадает",
+  failedHint: "Свяжитесь со службой поддержки или оформите заказ заново.",
+  suspiciousTitle: "Дополнительная проверка чека",
+  suspiciousDesc: "Менеджеры повторно сверяют документ. Пожалуйста, подождите немного.",
+  placedDesc: "Мы свяжемся с вами для подтверждения заказа.",
+  continueShopping: "Продолжить покупки",
+  myOrders: "Мои заказы",
+} as const satisfies Record<string, unknown>;
+
+export const uz: DeepStringify<typeof ru> = {
+  badge: "Himoyalangan to'lov tekshiruvi",
+  title: "To'lovingizni tekshiryapmiz",
+  subtitle: "Chek adminlarga yuborildi. Odatda tekshiruv bir necha daqiqa davom etadi.",
+  elapsed: "O'tgan vaqt",
+  messages: {
+    m1: "Chek do'kon adminlariga yuborildi",
+    m2: "O'tkazma summasi va sanasi solishtirilmoqda",
+    m3: "Kartaga pul tushgani tasdiqlanishi kutilmoqda",
+    m4: "Sahifani yopishingiz mumkin — natija bildirishnomada keladi",
+  },
+  stepsTitle: "Tekshiruv bosqichlari",
+  inProgress: "Bajarilmoqda",
+  steps: {
+    uploadedTitle: "Chek yuklandi",
+    uploadedDesc: "Chek fayli buyurtmaga muvaffaqiyatli biriktirildi",
+    sentTitle: "Adminlarga yuborildi",
+    sentDesc: "Chek Telegram orqali adminlarga yuborildi",
+    verifyTitle: "To'lovni solishtirish",
+    verifyDesc: "Kartaga pul tushgani tasdiqlanmoqda",
+  },
+
+  titles: {
+    completed: "To'lov tasdiqlandi!",
+    failed: "To'lov rad etildi",
+    suspicious: "Qo'shimcha tekshiruv",
+    processing: "To'lov tekshirilmoqda",
+    placed: "Buyurtma muvaffaqiyatli rasmiylashtirildi!",
+  },
+  orderLabel: "Buyurtma:",
+  completedTitle: "Buyurtmangiz uchun katta rahmat!",
+  completedDesc: "To'lov tasdiqlandi. Buyurtma yig'ish va yetkazishga topshirildi.",
+  failedTitle: "Chek admin tomonidan rad etildi",
+  reason: "Sabab:",
+  defaultReason: "Chekdagi summa yoki sana mos kelmadi",
+  failedHint: "Qo'llab-quvvatlash xizmatiga murojaat qiling yoki buyurtmani qaytadan rasmiylashtiring.",
+  suspiciousTitle: "Chek qo'shimcha tekshirilmoqda",
+  suspiciousDesc: "Menejerlar hujjatni qayta tekshiryapti. Iltimos, biroz kuting.",
+  placedDesc: "Buyurtmani tasdiqlash uchun siz bilan bog'lanamiz.",
+  continueShopping: "Xaridni davom ettirish",
+  myOrders: "Buyurtmalarim",
+};

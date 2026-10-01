@@ -6,15 +6,16 @@ import { usePathname } from "next/navigation";
 import { Home, ShoppingBag, User, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
-
-const navItems = [
-  { href: "/", label: "Главная", icon: Home },
-  { href: "/catalog", label: "Каталог", icon: LayoutGrid },
-  { href: "/cart", label: "Корзина", icon: ShoppingBag },
-  { href: "/account", label: "Кабинет", icon: User },
-];
+import { useTranslation } from "@/hooks/use-translation";
 
 export function MobileBottomNav() {
+  const t = useTranslation();
+  const navItems = [
+    { href: "/", label: t.layoutUi.bottomNav.home, icon: Home },
+    { href: "/catalog", label: t.nav.catalog, icon: LayoutGrid },
+    { href: "/cart", label: t.nav.cart, icon: ShoppingBag },
+    { href: "/account", label: t.layoutUi.bottomNav.account, icon: User },
+  ];
   const pathname = usePathname();
   const itemCount = useCartStore((s) => s.getItemCount());
 

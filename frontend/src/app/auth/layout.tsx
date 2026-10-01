@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { ru as authFormsRu } from "@/lib/i18n/sections/authForms";
 
 export const metadata: Metadata = {
-  title: "Вход | Velmora Kids",
-  description: "Войдите в свой аккаунт Velmora Kids",
+  // Server-rendered metadata: the chosen locale lives in client storage, so the default (ru) is used here
+  title: authFormsRu.metaTitle,
+  description: authFormsRu.metaDescription,
 };
 
 export default function AuthLayout({

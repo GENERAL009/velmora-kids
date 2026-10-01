@@ -579,7 +579,7 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Maks. tezlik (km/s)</label>
+                <label className={LABEL_CLS}>Maks. tezlik (km/soat)</label>
                 <input
                   type="number"
                   className={INPUT_CLS}

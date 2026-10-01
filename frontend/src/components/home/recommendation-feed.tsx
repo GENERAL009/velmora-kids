@@ -5,12 +5,14 @@ import { Loader2 } from "lucide-react";
 import { ProductCard } from "@/components/product/product-card";
 import { ProductCardSkeleton } from "@/components/ui/skeleton";
 import { useInfiniteProducts } from "@/hooks/use-products";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface RecommendationFeedProps {
   gender: "girls" | "boys";
 }
 
 export function RecommendationFeed({ gender }: RecommendationFeedProps) {
+  const t = useTranslation();
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -49,11 +51,11 @@ export function RecommendationFeed({ gender }: RecommendationFeedProps) {
     <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
       <div className="mb-5 flex items-center justify-between">
         <h2 className="text-lg font-bold text-neutral-900 dark:text-white sm:text-xl">
-          Tavsiya etamiz
+          {t.catalogUi.recommendations.title}
         </h2>
         {total > 0 && (
           <span className="text-sm text-neutral-400">
-            {total} ta mahsulot
+            {t.catalogUi.recommendations.count.replace("{count}", String(total))}
           </span>
         )}
       </div>
@@ -80,7 +82,7 @@ export function RecommendationFeed({ gender }: RecommendationFeedProps) {
         )}
         {!hasNextPage && allProducts.length > 0 && (
           <p className="text-sm text-neutral-400">
-            Barcha mahsulotlar ko&apos;rsatildi
+            {t.catalogUi.recommendations.allShown}
           </p>
         )}
       </div>

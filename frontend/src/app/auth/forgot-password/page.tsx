@@ -6,8 +6,10 @@ import { Mail, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiPost } from "@/lib/api";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslation();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,29 +37,29 @@ export default function ForgotPasswordPage() {
         <div className="relative rounded-2xl border border-neutral-200 bg-white p-8 shadow-xl dark:border-neutral-700 dark:bg-neutral-900 lg:p-10">
           <div className="mb-8 text-center">
             <h1 className="mb-2 font-display text-3xl text-charcoal dark:text-white">
-              Восстановление пароля
+              {t.authForms.forgot.title}
             </h1>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Введите email для получения инструкций
+              {t.authForms.forgot.subtitle}
             </p>
           </div>
 
           {submitted ? (
             <div className="text-center">
               <div className="mb-4 rounded-lg border border-secondary-200 bg-secondary-50 p-4 text-sm text-secondary-700 dark:border-secondary-700 dark:bg-secondary-900/20 dark:text-secondary-400">
-                Если аккаунт с таким email существует, мы отправили инструкции по восстановлению пароля.
+                {t.authForms.forgot.sent}
               </div>
               <Link href="/auth/login">
                 <Button variant="outline" className="mt-4">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Вернуться к входу
+                  {t.authForms.forgot.backToLogin}
                 </Button>
               </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                label="Email"
+                label={t.auth.email}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -66,12 +68,12 @@ export default function ForgotPasswordPage() {
                 required
               />
               <Button type="submit" size="lg" className="w-full" isLoading={isLoading}>
-                Отправить
+                {t.authForms.forgot.send}
               </Button>
               <div className="text-center">
                 <Link href="/auth/login" className="text-sm text-primary-600 hover:underline">
                   <ArrowLeft className="mr-1 inline h-3 w-3" />
-                  Вернуться к входу
+                  {t.authForms.forgot.backToLogin}
                 </Link>
               </div>
             </form>

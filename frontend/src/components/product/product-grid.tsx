@@ -6,6 +6,7 @@ import { ProductCard } from "./product-card";
 import { ProductGridSkeleton } from "@/components/ui/skeleton";
 import type { Product } from "@/types";
 import { PackageOpen } from "lucide-react";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface ProductGridProps {
   products: Product[];
@@ -22,6 +23,8 @@ export function ProductGrid({
   className,
   columns = 4,
 }: ProductGridProps) {
+  const t = useTranslation();
+
   if (isLoading) {
     return <ProductGridSkeleton count={skeletonCount} />;
   }
@@ -31,10 +34,10 @@ export function ProductGrid({
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <PackageOpen className="h-16 w-16 text-neutral-200" strokeWidth={1} />
         <h3 className="mt-4 font-display text-lg font-semibold text-neutral-700 dark:text-neutral-300">
-          Товары не найдены
+          {t.catalog.noResults}
         </h3>
         <p className="mt-1 text-sm text-neutral-400">
-          Попробуйте изменить параметры поиска или фильтры
+          {t.productPage.gridEmptyDesc}
         </p>
       </div>
     );
