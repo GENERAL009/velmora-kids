@@ -324,7 +324,7 @@ export default function ProductDetailPage() {
               <Button
                 variant="default"
                 size="lg"
-                className="flex-1"
+                className="w-full sm:flex-1"
                 disabled={!canAddToCart}
                 leftIcon={<ShoppingBag className="h-5 w-5" />}
                 onClick={() => {
@@ -348,11 +348,11 @@ export default function ProductDetailPage() {
                 {canAddToCart ? t.catalog.addToCart : t.product.selectColor}
               </Button>
 
-              <div className="flex gap-3 overflow-hidden">
+              <div className="flex gap-3">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="min-w-0 flex-1 sm:flex-initial"
+                  className="min-w-0 flex-1 px-4 sm:flex-initial sm:px-5"
                   onClick={toggleFavorite}
                 >
                   <Heart
@@ -362,7 +362,7 @@ export default function ProductDetailPage() {
                 </Button>
 
                 <div className="relative min-w-0 flex-1 sm:flex-initial">
-                  <Button variant="outline" size="lg" className="w-full" onClick={handleShare}>
+                  <Button variant="outline" size="lg" className="w-full px-4 sm:px-5" onClick={handleShare}>
                     <Share2 className="h-5 w-5 flex-shrink-0" />
                     <span className="ml-2 truncate sm:hidden">{t.productPage.share}</span>
                   </Button>

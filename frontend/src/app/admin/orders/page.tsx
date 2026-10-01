@@ -213,7 +213,7 @@ export default function OrdersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Buyurtmalar</h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">

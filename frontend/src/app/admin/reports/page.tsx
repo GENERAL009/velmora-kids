@@ -145,7 +145,7 @@ export default function ReportsPage() {
           <p className="text-xs text-neutral-500">Tasdiqlangan summa va boshqa holatdagi to&apos;lovlar soni</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[520px] text-sm">
             <thead className="bg-neutral-50 dark:bg-neutral-800">
               <tr>
                 <th className="px-5 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Usul</th>
@@ -199,7 +199,7 @@ export default function ReportsPage() {
           <p className="text-xs text-neutral-500">To&apos;langan buyurtmalar bo&apos;yicha, shu davrda</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[520px] text-sm">
             <thead className="bg-neutral-50 dark:bg-neutral-800">
               <tr>
                 <th className="px-5 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">#</th>

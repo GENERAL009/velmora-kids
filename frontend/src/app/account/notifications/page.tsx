@@ -67,7 +67,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl text-charcoal dark:text-white">
             {t.notifications.title}
@@ -83,7 +83,7 @@ export default function NotificationsPage() {
             variant="outline"
             size="sm"
             onClick={markAllAsRead}
-            className="gap-2"
+            className="gap-2 self-start sm:self-auto"
           >
             <CheckCheck className="h-4 w-4" />
             {t.notifications.markAllRead}

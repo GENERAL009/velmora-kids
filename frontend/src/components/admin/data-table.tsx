@@ -88,7 +88,7 @@ export function DataTable<T>({
   if (isLoading) {
     return (
       <div className={cn("overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700", className)}>
-        <table className="w-full">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-neutral-50 dark:bg-neutral-800">
             <tr>
               {showCheckbox && <th className="w-12 px-4 py-3" />}
@@ -138,7 +138,7 @@ export function DataTable<T>({
 
   return (
     <div className={cn("overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700", className)}>
-      <table className="w-full">
+      <table className="w-full min-w-[640px]">
         <thead className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
           <tr>
             {showCheckbox && (

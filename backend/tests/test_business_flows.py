@@ -303,3 +303,12 @@ async def test_no_location_when_not_selected(monkeypatch):
         address="", items_text="", approved_by="Admin",
     )
     assert calls == ["sendMessage"]
+
+
+@pytest.mark.asyncio
+async def test_courier_free_above_threshold(client: AsyncClient, customer_token, sample_variant_with_stock):
+    # 3 × 250 000 = 750 000 > 500 000 → free courier delivery (same rule as the cart page)
+    r = await client.post("/api/v1/orders", json=_order_payload(sample_variant_with_stock.id, 3), headers=_auth(customer_token))
+    assert r.status_code == 201, r.text
+    assert r.json()["delivery_fee"] == 0
+    assert r.json()["total"] == 750000

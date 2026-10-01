@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/cart";
+import { useDeliveryRules } from "@/hooks/use-delivery";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/layout/header";
@@ -33,7 +34,8 @@ export default function CartPage() {
 
   const subtotal = getTotal();
   const discount = getDiscount();
-  const deliveryFee = subtotal > 500000 ? 0 : 30000;
+  const { courierFee, freeFrom } = useDeliveryRules();
+  const deliveryFee = courierFee(subtotal);
   const total = subtotal - discount + deliveryFee;
 
   const [promoLoading, setPromoLoading] = useState(false);
@@ -113,11 +115,11 @@ export default function CartPage() {
                   return (
                     <div
                       key={item.variant.id}
-                      className="group rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 p-4 shadow-sm transition-shadow hover:shadow-md"
+                      className="group rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 p-3 shadow-sm transition-shadow hover:shadow-md sm:p-4"
                     >
-                      <div className="flex gap-4">
+                      <div className="flex gap-3 sm:gap-4">
                         {/* Product Image */}
-                        <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-primary-100 to-secondary-100 lg:h-32 lg:w-32">
+                        <div className="relative h-20 w-20 flex-shrink-0 sm:h-24 sm:w-24 overflow-hidden rounded-md bg-gradient-to-br from-primary-100 to-secondary-100 lg:h-32 lg:w-32">
                           {item.product.images?.[0]?.file_path ? (
                             <Image
                               src={item.product.images[0].file_path}
@@ -134,11 +136,11 @@ export default function CartPage() {
                         </div>
 
                         {/* Product Details */}
-                        <div className="flex flex-1 flex-col justify-between">
+                        <div className="flex min-w-0 flex-1 flex-col justify-between">
                           <div>
                             <div className="mb-1 flex items-start justify-between gap-2">
-                              <div>
-                                <h3 className="font-medium text-charcoal dark:text-white lg:text-lg">
+                              <div className="min-w-0">
+                                <h3 className="line-clamp-2 font-medium text-charcoal dark:text-white lg:text-lg">
                                   {item.product.name}
                                 </h3>
                                 {item.product.brand && (
@@ -149,7 +151,7 @@ export default function CartPage() {
                               </div>
                               <button
                                 onClick={() => removeItem(item.variant.id)}
-                                className="flex-shrink-0 rounded-full p-2 text-neutral-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500"
+                                className="-mr-1 -mt-1 flex-shrink-0 rounded-full p-2 text-neutral-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500"
                                 aria-label={t.cart.removeItem}
                               >
                                 <Trash2 className="h-5 w-5" />
@@ -168,9 +170,9 @@ export default function CartPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
                             {/* Quantity Controls */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
                               <button
                                 onClick={() => updateQuantity(item.variant.id, item.quantity - 1)}
                                 className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 dark:border-neutral-600 transition-colors hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30"
@@ -178,7 +180,7 @@ export default function CartPage() {
                               >
                                 <Minus className="h-4 w-4" />
                               </button>
-                              <span className="w-8 text-center font-medium dark:text-neutral-200">
+                              <span className="w-7 text-center font-medium tabular-nums dark:text-neutral-200 sm:w-8">
                                 {item.quantity}
                               </span>
                               <button
@@ -191,11 +193,11 @@ export default function CartPage() {
                             </div>
 
                             {/* Price */}
-                            <div className="text-right">
-                              <p className="text-sm text-neutral-500">
+                            <div className="ml-auto text-right">
+                              <p className="whitespace-nowrap text-xs text-neutral-500 sm:text-sm">
                                 {formatPrice(price)} × {item.quantity}
                               </p>
-                              <p className="font-semibold text-charcoal dark:text-white lg:text-lg">
+                              <p className="whitespace-nowrap font-semibold text-charcoal dark:text-white lg:text-lg">
                                 {formatPrice(itemTotal)}
                               </p>
                             </div>
@@ -290,9 +292,9 @@ export default function CartPage() {
                   )}
                 </div>
 
-                {subtotal < 500000 && (
+                {freeFrom > 0 && subtotal <= freeFrom && (
                   <div className="mt-4 rounded-md bg-accent-50 dark:bg-accent-950/30 p-3 text-xs text-accent-700 dark:text-accent-400">
-                    {t.cart.freeDeliveryHint.replace("{amount}", formatPrice(500000 - subtotal))}
+                    {t.cart.freeDeliveryHint.replace("{amount}", formatPrice(freeFrom - subtotal + 1))}
                   </div>
                 )}
               </div>

@@ -368,7 +368,7 @@ export default function NewProductPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className={LABEL_CLS}>Artikul (SKU) *</label>
                   <input
@@ -434,7 +434,7 @@ export default function NewProductPage() {
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
               Kategoriya va brend
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className={LABEL_CLS}>Kategoriya *</label>
                 <select
@@ -473,7 +473,7 @@ export default function NewProductPage() {
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
               Jinsi va yosh
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <label className={LABEL_CLS}>Jinsi</label>
                 <select
@@ -522,7 +522,7 @@ export default function NewProductPage() {
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
               Transport xususiyatlari
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               <div>
                 <label className={LABEL_CLS}>Maks. yuk (kg)</label>
                 <input
@@ -720,7 +720,7 @@ export default function NewProductPage() {
                   className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
                       <select
                         className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
                         value={variant.color_id}
@@ -881,14 +881,15 @@ export default function NewProductPage() {
       </div>
 
       {/* Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 lg:left-72 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 p-4 shadow-elevated z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <Link href="/admin/products">
+      <div className="fixed bottom-0 left-0 right-0 lg:left-72 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-elevated z-30 sm:p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          <Link href="/admin/products" className="hidden sm:block">
             <Button variant="ghost">Bekor qilish</Button>
           </Link>
-          <div className="flex gap-3">
+          <div className="flex w-full gap-2 sm:w-auto sm:gap-3">
             <Button
               variant="outline"
+              className="flex-1 px-3 sm:flex-initial sm:px-6"
               onClick={() => handleSubmit("draft")}
               disabled={createMutation.isPending}
             >
@@ -896,6 +897,7 @@ export default function NewProductPage() {
             </Button>
             <Button
               variant="default"
+              className="flex-1 px-3 sm:flex-initial sm:px-6"
               onClick={() => handleSubmit("active")}
               isLoading={createMutation.isPending}
             >

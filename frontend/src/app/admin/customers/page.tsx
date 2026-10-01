@@ -94,7 +94,7 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Mijozlar</h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">Mijozlar bazasi va xaridlar tarixi</p>

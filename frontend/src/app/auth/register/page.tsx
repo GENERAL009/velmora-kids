@@ -188,6 +188,7 @@ export default function RegisterPage() {
                 error={errors.password?.message}
                 placeholder={t.auth.passwordMin}
                 icon={<Lock className="h-4 w-4" />}
+                className="pr-10"
               />
               <button
                 type="button"
@@ -283,6 +284,7 @@ export default function RegisterPage() {
                 error={errors.confirm_password?.message}
                 placeholder={t.auth.confirmPassword}
                 icon={<Lock className="h-4 w-4" />}
+                className="pr-10"
               />
               <button
                 type="button"

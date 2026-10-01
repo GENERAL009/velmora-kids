@@ -191,8 +191,8 @@ export default function FavoritesPage() {
                 </div>
 
                 <Link href={`/product/${product.slug}`}>
-                  <Button size="sm" className="w-full">
-                    <ShoppingCart className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <Button size="sm" className="w-full px-2 sm:px-4">
+                    <ShoppingCart className="mr-2 hidden h-4 w-4 flex-shrink-0 sm:block" />
                     <span className="truncate">{f.goToProduct}</span>
                   </Button>
                 </Link>

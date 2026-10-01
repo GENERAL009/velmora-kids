@@ -47,19 +47,19 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Boshqaruv paneli</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white sm:text-3xl">Boshqaruv paneli</h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">
             Boshqaruv paneliga xush kelibsiz
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(["today", "7days", "30days", "month"] as const).map((range) => (
             <button
               key={range}
               onClick={() => setDateRange(range)}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              className={`whitespace-nowrap px-3 py-2 text-sm font-medium rounded-lg transition-colors sm:px-4 ${
                 dateRange === range
                   ? "bg-primary-500 text-white"
                   : "bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
         <StatCard
           title="Daromad (to'langan)"
           value={kpisLoading ? "..." : formatPrice(kpis?.revenue ?? 0)}
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[480px]">
               <thead className="bg-neutral-50 dark:bg-neutral-900">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[480px]">
               <thead className="bg-neutral-50 dark:bg-neutral-900">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
@@ -257,7 +257,7 @@ export default function AdminDashboard() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[480px]">
             <thead className="bg-neutral-50 dark:bg-neutral-900">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase">

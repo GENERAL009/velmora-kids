@@ -143,7 +143,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Kategoriyalar</h1>
           <p className="mt-1 text-sm text-neutral-500">{categories.length} ta kategoriya</p>
@@ -153,8 +153,8 @@ export default function CategoriesPage() {
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+        <table className="w-full min-w-[560px] text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-300">Kategoriya</th>

@@ -253,10 +253,10 @@ export default function AccountPage() {
   ];
 
   const stats = [
-    { label: t.profile.stats.orders, value: summary?.orders_count ?? "—", icon: Package, color: "text-primary-600", href: "/account/orders" },
-    { label: t.profile.stats.active, value: summary?.active_orders_count ?? "—", icon: Truck, color: "text-purple-600", href: "/account/orders" },
-    { label: t.profile.stats.spent, value: summary ? formatPrice(summary.total_spent) : "—", icon: Wallet, color: "text-emerald-600" },
-    { label: t.profile.stats.favorites, value: summary?.favorites_count ?? "—", icon: Heart, color: "text-rose-500", href: "/account/favorites" },
+    { label: t.profile.stats.orders, value: summary?.orders_count ?? "—", icon: Package, color: "text-primary-600", href: "/account/orders", wide: false },
+    { label: t.profile.stats.active, value: summary?.active_orders_count ?? "—", icon: Truck, color: "text-purple-600", href: "/account/orders", wide: false },
+    { label: t.profile.stats.spent, value: summary ? formatPrice(summary.total_spent) : "—", icon: Wallet, color: "text-emerald-600", wide: true },
+    { label: t.profile.stats.favorites, value: summary?.favorites_count ?? "—", icon: Heart, color: "text-rose-500", href: "/account/favorites", wide: false },
   ];
 
   return (
@@ -270,24 +270,24 @@ export default function AccountPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 xl:grid-cols-4">
         {stats.map((s) => {
           const Icon = s.icon;
           const body = (
             <>
-              <div className={`mb-2 flex items-center gap-2 ${s.color}`}>
-                <Icon className="h-5 w-5" />
-                <span className="text-sm font-medium">{s.label}</span>
+              <div className={`mb-2 flex items-start gap-1.5 sm:items-center sm:gap-2 ${s.color}`}>
+                <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 sm:mt-0 sm:h-5 sm:w-5" />
+                <span className="text-xs font-medium leading-tight sm:text-sm">{s.label}</span>
               </div>
               <p className="truncate font-display text-xl text-charcoal dark:text-white lg:text-2xl" title={String(s.value)}>{s.value}</p>
             </>
           );
           return s.href ? (
-            <Link key={s.label} href={s.href} className={`${CARD} !p-4 transition-shadow hover:shadow-md md:!p-6`}>
+            <Link key={s.label} href={s.href} className={`${CARD} !p-3 transition-shadow hover:shadow-md sm:!p-4 md:!p-5`}>
               {body}
             </Link>
           ) : (
-            <div key={s.label} className={`${CARD} !p-4 md:!p-6`}>{body}</div>
+            <div key={s.label} className={`${CARD} !p-3 sm:!p-4 md:!p-5 ${s.wide ? "order-first col-span-3 xl:order-none xl:col-span-1" : ""}`}>{body}</div>
           );
         })}
       </div>

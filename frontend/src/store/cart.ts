@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import toast from "react-hot-toast";
@@ -184,3 +185,14 @@ export const useCartStore = create<CartState>()(
     }
   )
 );
+
+/** True once the persisted cart has been read from localStorage (avoids acting on an empty first render). */
+export function useCartHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    if (useCartStore.persist.hasHydrated()) setHydrated(true);
+    const unsub = useCartStore.persist.onFinishHydration(() => setHydrated(true));
+    return unsub;
+  }, []);
+  return hydrated;
+}

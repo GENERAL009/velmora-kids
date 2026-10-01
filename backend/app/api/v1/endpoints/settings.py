@@ -108,6 +108,7 @@ class SiteSettingsUpdate(BaseModel):
 async def get_site_settings():
     data = _read_settings()
     data["delivery_fee_courier"] = app_settings.DELIVERY_FEE_COURIER
+    data["free_delivery_from"] = app_settings.FREE_DELIVERY_FROM
     return data
 
 

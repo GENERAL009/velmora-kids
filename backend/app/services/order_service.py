@@ -26,8 +26,12 @@ def effective_unit_price(product: Product, variant: ProductVariant) -> Decimal:
     return base + Decimal(variant.additional_price or 0)
 
 
-def delivery_fee_for(method: str | None) -> Decimal:
-    return Decimal(settings.DELIVERY_FEE_COURIER) if (method or "courier") == "courier" else Decimal(0)
+def delivery_fee_for(method: str | None, subtotal: Decimal = Decimal(0)) -> Decimal:
+    if (method or "courier") != "courier":
+        return Decimal(0)
+    if settings.FREE_DELIVERY_FROM and subtotal > Decimal(settings.FREE_DELIVERY_FROM):
+        return Decimal(0)
+    return Decimal(settings.DELIVERY_FEE_COURIER)
 
 
 async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
@@ -86,7 +90,7 @@ async def create_order(db: AsyncSession, data, customer_id: uuid.UUID) -> Order:
     delivery_method = data.delivery_method or "courier"
     if delivery_method not in ("courier", "pickup"):
         raise HTTPException(status_code=400, detail="Noto'g'ri yetkazish usuli")
-    delivery_fee = delivery_fee_for(delivery_method)
+    delivery_fee = delivery_fee_for(delivery_method, subtotal)
     total = subtotal - discount_amount + delivery_fee
 
     payment_method_map = {

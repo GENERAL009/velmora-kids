@@ -69,6 +69,8 @@ class Settings(BaseSettings):
 
     # Delivery
     DELIVERY_FEE_COURIER: int = 30000
+    # Courier delivery is free when the goods subtotal is above this amount (0 = never free)
+    FREE_DELIVERY_FROM: int = 500000
 
     # Upload limits
     MAX_RECEIPT_SIZE_MB: int = 10

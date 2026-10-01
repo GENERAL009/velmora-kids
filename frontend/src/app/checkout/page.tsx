@@ -9,7 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
 import { ShoppingBag, Copy, UploadCloud, CheckCircle2 } from "lucide-react";
-import { useCartStore } from "@/store/cart";
+import { useCartStore, useCartHydrated } from "@/store/cart";
+import { useDeliveryRules } from "@/hooks/use-delivery";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -152,17 +153,18 @@ export default function CheckoutPage() {
     }
   }, [t, selectedCity, setValue]);
 
+  const cartHydrated = useCartHydrated();
   useEffect(() => {
-    if (items.length === 0 && !isNavigating.current) {
+    if (cartHydrated && items.length === 0 && !isNavigating.current) {
       router.push("/cart");
     }
-  }, [items, router]);
+  }, [items, router, cartHydrated]);
 
   const { getDiscount, promoCode: storePromo } = useCartStore();
   const subtotal = getTotal();
   const discount = getDiscount();
-  const courierFee = Number(settings?.delivery_fee_courier ?? 30000);
-  const deliveryFee = deliveryMethod === "courier" ? courierFee : 0;
+  const { courierFee } = useDeliveryRules();
+  const deliveryFee = deliveryMethod === "courier" ? courierFee(subtotal) : 0;
   const total = subtotal - discount + deliveryFee;
 
   const [errorMessage, setErrorMessage] = useState("");

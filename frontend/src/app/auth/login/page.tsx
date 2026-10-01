@@ -124,6 +124,7 @@ export default function LoginPage() {
                 error={errors.password?.message}
                 placeholder={t.auth.enterPassword}
                 icon={<Lock className="h-4 w-4" />}
+                className="pr-10"
               />
               <button
                 type="button"

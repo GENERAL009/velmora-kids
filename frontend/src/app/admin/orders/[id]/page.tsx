@@ -161,14 +161,14 @@ export default function OrderDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Link href="/admin/orders">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white sm:text-3xl">
             Buyurtma {order.order_number}
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">
@@ -179,7 +179,7 @@ export default function OrderDetailPage() {
             })}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex w-full items-center gap-3 sm:w-auto">
           <StatusBadge status={order.status} />
           <StatusBadge status={order.payment_status} />
         </div>
@@ -190,7 +190,8 @@ export default function OrderDetailPage() {
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">
           Buyurtma holati
         </h2>
-        <div className="flex items-center justify-between relative">
+        <div className="-mx-2 overflow-x-auto px-2 pb-1">
+        <div className="relative flex min-w-[460px] items-center justify-between">
           <div className="absolute top-5 left-0 right-0 h-1 bg-neutral-200 dark:bg-neutral-700">
             <div
               className="h-full bg-primary-500 transition-all duration-500"
@@ -232,6 +233,7 @@ export default function OrderDetailPage() {
               </div>
             </div>
           ))}
+        </div>
         </div>
       </div>
 

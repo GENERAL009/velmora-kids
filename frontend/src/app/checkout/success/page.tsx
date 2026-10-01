@@ -91,15 +91,15 @@ function PaymentVerificationAnimation({ hasReceipt }: { hasReceipt: boolean }) {
 
           {/* Indeterminate progress */}
           <div className="mt-6 w-full max-w-md">
-            <div className="mb-1.5 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
-              <span className="flex items-center gap-1.5">
+            <div className="mb-1.5 flex items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+              <span className="flex min-w-0 items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
                 </span>
-                {w.stepsTitle}
+                <span className="truncate">{w.stepsTitle}</span>
               </span>
-              <span className="font-mono tabular-nums">
+              <span className="flex-shrink-0 whitespace-nowrap font-mono tabular-nums">
                 {w.elapsed}: {mm}:{ss}
               </span>
             </div>

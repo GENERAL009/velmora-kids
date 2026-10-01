@@ -603,7 +603,7 @@ export default function EditProductPage() {
                 <label className={LABEL_CLS}>Nomi (EN)</label>
                 <input type="text" className={INPUT_CLS} value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className={LABEL_CLS}>Artikul (SKU) *</label>
                   <input type="text" className={INPUT_CLS} value={formSku} onChange={(e) => setFormSku(e.target.value)} />
@@ -631,7 +631,7 @@ export default function EditProductPage() {
           {/* Category & Brand */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Kategoriya va brend</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className={LABEL_CLS}>Kategoriya *</label>
                 <select className={INPUT_CLS} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
@@ -652,7 +652,7 @@ export default function EditProductPage() {
           {/* Gender & Age */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Jinsi va yosh</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <label className={LABEL_CLS}>Jinsi</label>
                 <select className={INPUT_CLS} value={gender} onChange={(e) => setGender(e.target.value as "boys" | "girls" | "both")}>
@@ -675,7 +675,7 @@ export default function EditProductPage() {
           {/* Vehicle Specs */}
           <div className={CARD_CLS}>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-6">Transport xususiyatlari</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               <div>
                 <label className={LABEL_CLS}>Maks. yuk (kg)</label>
                 <input type="number" className={INPUT_CLS} min={0} step="0.1" value={maxWeightKg} onChange={(e) => setMaxWeightKg(e.target.value ? Number(e.target.value) : "")} />
@@ -761,7 +761,7 @@ export default function EditProductPage() {
                 {variants.map((variant) => (
                   <div key={variant._key} className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700">
                     <div className="flex items-start gap-4">
-                      <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
                         <select
                           className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white"
                           value={variant.color_id}
@@ -854,12 +854,12 @@ export default function EditProductPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 lg:left-72 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 p-4 shadow-elevated z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <Link href="/admin/products">
+      <div className="fixed bottom-0 left-0 right-0 lg:left-72 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-elevated z-30 sm:p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          <Link href="/admin/products" className="hidden sm:block">
             <Button variant="ghost">Bekor qilish</Button>
           </Link>
-          <Button variant="default" leftIcon={<Save className="w-4 h-4" />} onClick={handleSubmit} isLoading={updateMutation.isPending}>
+          <Button variant="default" className="w-full sm:w-auto" leftIcon={<Save className="w-4 h-4" />} onClick={handleSubmit} isLoading={updateMutation.isPending}>
             O'zgarishlarni saqlash
           </Button>
         </div>
