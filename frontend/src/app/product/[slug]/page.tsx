@@ -11,9 +11,8 @@ import {
   Heart,
   ShoppingBag,
   Share2,
-  Shield,
-  Truck,
-  RotateCcw,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +21,7 @@ import { ColorSelector } from "@/components/product/color-selector";
 import { QuantitySelector } from "@/components/product/quantity-selector";
 import { ProductTabs } from "@/components/product/product-tabs";
 import { ProductGrid } from "@/components/product/product-grid";
+import { TrustBadges } from "@/components/product/trust-badges";
 import { useProduct, useProducts } from "@/hooks/use-products";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
@@ -41,6 +41,9 @@ export default function ProductDetailPage() {
 
   const { data: product, isLoading, error } = useProduct(slug);
   const addItem = useCartStore((state) => state.addItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const cartItems = useCartStore((state) => state.items);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -125,7 +128,8 @@ export default function ProductDetailPage() {
     );
   }, [product, selectedColor]);
 
-  const canAddToCart = !!selectedColor;
+  const canAddToCart = !!selectedVariant && (selectedVariant.stock ?? 0) > 0;
+  const cartItem = selectedVariant ? cartItems.find((i) => i.variant.id === selectedVariant.id) : undefined;
 
   const productName = product
     ? (locale === "uz" ? product.name_uz : product.name_ru) || product.name
@@ -311,42 +315,89 @@ export default function ProductDetailPage() {
               />
             )}
 
-            {/* Quantity */}
-            <QuantitySelector
-              value={quantity}
-              onChange={setQuantity}
-              min={1}
-              max={selectedVariant?.stock || 10}
-            />
+            {/* Quantity — before adding; once in the cart the stepper below edits the cart directly */}
+            {!cartItem && (
+              <QuantitySelector
+                value={quantity}
+                onChange={setQuantity}
+                min={1}
+                max={Math.max(1, selectedVariant?.stock ?? 10)}
+              />
+            )}
 
             {/* Action buttons */}
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                variant="default"
-                size="lg"
-                className="w-full sm:flex-1"
-                disabled={!canAddToCart}
-                leftIcon={<ShoppingBag className="h-5 w-5" />}
-                onClick={() => {
-                  if (product && selectedVariant) {
-                    if (!isAuthenticated) {
-                      saveDeferredAction({
-                        type: "cart",
-                        product,
-                        variant: selectedVariant,
-                        quantity,
-                        returnUrl: `/product/${slug}`,
-                      });
-                      toast(t.productPage.loginToCart, { icon: "🛒" });
-                      router.push("/auth/login");
-                      return;
+              {cartItem && selectedVariant ? (
+                <div className="flex w-full gap-3 sm:flex-1">
+                  <div className="flex h-12 flex-shrink-0 items-center overflow-hidden rounded-sm border-2 border-primary-200 bg-white dark:border-primary-900/50 dark:bg-neutral-900">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        cartItem.quantity <= 1
+                          ? removeItem(selectedVariant.id)
+                          : updateQuantity(selectedVariant.id, cartItem.quantity - 1)
+                      }
+                      className="flex h-full w-11 items-center justify-center text-neutral-700 transition-colors hover:bg-primary-50 hover:text-primary-600 dark:text-neutral-300 dark:hover:bg-primary-950/30"
+                      aria-label={t.cart.decreaseQty}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-10 text-center text-base font-semibold tabular-nums text-charcoal dark:text-white" aria-live="polite">
+                      {cartItem.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(selectedVariant.id, cartItem.quantity + 1)}
+                      disabled={cartItem.quantity >= (selectedVariant.stock ?? 99)}
+                      className="flex h-full w-11 items-center justify-center text-neutral-700 transition-colors hover:bg-primary-50 hover:text-primary-600 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:text-neutral-300 dark:hover:bg-primary-950/30"
+                      aria-label={t.cart.increaseQty}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <Link href="/cart" className="min-w-0 flex-1">
+                    <Button
+                      variant="default"
+                      size="lg"
+                      className="w-full px-3"
+                      leftIcon={<ShoppingBag className="h-5 w-5 flex-shrink-0" />}
+                    >
+                      <span className="truncate">{t.productPage.goToCart}</span>
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="w-full sm:flex-1"
+                  disabled={!canAddToCart}
+                  leftIcon={<ShoppingBag className="h-5 w-5" />}
+                  onClick={() => {
+                    if (product && selectedVariant) {
+                      if (!isAuthenticated) {
+                        saveDeferredAction({
+                          type: "cart",
+                          product,
+                          variant: selectedVariant,
+                          quantity,
+                          returnUrl: `/product/${slug}`,
+                        });
+                        toast(t.productPage.loginToCart, { icon: "🛒" });
+                        router.push("/auth/login");
+                        return;
+                      }
+                      addItem(product, selectedVariant, quantity);
                     }
-                    addItem(product, selectedVariant, quantity);
-                  }
-                }}
-              >
-                {canAddToCart ? t.catalog.addToCart : t.product.selectColor}
-              </Button>
+                  }}
+                >
+                  {!selectedColor
+                    ? t.product.selectColor
+                    : canAddToCart
+                      ? t.catalog.addToCart
+                      : t.product.outOfStock}
+                </Button>
+              )}
 
               <div className="flex gap-3">
                 <Button
@@ -375,23 +426,8 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Trust indicators */}
-            <div className="grid grid-cols-3 gap-2 rounded-md border border-neutral-100 bg-white p-3 shadow-sm sm:gap-4 sm:p-4 dark:border-neutral-800 dark:bg-neutral-900">
-              {[
-                { icon: Truck, label: t.productPage.trust.freeDelivery },
-                { icon: RotateCcw, label: t.productPage.trust.returns },
-                { icon: Shield, label: t.productPage.trust.quality },
-              ].map((item) => (
-                <div key={item.label} className="flex flex-col items-center gap-1.5 text-center sm:gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-50 dark:bg-secondary-950/30 sm:h-10 sm:w-10">
-                    <item.icon className="h-4 w-4 text-secondary-600 sm:h-5 sm:w-5" />
-                  </div>
-                  <span className="text-xs font-medium leading-tight text-neutral-700 dark:text-neutral-300">
-                    {item.label}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {/* Trust indicators — managed in admin settings */}
+            <TrustBadges />
           </motion.div>
         </div>
 

@@ -9,7 +9,6 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
-  ShoppingBag,
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -160,15 +159,12 @@ export default function OrdersPage() {
                 {isExpanded && (
                   <div className="border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/30 p-4">
                     <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm">
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        {t.ordersUi.details}
-                      </Button>
-                      {order.status === "delivered" && (
+                      <Link href={`/account/orders/${order.id}`}>
                         <Button variant="outline" size="sm">
-                          {t.ordersUi.leaveReview}
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          {t.ordersUi.details}
                         </Button>
-                      )}
+                      </Link>
                     </div>
                   </div>
                 )}

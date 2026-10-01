@@ -12,6 +12,7 @@ export const ru = {
   notFoundDesc: "Возможно, товар был удалён или перемещён",
   relatedProducts: "Похожие товары",
   details: "Подробнее",
+  goToCart: "В корзину",
   trust: {
     freeDelivery: "Бесплатная доставка",
     returns: "Возврат 14 дней",
@@ -33,7 +34,7 @@ export const ru = {
     empty: "Характеристики скоро будут добавлены",
   },
   shipping: {
-    freeDeliveryDesc: "Для заказов от 500 000 сум по Ташкенту",
+    freeDeliveryDesc: "Для заказов свыше {amount}",
     deliveryTimes: "Сроки доставки",
     tashkent: "По Ташкенту: 1-2 рабочих дня",
     regions: "По регионам: 3-5 рабочих дней",
@@ -44,7 +45,6 @@ export const ru = {
     returnsText:
       "Вы можете вернуть товар в течение 14 дней с момента покупки, если он не был в использовании и сохранен товарный вид.",
   },
-  beFirstReview: "Будьте первым, кто оставит отзыв об этом товаре",
   gallery: {
     prev: "Предыдущее изображение",
     next: "Следующее изображение",
@@ -68,6 +68,7 @@ export const uz: DeepStringify<typeof ru> = {
   notFoundDesc: "Mahsulot o'chirilgan yoki boshqa joyga ko'chirilgan bo'lishi mumkin",
   relatedProducts: "O'xshash mahsulotlar",
   details: "Batafsil",
+  goToCart: "Savatga",
   trust: {
     freeDelivery: "Bepul yetkazib berish",
     returns: "14 kun ichida qaytarish",
@@ -89,7 +90,7 @@ export const uz: DeepStringify<typeof ru> = {
     empty: "Xususiyatlar tez orada qo'shiladi",
   },
   shipping: {
-    freeDeliveryDesc: "Toshkent bo'ylab 500 000 so'mdan ortiq buyurtmalar uchun",
+    freeDeliveryDesc: "{amount} dan ortiq buyurtmalar uchun",
     deliveryTimes: "Yetkazib berish muddatlari",
     tashkent: "Toshkent bo'ylab: 1-2 ish kuni",
     regions: "Viloyatlarga: 3-5 ish kuni",
@@ -100,7 +101,6 @@ export const uz: DeepStringify<typeof ru> = {
     returnsText:
       "Agar mahsulot ishlatilmagan va tashqi ko'rinishi saqlangan bo'lsa, uni xarid qilingan kundan boshlab 14 kun ichida qaytarishingiz mumkin.",
   },
-  beFirstReview: "Ushbu mahsulot haqida birinchi bo'lib sharh qoldiring",
   gallery: {
     prev: "Oldingi rasm",
     next: "Keyingi rasm",

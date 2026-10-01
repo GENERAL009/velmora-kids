@@ -15,7 +15,6 @@ import {
   Headphones,
   CreditCard,
   Tag,
-  Star,
   BarChart3,
   UserCog,
   Settings,
@@ -102,11 +101,6 @@ const navItems: NavItem[] = [
     href: "/admin/promotions",
     icon: Tag,
     roles: ["director", "admin", "marketing"],
-  },
-  {
-    label: "Sharhlar",
-    href: "/admin/reviews",
-    icon: Star,
   },
   {
     label: "Hisobotlar",

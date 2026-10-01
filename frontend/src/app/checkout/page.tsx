@@ -598,14 +598,14 @@ export default function CheckoutPage() {
                       const price = item.product.price + (item.variant.additional_price ?? 0);
                       return (
                         <div key={item.variant.id} className="flex gap-3">
-                          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-primary-100 to-secondary-100">
+                          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-neutral-100 bg-white dark:border-neutral-800 dark:bg-neutral-900">
                             {item.product.images?.[0]?.file_path ? (
                               <Image
                                 src={item.product.images[0].file_path}
                                 alt={item.product.name}
                                 fill
                                 unoptimized
-                                className="object-cover"
+                                className="object-contain"
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center">

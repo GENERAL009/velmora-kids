@@ -50,7 +50,7 @@ function FavoriteImage({ src, alt }: { src?: string | null; alt: string }) {
       alt={alt}
       fill
       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
-      className="object-cover transition-transform duration-500 group-hover:scale-105"
+      className="object-contain transition-transform duration-500 group-hover:scale-105"
       onError={() => setFailed(true)}
       unoptimized
     />
@@ -96,7 +96,7 @@ export default function FavoritesPage() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="animate-pulse overflow-hidden rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
-              <div className="aspect-square bg-neutral-200 dark:bg-neutral-800" />
+              <div className="aspect-[3/4] bg-neutral-200 dark:bg-neutral-800" />
               <div className="space-y-2 p-4">
                 <div className="h-5 w-full rounded bg-neutral-200 dark:bg-neutral-700" />
                 <div className="h-6 w-24 rounded bg-neutral-200 dark:bg-neutral-700" />
@@ -165,7 +165,7 @@ export default function FavoritesPage() {
                 </div>
               )}
 
-              <Link href={`/product/${product.slug}`} className="relative block aspect-square overflow-hidden bg-neutral-50 dark:bg-neutral-800">
+              <Link href={`/product/${product.slug}`} className="relative block aspect-[3/4] overflow-hidden bg-white dark:bg-neutral-900">
                 <FavoriteImage src={image} alt={name} />
                 {unavailable && (
                   <span className="absolute inset-x-0 bottom-0 bg-neutral-900/70 py-1.5 text-center text-xs font-medium text-white">

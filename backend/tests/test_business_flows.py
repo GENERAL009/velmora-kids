@@ -312,3 +312,32 @@ async def test_courier_free_above_threshold(client: AsyncClient, customer_token,
     assert r.status_code == 201, r.text
     assert r.json()["delivery_fee"] == 0
     assert r.json()["total"] == 750000
+
+
+@pytest.mark.asyncio
+async def test_trust_badges_managed_from_admin(client: AsyncClient, admin_token, customer_token, tmp_path, monkeypatch):
+    from app.api.v1.endpoints import settings as site_settings
+    monkeypatch.setattr(site_settings, "SETTINGS_FILE", tmp_path / "site_settings.json")
+
+    # defaults: the three built-in badges
+    data = (await client.get("/api/v1/settings/site")).json()
+    assert [b["icon"] for b in data["trust_badges"]] == ["truck", "rotate", "shield"]
+
+    badges = [
+        {"icon": "gift", "title_uz": "Sovg'a", "title_ru": "Подарок", "enabled": True},
+        {"icon": "truck", "title_uz": "  ", "title_ru": "", "enabled": True},  # empty -> dropped
+        {"icon": "shield", "title_uz": "Kafolat", "title_ru": "Гарантия", "enabled": False},
+    ]
+    ok = await client.put("/api/v1/settings/site", json={"trust_badges": badges}, headers=_auth(admin_token))
+    assert ok.status_code == 200
+    saved = (await client.get("/api/v1/settings/site")).json()["trust_badges"]
+    assert [(b["icon"], b["enabled"]) for b in saved] == [("gift", True), ("shield", False)]
+
+    bad = await client.put(
+        "/api/v1/settings/site", json={"trust_badges": [{"icon": "<script>", "title_uz": "x"}]}, headers=_auth(admin_token)
+    )
+    assert bad.status_code == 422
+
+    # last: a failed request rolls back the shared test session
+    forbidden = await client.put("/api/v1/settings/site", json={"trust_badges": badges}, headers=_auth(customer_token))
+    assert forbidden.status_code == 403

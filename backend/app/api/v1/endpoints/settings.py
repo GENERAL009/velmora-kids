@@ -3,12 +3,12 @@ import logging
 import shutil
 import uuid
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException
 
 logger = logging.getLogger(__name__)
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,8 +42,6 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "logo_header": "",
     "logo_footer": "",
     "logo_favicon": "",
-    "promo_banner_title": "Сезонная распродажа",
-    "promo_banner_subtitle": "Скидки до 50% на избранные коллекции",
     "footer_about": "Velmora Kids — магазин детских колясок, велосипедов, самокатов и электромобилей в Узбекистане.",
     "meta_title": "Velmora Kids — коляски, велосипеды, самокаты и электромобили для детей",
     "meta_description": "Интернет-магазин детского транспорта: коляски, велосипеды, беговелы, самокаты и детские электромобили. Доставка по всему Узбекистану.",
@@ -54,7 +52,15 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "payment_bank_account": "",
     "payment_bank_mfo": "",
     "payment_bank_inn": "",
+    # Product page trust badges (icon names are mapped to icons on the frontend)
+    "trust_badges": [
+        {"icon": "truck", "title_uz": "Bepul yetkazib berish", "title_ru": "Бесплатная доставка", "enabled": True},
+        {"icon": "rotate", "title_uz": "14 kun ichida qaytarish", "title_ru": "Возврат 14 дней", "enabled": True},
+        {"icon": "shield", "title_uz": "Sifat kafolati", "title_ru": "Гарантия качества", "enabled": True},
+    ],
 }
+
+TRUST_ICONS = ("truck", "rotate", "shield", "gift", "clock", "award", "card", "phone", "star", "heart")
 
 
 def _read_settings() -> dict[str, Any]:
@@ -67,6 +73,13 @@ def _read_settings() -> dict[str, Any]:
 def _write_settings(data: dict[str, Any]) -> None:
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     SETTINGS_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+class TrustBadge(BaseModel):
+    icon: Literal[TRUST_ICONS] = "shield"  # type: ignore[valid-type]
+    title_uz: str = Field("", max_length=80)
+    title_ru: str = Field("", max_length=80)
+    enabled: bool = True
 
 
 class SiteSettingsUpdate(BaseModel):
@@ -90,8 +103,6 @@ class SiteSettingsUpdate(BaseModel):
     logo_header: str | None = None
     logo_footer: str | None = None
     logo_favicon: str | None = None
-    promo_banner_title: str | None = None
-    promo_banner_subtitle: str | None = None
     footer_about: str | None = None
     meta_title: str | None = None
     meta_description: str | None = None
@@ -102,6 +113,7 @@ class SiteSettingsUpdate(BaseModel):
     payment_bank_account: str | None = None
     payment_bank_mfo: str | None = None
     payment_bank_inn: str | None = None
+    trust_badges: list[TrustBadge] | None = Field(None, max_length=6)
 
 
 @router.get("/site")
@@ -119,6 +131,11 @@ async def update_site_settings(
 ):
     current = _read_settings()
     updates = body.model_dump(exclude_none=True)
+    if "trust_badges" in updates:
+        # drop rows without any text so the storefront never shows an empty badge
+        updates["trust_badges"] = [
+            b for b in updates["trust_badges"] if b["title_uz"].strip() or b["title_ru"].strip()
+        ]
     current.update(updates)
     _write_settings(current)
     return current

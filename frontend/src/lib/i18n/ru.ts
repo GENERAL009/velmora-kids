@@ -124,7 +124,6 @@ export const ru = {
   product: {
     description: "Описание",
     characteristics: "Характеристики",
-    reviews: "Отзывы",
     questions: "Вопросы",
     selectColor: "Выберите цвет",
     quantity: "Количество",
@@ -146,8 +145,6 @@ export const ru = {
     remoteControl: "Пульт управления",
     lights: "Подсветка",
     music: "Музыка",
-    noReviews: "Пока нет отзывов",
-    writeReview: "Написать отзыв",
     noQuestions: "Вопросов пока нет",
     askQuestion: "Задать вопрос",
   },
@@ -191,11 +188,6 @@ export const ru = {
 
   // Footer
   footer: {
-    stayUpdated: "Будьте в курсе новинок",
-    subscribeOffer: "Подпишитесь на рассылку и получите скидку 10% на первый заказ",
-    yourEmail: "Ваш email",
-    subscribe: "Подписаться",
-    thanksSubscribe: "Спасибо за подписку!",
     aboutCompany: "О компании",
     forCustomers: "Покупателям",
     contacts: "Контакты",

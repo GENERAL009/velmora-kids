@@ -119,7 +119,6 @@ export const uz: TranslationKeys = {
   product: {
     description: "Tavsif",
     characteristics: "Xususiyatlar",
-    reviews: "Sharhlar",
     questions: "Savollar",
     selectColor: "Rangni tanlang",
     quantity: "Soni",
@@ -141,8 +140,6 @@ export const uz: TranslationKeys = {
     remoteControl: "Masofadan boshqarish",
     lights: "Yoritish",
     music: "Musiqa",
-    noReviews: "Hozircha sharhlar yo'q",
-    writeReview: "Sharh yozish",
     noQuestions: "Hozircha savollar yo'q",
     askQuestion: "Savol berish",
   },
@@ -183,11 +180,6 @@ export const uz: TranslationKeys = {
   },
 
   footer: {
-    stayUpdated: "Yangiliklardan xabardor bo'ling",
-    subscribeOffer: "Obuna bo'ling va birinchi buyurtmangizga 10% chegirma oling",
-    yourEmail: "Email manzilingiz",
-    subscribe: "Obuna bo'lish",
-    thanksSubscribe: "Obuna uchun rahmat!",
     aboutCompany: "Kompaniya haqida",
     forCustomers: "Xaridorlar uchun",
     contacts: "Kontaktlar",

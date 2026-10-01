@@ -63,10 +63,6 @@ export const ru = {
   agreeBefore: "Нажимая на кнопку, вы соглашаетесь с",
   agreeLink: "условиями обработки данных",
   agreeAfter: "",
-  toast: {
-    quantityUpdated: "{name} — количество обновлено",
-    addedToCart: "{name} добавлен в корзину",
-  },
   location: {
     placeholder: "Выберите на карте или определите геолокацию",
     myLocation: "Моё местоположение",
@@ -135,10 +131,6 @@ export const uz: DeepStringify<typeof ru> = {
   agreeBefore: "Tugmani bosish orqali siz",
   agreeLink: "ma'lumotlarni qayta ishlash shartlariga",
   agreeAfter: "rozilik bildirasiz",
-  toast: {
-    quantityUpdated: "{name} — miqdori yangilandi",
-    addedToCart: "{name} savatga qo'shildi",
-  },
   location: {
     placeholder: "Xaritadan tanlang yoki joylashuvni aniqlang",
     myLocation: "Mening joylashuvim",

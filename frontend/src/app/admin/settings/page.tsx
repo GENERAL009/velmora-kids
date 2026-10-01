@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Save, Loader2, Globe, Phone, MapPin, Video, FileText,
-  Search as SearchIcon, CreditCard, Upload, Image as ImageIcon, X, Trash2,
+  Save, Loader2, Globe, Phone, Video, FileText, BadgeCheck, Plus, ArrowUp, ArrowDown,
+  Search as SearchIcon, CreditCard, Upload, Image as ImageIcon, Trash2,
   AlertTriangle,
 } from "lucide-react";
 import { apiGet, apiPut, apiPost } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { TRUST_ICONS, type TrustBadge } from "@/components/product/trust-badges";
 
 interface SiteSettings {
   phone_primary: string;
@@ -25,8 +26,6 @@ interface SiteSettings {
   logo_header: string;
   logo_footer: string;
   logo_favicon: string;
-  promo_banner_title: string;
-  promo_banner_subtitle: string;
   footer_about: string;
   meta_title: string;
   meta_description: string;
@@ -37,6 +36,7 @@ interface SiteSettings {
   payment_bank_account: string;
   payment_bank_mfo: string;
   payment_bank_inn: string;
+  trust_badges?: TrustBadge[];
 }
 
 const TEXT_SECTIONS = [
@@ -59,14 +59,6 @@ const TEXT_SECTIONS = [
       { key: "telegram_url", label: "Telegram", placeholder: "https://t.me/velmorakids" },
       { key: "facebook_url", label: "Facebook", placeholder: "https://facebook.com/velmorakids" },
       { key: "tiktok_url", label: "TikTok", placeholder: "https://tiktok.com/@velmorakids" },
-    ],
-  },
-  {
-    title: "Promo banner",
-    icon: MapPin,
-    fields: [
-      { key: "promo_banner_title", label: "Sarlavha", placeholder: "Mavsumiy chegirma" },
-      { key: "promo_banner_subtitle", label: "Qo'shimcha matn", placeholder: "50% gacha chegirma..." },
     ],
   },
   {
@@ -393,7 +385,123 @@ export default function AdminSettingsPage() {
         })}
       </div>
 
+      <TrustBadgesSection
+        badges={settings.trust_badges ?? []}
+        onChange={(trust_badges) => setSettings((prev) => (prev ? { ...prev, trust_badges } : prev))}
+      />
+
       <ResetDataSection />
+    </div>
+  );
+}
+
+const INPUT =
+  "h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500";
+
+function TrustBadgesSection({ badges, onChange }: { badges: TrustBadge[]; onChange: (b: TrustBadge[]) => void }) {
+  const patch = (i: number, p: Partial<TrustBadge>) => onChange(badges.map((b, j) => (j === i ? { ...b, ...p } : b)));
+  const move = (i: number, d: -1 | 1) => {
+    const j = i + d;
+    if (j < 0 || j >= badges.length) return;
+    const next = [...badges];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+  };
+
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/20">
+            <BadgeCheck className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Mahsulot sahifasidagi afzalliklar</h2>
+            <p className="text-xs text-neutral-500">
+              &quot;Bepul yetkazib berish&quot;, &quot;14 kun ichida qaytarish&quot; kabi belgilar. O&apos;chirilganlari saytda ko&apos;rinmaydi.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange([...badges, { icon: "shield", title_uz: "", title_ru: "", enabled: true }])}
+          disabled={badges.length >= 6}
+          className="flex items-center justify-center gap-1.5 rounded-lg border border-primary-200 px-3 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50 disabled:opacity-40 dark:border-primary-900/50 dark:text-primary-400"
+        >
+          <Plus className="h-4 w-4" /> Qo&apos;shish
+        </button>
+      </div>
+
+      {badges.length === 0 && (
+        <p className="rounded-lg bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-500 dark:bg-neutral-800">
+          Afzalliklar yo&apos;q — mahsulot sahifasida bu blok ko&apos;rinmaydi.
+        </p>
+      )}
+
+      <div className="space-y-3">
+        {badges.map((b, i) => {
+          const Icon = (TRUST_ICONS[b.icon] ?? TRUST_ICONS.shield).icon;
+          return (
+            <div
+              key={i}
+              className={cn(
+                "rounded-lg border border-neutral-200 p-3 dark:border-neutral-700",
+                !b.enabled && "opacity-60"
+              )}
+            >
+              <div className="grid gap-3 md:grid-cols-[auto_1fr_1fr_auto] md:items-end">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-500">Belgi</label>
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-secondary-50 dark:bg-secondary-950/30">
+                      <Icon className="h-5 w-5 text-secondary-600" />
+                    </span>
+                    <select
+                      value={b.icon}
+                      onChange={(e) => patch(i, { icon: e.target.value })}
+                      className={cn(INPUT, "w-full md:w-32")}
+                    >
+                      {Object.entries(TRUST_ICONS).map(([key, v]) => (
+                        <option key={key} value={key}>{v.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-500">Matn (o&apos;zbekcha)</label>
+                  <input className={INPUT} value={b.title_uz} maxLength={80} placeholder="Bepul yetkazib berish"
+                    onChange={(e) => patch(i, { title_uz: e.target.value })} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-neutral-500">Matn (ruscha)</label>
+                  <input className={INPUT} value={b.title_ru} maxLength={80} placeholder="Бесплатная доставка"
+                    onChange={(e) => patch(i, { title_ru: e.target.value })} />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <label className="mr-1 flex cursor-pointer items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
+                    <input type="checkbox" checked={b.enabled} onChange={(e) => patch(i, { enabled: e.target.checked })}
+                      className="h-4 w-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-200" />
+                    Faol
+                  </label>
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Yuqoriga"
+                    className="rounded-md p-2 text-neutral-500 hover:bg-neutral-100 disabled:opacity-30 dark:hover:bg-neutral-800">
+                    <ArrowUp className="h-4 w-4" />
+                  </button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === badges.length - 1} aria-label="Pastga"
+                    className="rounded-md p-2 text-neutral-500 hover:bg-neutral-100 disabled:opacity-30 dark:hover:bg-neutral-800">
+                    <ArrowDown className="h-4 w-4" />
+                  </button>
+                  <button type="button" onClick={() => onChange(badges.filter((_, j) => j !== i))} aria-label="O'chirish"
+                    className="rounded-md p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-xs text-neutral-500">O&apos;zgarishlar yuqoridagi &quot;Saqlash&quot; tugmasi bilan saqlanadi.</p>
     </div>
   );
 }
@@ -433,7 +541,7 @@ function ResetDataSection() {
             Ma'lumotlarni tozalash
           </h2>
           <p className="mt-1 text-sm text-red-600/80 dark:text-red-400/80">
-            Barcha mahsulotlar, buyurtmalar, to'lovlar, savatlar, sevimlilar, sharhlar va statistikalarni o'chiradi.
+            Barcha mahsulotlar, buyurtmalar, to'lovlar, savatlar, sevimlilar va statistikalarni o'chiradi.
             Kategoriyalar, brendlar, bannerlar va foydalanuvchilar saqlanadi.
           </p>
           <button

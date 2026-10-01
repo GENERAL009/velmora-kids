@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { Send, MapPin, Phone, Mail, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MapPin, Phone, Mail, Star } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 
 export function Footer() {
   const t = useTranslation();
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
 
   const aboutLinks = [
     { href: "/catalog", label: t.nav.catalog },
@@ -24,14 +21,6 @@ export function Footer() {
     { href: "/cart", label: t.nav.cart },
   ];
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setEmail("");
-      setSubscribed(true);
-      setTimeout(() => setSubscribed(false), 3000);
-    }
-  };
 
   return (
     <footer className="relative bg-neutral-50 dark:bg-neutral-900">
@@ -44,40 +33,6 @@ export function Footer() {
         <div className="absolute bottom-24 left-[20%] h-8 w-14 rounded-[50%] bg-secondary-50/50 dark:bg-secondary-950/20" />
       </div>
 
-      {/* Newsletter */}
-      <div className="border-b border-neutral-200/60 dark:border-neutral-700/60">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-xl text-center">
-            <h3 className="font-display text-2xl font-semibold text-charcoal dark:text-white">
-              {t.footer.stayUpdated}
-            </h3>
-            <p className="mt-2 text-sm text-neutral-500">
-              {t.footer.subscribeOffer}
-            </p>
-            <form
-              onSubmit={handleSubscribe}
-              className="mt-6 flex flex-col gap-2 sm:flex-row"
-            >
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.footer.yourEmail}
-                required
-                className="flex-1 rounded border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800 px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              />
-              <Button type="submit" rightIcon={<Send className="h-4 w-4" />}>
-                {t.footer.subscribe}
-              </Button>
-            </form>
-            {subscribed && (
-              <p className="mt-3 text-sm text-secondary-600">
-                {t.footer.thanksSubscribe}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Main footer */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

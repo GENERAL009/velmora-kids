@@ -44,7 +44,7 @@ export function ProductGallery({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Main image */}
-      <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-neutral-100">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-md border border-neutral-100 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         {hasImages && currentImage ? (
           <>
             <Image
@@ -55,7 +55,7 @@ export function ProductGallery({
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
               priority
               className={cn(
-                "object-cover transition-transform duration-500",
+                "object-contain transition-transform duration-500",
                 isZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
               )}
               onMouseEnter={() => setIsZoomed(true)}
@@ -117,7 +117,7 @@ export function ProductGallery({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={cn(
-                "relative h-[72px] w-[56px] flex-shrink-0 overflow-hidden rounded-sm border-2 transition-all sm:h-[100px] sm:w-[80px]",
+                "relative h-[72px] w-[56px] flex-shrink-0 overflow-hidden rounded-sm border-2 bg-white transition-all dark:bg-neutral-900 sm:h-[100px] sm:w-[80px]",
                 selectedIndex === index
                   ? "border-primary-500 ring-2 ring-primary-200"
                   : "border-neutral-200 hover:border-primary-300"
@@ -129,7 +129,7 @@ export function ProductGallery({
                 fill
                 unoptimized
                 sizes="80px"
-                className="object-cover"
+                className="object-contain"
                 onError={() => setImageError(true)}
               />
             </motion.button>

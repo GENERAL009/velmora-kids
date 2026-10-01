@@ -82,7 +82,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
 
   return (
     <motion.div
-      className={cn("group relative", className)}
+      className={cn("group relative flex h-full flex-col", className)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       whileHover={{ y: -4 }}
@@ -90,7 +90,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
     >
       {/* Image container */}
       <Link href={`/product/${product.slug}`} className="block">
-        <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-neutral-100">
+        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-md border border-neutral-100 bg-white dark:border-neutral-800 dark:bg-neutral-900">
           {/* Primary image */}
           {primaryImage && !imageError ? (
             <Image
@@ -100,7 +100,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
               unoptimized
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className={cn(
-                "object-cover transition-all duration-500",
+                "object-contain transition-all duration-500",
                 isHovered && secondaryImage ? "opacity-0" : "opacity-100"
               )}
               onError={() => setImageError(true)}
@@ -122,7 +122,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
               unoptimized
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className={cn(
-                "absolute inset-0 object-cover transition-all duration-500",
+                "absolute inset-0 object-contain transition-all duration-500",
                 isHovered ? "opacity-100 scale-105" : "opacity-0 scale-100"
               )}
             />
@@ -190,7 +190,7 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
       </Link>
 
       {/* Info */}
-      <div className="mt-3 space-y-1">
+      <div className="mt-3 flex flex-1 flex-col gap-1">
         {/* Brand */}
         {product.brand && (
           <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
@@ -200,23 +200,23 @@ export function ProductCard({ product, className, isLoading }: ProductCardProps)
 
         {/* Name */}
         <Link href={`/product/${product.slug}`}>
-          <h3 className="text-sm font-medium text-neutral-800 transition-colors hover:text-primary-600 dark:text-neutral-200 line-clamp-2">
+          <h3 className="text-sm font-medium text-neutral-800 transition-colors hover:text-primary-600 dark:text-neutral-200 line-clamp-2 min-h-[2.5rem] leading-5">
             {productName}
           </h3>
         </Link>
 
         {/* Price */}
-        <div className="flex items-center gap-2">
+        <div className="mt-auto flex flex-wrap items-baseline gap-x-2">
           <span
             className={cn(
-              "text-sm font-semibold",
+              "whitespace-nowrap text-sm font-semibold",
               discount > 0 ? "text-primary-600" : "text-charcoal dark:text-white"
             )}
           >
             {formatPrice(product.price)}
           </span>
           {product.compare_at_price && product.compare_at_price > product.price && (
-            <span className="text-xs text-neutral-400 line-through">
+            <span className="whitespace-nowrap text-xs text-neutral-400 line-through">
               {formatPrice(product.compare_at_price)}
             </span>
           )}

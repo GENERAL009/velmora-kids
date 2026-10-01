@@ -32,42 +32,6 @@ class CartResponse(BaseModel):
     item_count: int
 
 
-class ReviewCreate(BaseModel):
-    product_id: UUID
-    rating: int = Field(ge=1, le=5)
-    title: Optional[str] = None
-    comment: Optional[str] = None
-
-
-class ReviewResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    rating: int
-    title: Optional[str] = None
-    comment: Optional[str] = None
-    created_at: datetime
-    is_approved: bool
-
-
-class ProductQuestionCreate(BaseModel):
-    product_id: UUID
-    question: str
-    customer_name: str
-    customer_phone: Optional[str] = None
-
-
-class ProductQuestionResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    question: str
-    answer: Optional[str] = None
-    customer_name: str
-    is_public: bool
-    created_at: datetime
-
-
 class BannerCreate(BaseModel):
     title: str
     subtitle: Optional[str] = None
@@ -132,14 +96,6 @@ class PromotionResponse(BaseModel):
     created_at: datetime
 
 
-class UserBriefForContent(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    first_name: str
-    last_name: str
-
-
 class ProductImageBrief(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -178,33 +134,6 @@ class FavoriteResponse(BaseModel):
     user_id: UUID
     product_id: UUID
     product: Optional[ProductBriefForContent] = None
-    created_at: datetime
-
-
-class ReviewWithUserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    rating: int
-    title: Optional[str] = None
-    comment: Optional[str] = None
-    is_approved: bool
-    is_visible: bool
-    user: Optional[UserBriefForContent] = None
-    created_at: datetime
-
-
-class ProductQuestionDetailResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    product_id: UUID
-    customer_name: str
-    customer_phone: Optional[str] = None
-    question: str
-    answer: Optional[str] = None
-    answered_at: Optional[datetime] = None
-    is_public: bool
     created_at: datetime
 
 

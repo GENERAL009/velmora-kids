@@ -119,14 +119,14 @@ export default function CartPage() {
                     >
                       <div className="flex gap-3 sm:gap-4">
                         {/* Product Image */}
-                        <div className="relative h-20 w-20 flex-shrink-0 sm:h-24 sm:w-24 overflow-hidden rounded-md bg-gradient-to-br from-primary-100 to-secondary-100 lg:h-32 lg:w-32">
+                        <div className="relative h-20 w-20 flex-shrink-0 sm:h-24 sm:w-24 overflow-hidden rounded-md border border-neutral-100 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:h-32 lg:w-32">
                           {item.product.images?.[0]?.file_path ? (
                             <Image
                               src={item.product.images[0].file_path}
                               alt={item.product.name}
                               fill
                               unoptimized
-                              className="object-cover"
+                              className="object-contain"
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center">

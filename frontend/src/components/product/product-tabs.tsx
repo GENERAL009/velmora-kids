@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Package, Truck, MessageCircle } from "lucide-react";
+import { Package, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/use-translation";
+import { useDeliveryRules } from "@/hooks/use-delivery";
+import { formatPrice } from "@/lib/utils";
 
-type TabId = "description" | "specs" | "shipping" | "reviews";
+type TabId = "description" | "specs" | "shipping";
 
 interface Tab {
   id: TabId;
@@ -28,12 +30,12 @@ export function ProductTabs({
   const [activeTab, setActiveTab] = useState<TabId>("description");
   const t = useTranslation();
   const tp = t.productPage;
+  const { freeFrom } = useDeliveryRules();
 
   const tabs: Tab[] = [
     { id: "description", label: t.product.description },
     { id: "specs", label: t.product.characteristics },
     { id: "shipping", label: t.cart.delivery },
-    { id: "reviews", label: t.product.reviews },
   ];
 
   return (
@@ -122,7 +124,7 @@ export function ProductTabs({
                   {tp.trust.freeDelivery}
                 </h4>
                 <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                  {tp.shipping.freeDeliveryDesc}
+                  {tp.shipping.freeDeliveryDesc.replace("{amount}", formatPrice(freeFrom))}
                 </p>
               </div>
             </div>
@@ -172,20 +174,6 @@ export function ProductTabs({
           </div>
         )}
 
-        {activeTab === "reviews" && (
-          <div className="rounded-md bg-neutral-50 dark:bg-neutral-800/50 p-8 text-center">
-            <MessageCircle className="mx-auto mb-3 h-10 w-10 text-neutral-300 dark:text-neutral-600" />
-            <h4 className="mb-2 font-semibold text-charcoal dark:text-white">
-              {t.product.noReviews}
-            </h4>
-            <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
-              {tp.beFirstReview}
-            </p>
-            <button className="rounded-sm bg-primary-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600">
-              {t.product.writeReview}
-            </button>
-          </div>
-        )}
       </motion.div>
     </div>
   );

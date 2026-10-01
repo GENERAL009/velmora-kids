@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
     auth, products, orders, inventory, cart, favorites,
-    crm, reviews, questions, payments, banners, promotions,
+    crm, payments, banners, promotions,
     notifications, reports, users, audit, customers,
     settings, bot_webhook, account,
 )
@@ -15,8 +15,6 @@ api_router.include_router(inventory.router)
 api_router.include_router(cart.router)
 api_router.include_router(favorites.router)
 api_router.include_router(crm.router)
-api_router.include_router(reviews.router)
-api_router.include_router(questions.router)
 api_router.include_router(payments.router)
 api_router.include_router(banners.router)
 api_router.include_router(promotions.router)

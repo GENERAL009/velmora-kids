@@ -36,14 +36,6 @@ export const ru = {
     t3: "Беговелы",
     t4: "Квадроциклы",
   },
-  demo: {
-    scooterName: "Самокат трёхколёсный со светящимися колёсами",
-    scooterCategory: "Самокаты",
-    carName: "Электромобиль Mercedes-Benz для детей",
-    carCategory: "Электромобили",
-    balanceBikeName: "Беговел алюминиевый 12 дюймов",
-    balanceBikeCategory: "Велосипеды",
-  },
 } as const satisfies Record<string, unknown>;
 
 export const uz: DeepStringify<typeof ru> = {
@@ -79,13 +71,5 @@ export const uz: DeepStringify<typeof ru> = {
     t2: "Elektromobillar",
     t3: "Balans velosipedlar",
     t4: "Kvadrotsikllar",
-  },
-  demo: {
-    scooterName: "Yonadigan g'ildirakli uch g'ildirakli samokat",
-    scooterCategory: "Samokatlar",
-    carName: "Bolalar uchun Mercedes-Benz elektromobili",
-    carCategory: "Elektromobillar",
-    balanceBikeName: "12 dyuymli alyuminiy balans velosiped",
-    balanceBikeCategory: "Velosipedlar",
   },
 };

@@ -385,46 +385,6 @@ export function useAdminUsers() {
   });
 }
 
-// ============================================================
-// Reviews (admin)
-// ============================================================
-
-export interface AdminReview {
-  id: string;
-  rating: number;
-  title: string | null;
-  comment: string | null;
-  is_approved: boolean;
-  is_visible: boolean;
-  created_at: string;
-  user?: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-  } | null;
-  product?: {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
-}
-
-export function useAdminReviews(params: { is_approved?: boolean; page?: number; page_size?: number } = {}) {
-  const searchParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.set(key, String(value));
-    }
-  });
-  const qs = searchParams.toString();
-  return useQuery({
-    queryKey: ["admin", "reviews", params],
-    queryFn: () => apiGet<AdminReview[]>(`/reviews${qs ? `?${qs}` : ""}`),
-    retry: 1,
-  });
-}
-
 export function useConfirmPayment() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -451,26 +411,6 @@ export function useRejectPayment() {
     mutationFn: (orderId: string) => apiPatch(`/orders/${orderId}/reject-payment`, {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
-    },
-  });
-}
-
-export function useApproveReview() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (reviewId: string) => apiPatch(`/reviews/${reviewId}/approve`, {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
-    },
-  });
-}
-
-export function useRejectReview() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (reviewId: string) => apiPatch(`/reviews/${reviewId}/reject`, {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
     },
   });
 }
